@@ -145,6 +145,6 @@ def run_experiment(experiment, script_path, build_script=submit,
             except CalledProcessError as exception:
                 aborted_job_update(exp_name, job_name, start, exception)
                 logger.error("Error launching job '%s': %s" % (job_name,
-                    exception.message))
+                    exception.message), exc_info=True)
 
     logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))

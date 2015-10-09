@@ -9,7 +9,7 @@ __copyright__ = "3-clause BSD License"
 
 from datetime import datetime
 
-from .database import update_notification, load_notifications
+from .database import update_notification, load_notifications, load_experiments
 
 
 __RUNNING__ = "RUNNING"
@@ -78,14 +78,20 @@ def is_up(status):
             or status == __PENDING__)
 
 class Historic(object):
-    def __init__(self, exp_name):
+    def __init__(self, exp_name=None):
         self.exp_name = exp_name
         self.job_dict = None
         self.state_dict = None
         self.refresh()
 
     def refresh(self):
-        self.job_dict = load_notifications(self.exp_name)
+        if self.exp_name is None:
+            self.job_dict = {}
+            exps = load_experiments()
+            for exp in exps.keys():
+                self.job_dict.update(load_notifications(exp))
+        else:
+            self.job_dict = load_notifications(self.exp_name)
         self.state_dict = _sort_by_state(self.job_dict)
 
     def __len__(self):

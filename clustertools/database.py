@@ -16,6 +16,7 @@ __copyright__ = "3-clause BSD License"
 
 
 import os
+import logging
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
 
@@ -91,9 +92,16 @@ def load_results(exp_name):
 
 def reset_experiment(exp_name):
     db = get_resultdb(exp_name)
-    os.remove(db)
+    logger = logging.getLogger("clustertools")
+    try:
+        os.remove(db)
+    except OSError, reason:
+        logger.warn("Trouble erasing database: %s" % reason, exc_info=True)
     db = get_notifdb(exp_name)
-    os.remove(db)
+    try:
+        os.remove(db)
+    except OSError, reason:
+        logger.warn("Trouble erasing database: %s" % reason, exc_info=True)
 
 
 
