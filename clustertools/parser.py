@@ -21,11 +21,17 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
 
     Return
     ------
-    submit: callable
+    exp_name: str
+        The experiment name
+    script: str
+        The path to the script
+    script_builder: callable
         A submit function (cf. )
     """
 
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("name", help="The name of this experiment")
+    parser.add_argument("script", help="Path to script")
     parser.add_argument("--backend", "-b", default="auto",
                         help="""{'auto', 'slurm', 'sge'}
         Backend where the job will be submitted. If 'auto', try detect
@@ -54,7 +60,11 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
                         help='Maximum time format "HH:MM:SS"')
 
     args = parser.parse_args(args=args, namespace=namespace)
-    return partial(submit, time=args.time, memory=args.memory, email=args.email,
-                   email_options=args.emailopt, log_directory=args.logfolder,
-                   backend=args.backend, shell_script=args.shell)
+    exp_name = args.name
+    script = args.script
+    script_builder = partial(submit, time=args.time, memory=args.memory,
+                             email=args.email, email_options=args.emailopt,
+                             log_directory=args.logfolder, backend=args.backend,
+                             shell_script=args.shell)
+    return exp_name, script, script_builder
 
