@@ -21,14 +21,15 @@ __version__ = '0.0.1'
 __date__ = "08 Oct. 2015"
 
 
+from .database import reset_experiment
 from .notification import Historic
 from .experiment import Computation, Experiment, run_experiment
 from .parser import parse_args
 from .util import call_with, encode_kwargs, decode_kwargs, bash_submit
 
-__all__ = ["Historic", "Computation", "Experiment", "run_experiment",
-           "parse_args", "call_with", "encode_kwargs", "decode_kwargs",
-           "set_stdout_logging", "bash_submit"]
+__all__ = ["reset_experiment", "Historic", "Computation", "Experiment",
+           "run_experiment", "parse_args", "call_with", "encode_kwargs",
+           "decode_kwargs", "set_stdout_logging", "bash_submit"]
 
 
 

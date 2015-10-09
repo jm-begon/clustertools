@@ -66,6 +66,7 @@ def load_experiments(name=None, *names):
     db = get_expdb()
     return sqlite3_loads(db, names)
 
+
 #======================= I/O NOTIFS =======================#
 
 def update_notification(exp_name, dictionary):
@@ -86,6 +87,13 @@ def save_result(exp_name, dictionary, overwrite=True):
 def load_results(exp_name):
     db = get_resultdb(exp_name)
     return sqlite3_loads(db)
+
+
+def reset_experiment(exp_name):
+    db = get_resultdb(exp_name)
+    os.remove(db)
+    db = get_notifdb(exp_name)
+    os.remove(db)
 
 
 
