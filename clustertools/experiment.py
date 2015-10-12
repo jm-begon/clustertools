@@ -22,7 +22,9 @@ from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update, Historic)
 from .util import encode_kwargs, experiment_diff
 
-
+__EXP_NAME__ = "Experiment"
+__PARAMETERS__ = "Parameters"
+__RESULTS__ = "Results"
 
 
 class Computation(object):
@@ -40,9 +42,9 @@ class Computation(object):
         try:
             result = {
                 self.comp_name: {
-                    "Experiment": self.exp_name,
-                    "Parameters": parameters,
-                    "Results": self.run(**parameters)
+                    __EXP_NAME__: self.exp_name,
+                    __PARAMETERS__: parameters,
+                    __RESULTS__: self.run(**parameters)
                 }
             }
             save_result(self.exp_name, result)
@@ -182,9 +184,10 @@ def relaunch_experiment(exp_name, script_path, build_script=submit,
                         serialize=encode_kwargs):
     logger = logging.getLogger("clustertools")
 
-    experiment = load_experiments(exp_name)
+    experiment = load_experiments(exp_name).values[0]
     results = load_results(exp_name)
-    computations = experiment_diff(experiment, results)
+    done_params = {k:v[__PARAMETERS__] for k,v in results.iteritems()}
+    computations = experiment_diff(experiment, done_params)
 
     for i, (job_name, param) in enumerate(computations):
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
