@@ -25,12 +25,13 @@ from .database import load_experiments, reset_experiment
 from .notification import Historic
 from .experiment import Computation, Experiment, run_experiment
 from .parser import parse_args
-from .util import call_with, encode_kwargs, decode_kwargs, bash_submit
+from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
+                   experiment_diff)
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
            "Experiment", "run_experiment", "parse_args", "call_with",
            "encode_kwargs", "decode_kwargs", "set_stdout_logging",
-           "bash_submit"]
+           "bash_submit", "experiment_diff"]
 
 
 

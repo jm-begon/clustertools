@@ -16,10 +16,11 @@ from itertools import product
 
 from clusterlib.scheduler import submit
 
-from .database import save_result, save_experiment
+from .database import (save_result, save_experiment, load_experiments,
+                       load_results)
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update, Historic)
-from .util import encode_kwargs
+from .util import encode_kwargs, experiment_diff
 
 
 
@@ -56,10 +57,12 @@ class Computation(object):
 
 class Experiment(object):
 
-    def __init__(self, name, params={}, serializer=encode_kwargs):
+    def __init__(self, name, params=None):
         self.name = name
-        self.params = params
-        self.serialize = serializer
+        if not params:
+            self.params = {}
+        else:
+            self.params = params
 
     def add_params(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -101,17 +104,41 @@ class Experiment(object):
         if len(self.params) == 0:
             yield "Computation-"+self.name+"-0", self.serialize({})
         else:
-            keys, values = zip(*self.params.items())
+            keys = self.params.keys()
+            keys.sort()
+            values = [self.params[k] for k in keys]
             for i, v in enumerate(product(*values)):
                 params = dict(zip(keys, v))
                 label = "Computation-"+self.name+"-"+str(i)
-                yield label, self.serialize(params)
+                yield label, params
 
+    def get_params_for(self, sel):
+        index = -1
+        name = ""
+        try:
+            index = int(sel)
+            # sel is a int
+            if index < 0 or index >= len(self):
+                raise KeyError("%d not in the range [0, %d]" %
+                                    (index, len(self)-1))
+        except ValueError:
+            # sel is a string
+            name = sel
+        for i, (label, param) in enumerate(self):
+            if i == index or name.encode("utf-8") == label.encode("utf-8"):
+                return label, param
+        raise KeyError("Key '%s' not found" % str(sel))
+
+    def __getitem__(self, sel):
+        return self.get_params_for(sel)
+
+    def __str__(self):
+        return "Experiment '%s': %s" % (self.name, str(self.params))
 
 
 
 def run_experiment(experiment, script_path, build_script=submit,
-                   overwrite=True):
+                   overwrite=True, serialize=encode_kwargs):
     logger = logging.getLogger("clustertools")
     exp_name = experiment.name
 
@@ -131,7 +158,8 @@ def run_experiment(experiment, script_path, build_script=submit,
 
     for i, (job_name, param) in enumerate(experiment):
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
-                                               exp_name, job_name, param)
+                                               exp_name, job_name,
+                                               serialize(param))
 
 
         if job_name not in do_not_launch:
@@ -148,3 +176,34 @@ def run_experiment(experiment, script_path, build_script=submit,
                     exception.message), exc_info=True)
 
     logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
+
+
+def relaunch_experiment(exp_name, script_path, build_script=submit,
+                        serialize=encode_kwargs):
+    logger = logging.getLogger("clustertools")
+
+    experiment = load_experiments(exp_name)
+    results = load_results(exp_name)
+    computations = experiment_diff(experiment, results)
+
+    for i, (job_name, param) in enumerate(computations):
+        job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
+                                               exp_name, job_name,
+                                               serialize(param))
+
+
+        script = build_script(job_command, job_name=job_name)
+        logger.debug("Script:\n%s" % script)
+
+        start = pending_job_update(exp_name, job_name)
+        try:
+            output = subprocess.check_output(script, shell=True)
+            logger.debug("Output:\n%s" % output)
+        except CalledProcessError as exception:
+            aborted_job_update(exp_name, job_name, start, exception)
+            logger.error("Error launching job '%s': %s" % (job_name,
+                exception.message), exc_info=True)
+
+
+    logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
+

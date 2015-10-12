@@ -10,6 +10,7 @@ __copyright__ = "3-clause BSD License"
 import json
 from inspect import getargspec
 
+
 def kw_intersect(function, dictionary, *args, **kwargs):
     """
     Computes the intersection between the function's parameters and
@@ -80,3 +81,15 @@ def decode_kwargs(string):
 
 def bash_submit(job_command, job_name, shell_script="#!/bin/bash"):
     return (u"echo '%s\n%s' | bash" % (shell_script, job_command))
+
+
+def experiment_diff(experiment, computations):
+    """
+    computations: mapping: computation_name --> list of parameters
+        from Experiment
+    """
+    res = []
+    for label, params in experiment:
+        if not computations.has_key(label):
+            res.append((label, params))
+    return res
