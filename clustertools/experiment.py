@@ -184,7 +184,7 @@ def relaunch_experiment(exp_name, script_path, build_script=submit,
                         serialize=encode_kwargs):
     logger = logging.getLogger("clustertools")
 
-    experiment = load_experiments(exp_name).values[0]
+    experiment = load_experiments(exp_name).values()[0]
     results = load_results(exp_name)
     done_params = {k:v[__PARAMETERS__] for k,v in results.iteritems()}
     computations = experiment_diff(experiment, done_params)
