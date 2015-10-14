@@ -7,8 +7,41 @@ Module :mod:`util` is a set of misc. functions
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
+import os
+import shutil
 import json
 from inspect import getargspec
+
+__ENV__ = "CLUSTERTOOLS_DB_FOLDER"
+
+def get_log_folder(exp_name=None):
+    try:
+        folder = os.environ[__ENV__]
+    except KeyError:
+        folder = os.path.join(os.environ["HOME"], "clustertools_logs")
+        os.environ[__ENV__] = folder
+
+    if exp_name is not None:
+        folder = os.path.join(folder, exp_name)
+
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    return folder
+
+def get_log_file(exp_name, comp_name):
+    folder = get_log_folder(exp_name)
+    for fname in os.listdir(folder):
+        fp = os.path.join(folder, fname)
+        if os.path.isfile(fp) and fname.startswith(comp_name+".") and fname.endswith(".txt"):
+            return fp
+
+def purge_logs(exp_name, comp_name=None):
+    if comp_name is None:
+        shutil.rmtree(get_log_folder(exp_name))
+    else:
+        fp = get_log_file(exp_name, comp_name)
+        if fp is not None:
+            os.remove(fp)
 
 
 def kw_intersect(function, dictionary, *args, **kwargs):
@@ -82,14 +115,28 @@ def decode_kwargs(string):
 def bash_submit(job_command, job_name, shell_script="#!/bin/bash"):
     return (u"echo '%s\n%s' | bash" % (shell_script, job_command))
 
+def false_submit(job_command, job_name, shell_script="#!/bin/bash"):
+    return (u"echo '%s'" % job_name)
 
-def experiment_diff(experiment, computations):
+
+def experiment_diff(experiment, computations={}, scheduled=[]):
     """
-    computations: mapping: computation_name --> list of parameters
-        from Experiment
+    computations: in-able of comp_name
+    scheduled: in-able of comp_name
     """
     res = []
     for label, params in experiment:
-        if not computations.has_key(label):
+        if label not in computations and label not in scheduled:
             res.append((label, params))
     return res
+
+def running_job_diff(exp_name, user=None):
+    histo = Historic(exp_name)
+    r_notif = set(histo.running_jobs().keys())
+    r_backend = {j for j in queued_or_running_jobs(user)
+                    if j.find(exp_name) >= 0}
+    notif_only = r_notif.difference(r_backend)
+    backend_only = r_backend.difference(notif_only)
+    both = r_notif.intersection(r_backend)
+    return {"Notif-only":notif_only, "Backend-only":backend_only, "Both":both}
+

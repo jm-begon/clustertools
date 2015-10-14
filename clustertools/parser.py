@@ -7,7 +7,11 @@ __copyright__ = "3-clause BSD License"
 
 import argparse
 from functools import partial
+
 from clusterlib.scheduler import submit
+
+from .util import get_log_folder
+
 
 def parse_args(description="Cluster job launcher.", args=None, namespace=None):
     """
@@ -39,11 +43,6 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
         variable looking first for 'slurm' and then for 'sge' if slurm is
         not found. The default backend selected when backend='auto' can also
         be fixed by setting the "CLUSTERLIB_BACKEND" environment variable.""")
-    parser.add_argument("--logfolder", "-l", default=None,
-                        help="""Specify the log directory. If None, no log
-        directory is specified. Job logs will be at log_directory with the name
-        ``job_name.job_id.txt`` where the ``job_id`` is given by the
-        scheduler.""")
     parser.add_argument("--time", "-t", default="24:00:00",
                         help='Maximum time format "HH:MM:SS"')
     parser.add_argument("--memory", "-m", default=4000, type=int,
@@ -64,7 +63,7 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
     script = args.script
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
-                             log_directory=args.logfolder, backend=args.backend,
-                             shell_script=args.shell)
+                             log_directory=get_log_folder(exp_name),
+                             backend=args.backend, shell_script=args.shell)
     return exp_name, script, script_builder
 

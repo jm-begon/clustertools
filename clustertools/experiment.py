@@ -3,12 +3,16 @@
 """
 Module :mod:`experiment` is a set of functions and classes to build, run and
 monitor experiments
+
+Restriction
+-----------
+Experiment names should always elligible file names.
 """
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-import sys
+import sys, os
 import subprocess
 from subprocess import CalledProcessError
 import logging
@@ -16,11 +20,10 @@ from itertools import product
 
 from clusterlib.scheduler import submit
 
-from .database import (save_result, save_experiment, load_experiments,
-                       load_results)
+from .database import save_result, save_experiment, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update, Historic)
-from .util import encode_kwargs, experiment_diff
+from .util import encode_kwargs
 
 __EXP_NAME__ = "Experiment"
 __PARAMETERS__ = "Parameters"
@@ -52,7 +55,6 @@ class Computation(object):
         except Exception as excep:
             aborted_job_update(self.exp_name, self.comp_name, start, excep)
             raise
-
 
 
 
@@ -138,62 +140,75 @@ class Experiment(object):
         return "Experiment '%s': %s" % (self.name, str(self.params))
 
 
+def build_result_cube(exp_name):
+    res = load_results(exp_name)
+    parameterss = []
+    resultss = []
+    for d in res.values():
+        parameterss.append(d[__PARAMETERS__])
+        resultss.append(d[__RESULTS__])
+    return Result(parameterss, resultss, exp_name)
+
+class Result(object):
+    """
+    parameterss : iterable of mappings name -> value
+    resultss : iterable of mappings name -> value
+    """
+    def __init__(self, parameterss, resultss, exp_name=""):
+        param_tmp = {}
+        for parameters in parameterss:
+            for k, v in parameters.iteritems():
+                _set = param_tmp.get(k)
+                if _set is None:
+                    _set = set()
+                    param_tmp[k] = _set
+                _set.add(v)
+        print param_tmp
+        metadata = {}
+        parameter_list = []
+        domain = {}
+        for k, v in param_tmp.iteritems():
+            ls = [vi for vi in v]
+            if len(ls) > 1:
+                ls.sort()
+                domain[k] = ls
+                parameter_list.append(k)
+            else:
+                metadata[k] = ls[0]
+        parameter_list.sort()
+
+        self.name = exp_name
+        self.metadata = metadata
+        self.domain = domain
+        self.parameters = parameter_list
+
+
+
+
+
+
+def yield_not_done_computation(experiment, user=os.environ["USER"]):
+    historic = Historic(experiment.name, user)
+    for comp_name, param in experiment:
+        if historic.is_launchable(comp_name):
+            yield comp_name, param
+
+
 
 def run_experiment(experiment, script_path, build_script=submit,
-                   overwrite=True, serialize=encode_kwargs):
+                   overwrite=True, user=os.environ["USER"],
+                   serialize=encode_kwargs):
     logger = logging.getLogger("clustertools")
     exp_name = experiment.name
 
     save_experiment(experiment, overwrite)
 
-
-    do_not_launch = set()
-    try:
-        # Job notified as done in notif DB
-        # --> Should be the same as previous done_jobs
-        historic = Historic(exp_name)
-        done_jobs = historic.already_up()
-        do_not_launch.union(done_jobs)
-    except Exception, reason:
-        logger.warn("Trouble connecting to notification database: %s" % reason)
-
-
-    for i, (job_name, param) in enumerate(experiment):
+    i = -1
+    for job_name, param in yield_not_done_computation(experiment, user):
+        i += 1
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
                                                exp_name, job_name,
                                                serialize(param))
-
-
-        if job_name not in do_not_launch:
-            script = build_script(job_command, job_name=job_name)
-            logger.debug("Script:\n%s" % script)
-
-            start = pending_job_update(exp_name, job_name)
-            try:
-                output = subprocess.check_output(script, shell=True)
-                logger.debug("Output:\n%s" % output)
-            except CalledProcessError as exception:
-                aborted_job_update(exp_name, job_name, start, exception)
-                logger.error("Error launching job '%s': %s" % (job_name,
-                    exception.message), exc_info=True)
-
-    logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
-
-
-def relaunch_experiment(exp_name, script_path, build_script=submit,
-                        serialize=encode_kwargs):
-    logger = logging.getLogger("clustertools")
-
-    experiment = load_experiments(exp_name).values()[0]
-    results = load_results(exp_name)
-    done_params = {k:v[__PARAMETERS__] for k,v in results.iteritems()}
-    computations = experiment_diff(experiment, done_params)
-
-    for i, (job_name, param) in enumerate(computations):
-        job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
-                                               exp_name, job_name,
-                                               serialize(param))
-
 
         script = build_script(job_command, job_name=job_name)
         logger.debug("Script:\n%s" % script)
@@ -206,7 +221,6 @@ def relaunch_experiment(exp_name, script_path, build_script=submit,
             aborted_job_update(exp_name, job_name, start, exception)
             logger.error("Error launching job '%s': %s" % (job_name,
                 exception.message), exc_info=True)
-
 
     logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
 

@@ -7,6 +7,10 @@ clustertools
 :mod:`clustertools` is a toolkit to run experiments on supercomputers.
 It is built on top of clusterlib (https://github.com/clusterlib/clusterlib).
 
+TODO
+clustertools_db
+clustertools_logs
+notification system
 
 Logging
 =======
@@ -23,15 +27,19 @@ __date__ = "08 Oct. 2015"
 
 from .database import load_experiments, reset_experiment
 from .notification import Historic
-from .experiment import Computation, Experiment, run_experiment
+from .experiment import (Computation, Experiment, build_result_cube,
+                         Result, run_experiment)
 from .parser import parse_args
-from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
+from .util import (get_log_folder, get_log_file, purge_logs, call_with,
+                   encode_kwargs, decode_kwargs, bash_submit,false_submit,
                    experiment_diff)
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
-           "Experiment", "run_experiment", "parse_args", "call_with",
-           "encode_kwargs", "decode_kwargs", "set_stdout_logging",
-           "bash_submit", "experiment_diff"]
+           "Experiment", "build_result_cube", "Result", "run_experiment",
+           "relaunch_experiment", "get_log_folder", "parse_args",
+           "get_log_folder", "get_log_file", "purge_logs", "call_with",
+           "encode_kwargs", "decode_kwargs", "bash_submit", "false_submit",
+           "experiment_diff", "set_stdout_logging"]
 
 
 
