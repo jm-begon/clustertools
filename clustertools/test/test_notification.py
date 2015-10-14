@@ -7,10 +7,11 @@ import os
 
 from nose.tools import assert_in
 from nose.tools import assert_equal
-from nose.tools import assert_raises
+from nose.tools import with_setup
 
 
 from clustertools.notification import *
+from clustertools.experiment import Experiment, yield_not_done_computation
 from clustertools.database import get_notifdb
 
 __EXP_NAME__ = "ClustertoolsNoseTest"
@@ -22,14 +23,8 @@ def purge():
     except OSError:
         pass
 
-def purge_decorator(test):
-    def deco():
-        purge()
-        test()
-        purge()
-    return deco
 
-@purge_decorator
+@with_setup(purge, purge)
 def test_notif_update():
     pending = "test_pending"
     running = "test_running"
@@ -73,5 +68,26 @@ def test_notif_update():
     assert_equal(histo.is_launchable(launchable2), True)
 
 
+@with_setup(purge, purge)
+def test_yield_not_done_computation():
+    exp = Experiment(__EXP_NAME__)
+    exp.add_params(p1=1, p2=[2, 3], p3="param")
+    exp.add_params(p1=4, p2=5)
+
+    ls = list(exp)
+    comp_name = lambda t:t[0]
+    now = launchable_jobs_update(__EXP_NAME__, [comp_name(t) for t in ls])
+
+    completed_job_update(__EXP_NAME__, comp_name(ls[0]), now)
+    completed_job_update(__EXP_NAME__, comp_name(ls[-1]), now)
+
+    historic = Historic(exp.name)
+    print historic.job_dict
+
+    remains = list(yield_not_done_computation(exp))
+    print remains
+    assert_equal(len(remains), len(ls)-2)
+    for t in ls[1:-1]:
+        assert_in(t, remains)
 
 

@@ -19,6 +19,7 @@ __copyright__ = "3-clause BSD License"
 
 import os
 from datetime import datetime
+import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 

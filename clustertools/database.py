@@ -20,7 +20,9 @@ import logging
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
 
-__ENV__ = "CLUSTERTOOLS_DB_FOLDER"
+from .util import get_ct_folder
+
+__DB_ENV__ = "CLUSTERTOOLS_DB_FOLDER"
 __EXPDB__ = "experiments.sqlite3"
 
 
@@ -28,10 +30,10 @@ __EXPDB__ = "experiments.sqlite3"
 
 def _get_db_folder():
     try:
-        folder = os.environ[__ENV__]
+        folder = os.environ[__DB_ENV__]
     except KeyError:
-        folder = os.path.join(os.environ["HOME"], "clustertools_db")
-        os.environ[__ENV__] = folder
+        folder = os.path.join(get_ct_folder(), "databases")
+        os.environ[__DB_ENV__] = folder
     if not os.path.exists(folder):
         os.makedirs(folder)
     return folder

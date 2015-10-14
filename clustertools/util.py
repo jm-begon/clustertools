@@ -12,14 +12,18 @@ import shutil
 import json
 from inspect import getargspec
 
-__ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
+__CT_FOLDER__ = "clustertools_data"
+__LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
+
+def get_ct_folder():
+    return os.path.join(os.environ["HOME"], __CT_FOLDER__)
 
 def get_log_folder(exp_name=None):
     try:
-        folder = os.environ[__ENV__]
+        folder = os.environ[__LOG_ENV__]
     except KeyError:
-        folder = os.path.join(os.environ["HOME"], "clustertools_logs")
-        os.environ[__ENV__] = folder
+        folder = os.path.join(get_ct_folder(), "logs")
+        os.environ[__LOG_ENV__] = folder
 
     if exp_name is not None:
         folder = os.path.join(folder, exp_name)
