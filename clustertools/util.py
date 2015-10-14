@@ -12,7 +12,7 @@ import shutil
 import json
 from inspect import getargspec
 
-__ENV__ = "CLUSTERTOOLS_DB_FOLDER"
+__ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
 
 def get_log_folder(exp_name=None):
     try:
