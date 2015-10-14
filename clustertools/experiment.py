@@ -149,13 +149,50 @@ def build_result_cube(exp_name):
         resultss.append(d[__RESULTS__])
     return Result(parameterss, resultss, exp_name)
 
+
+class Hasher(object):
+    """
+    metrics: iterable of metric_name
+    domain: mapping param_name -> iterable of values (axis domain)
+    metadata: mapping param_name -> param_val
+    """
+    def __init__(self, metrics, domain, metadata=None):
+        self.metric_inv = {p:i for i, p in enumerate(metrics)}
+        self.dom_inv = {}
+        last_stride = 1
+        self.strides = {}
+        for name, vals in domain.iteritems():
+            inv = {p:i for i, p in enumerate(vals)}
+            self.dom_inv[name] = inv
+            self.strides[name] = last_stride
+            last_stride *= len(vals)
+
+        self.metric_stride = last_stride
+        if metadata is not None:
+            for name, val in metadata.iteritems():
+                self.strides[name] = 0
+                self.dom_inv[name] = {val:0}
+
+    def hash(self, metric, params):
+        index = self.metric_inv[metric] * self.metric_stride
+        for p, pv in params.iteritems():
+            index += (self.strides[p] * self.dom_inv[p][pv])
+        return index
+
+    def __call__(self, metric, params):
+        return self.hash(metric, params)
+
+
+
 class Result(object):
     """
-    parameterss : iterable of mappings name -> value
-    resultss : iterable of mappings name -> value
+    parameterss : iterable of mappings param_name -> value
+    resultss : iterable of mappings metric_name -> value
     """
+
     def __init__(self, parameterss, resultss, exp_name=""):
         param_tmp = {}
+        # Build back the parameters domain
         for parameters in parameterss:
             for k, v in parameters.iteritems():
                 _set = param_tmp.get(k)
@@ -163,7 +200,7 @@ class Result(object):
                     _set = set()
                     param_tmp[k] = _set
                 _set.add(v)
-        print param_tmp
+        # Sort metadata from parameters
         metadata = {}
         parameter_list = []
         domain = {}
@@ -177,11 +214,51 @@ class Result(object):
                 metadata[k] = ls[0]
         parameter_list.sort()
 
+        # Build back the metric list
+        _set = set()
+        for res in resultss:
+            _set.update(res.keys())
+        metrics = list(_set)
+        metrics.sort()
+
+
+        # Allocate the data vector
+        shape = [len(metrics)]
+        for v in domain.values():
+            shape.append(len(v))
+        length = reduce(lambda x,y:x*y, shape, 1)
+        data = [None for _ in xrange(length)]
+
+        # Fill the data vector
+        hasher = Hasher(metrics, domain, metadata)
+        for params, _metrics in zip(parameterss, resultss):
+            for metric_name, val in _metrics.iteritems():
+                index = hasher(metric_name, params)
+                data[index] = val
+
+        # Set info
         self.name = exp_name
         self.metadata = metadata
         self.domain = domain
         self.parameters = parameter_list
+        self.metrics = metrics
+        self.data = data
+        self.hash = hasher
+        self.shape = tuple(shape)
 
+    def __getitem__(self, cut):
+        """
+
+        Result[]
+        """
+        # Metric should go first
+        # Quid if only one metric ?
+        # Quid if one param is exhausted? --> becomes a metadata
+        # +--> Quid if one dimension reduces to one ?
+        # Result[:, p11:p12, , :, p2, ...]
+        # If the remaining stay the same, can ignore it?
+        #
+        pass
 
 
 

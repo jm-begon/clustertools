@@ -28,14 +28,14 @@ __date__ = "08 Oct. 2015"
 from .database import load_experiments, reset_experiment
 from .notification import Historic
 from .experiment import (Computation, Experiment, build_result_cube,
-                         Result, run_experiment)
+                         Hasher, Result, run_experiment)
 from .parser import parse_args
 from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
                    experiment_diff)
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
-           "Experiment", "build_result_cube", "Result", "run_experiment",
+           "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
            "relaunch_experiment", "get_log_folder", "parse_args",
            "get_log_folder", "get_log_file", "purge_logs", "call_with",
            "encode_kwargs", "decode_kwargs", "bash_submit", "false_submit",

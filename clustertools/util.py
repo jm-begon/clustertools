@@ -144,3 +144,4 @@ def running_job_diff(exp_name, user=None):
     both = r_notif.intersection(r_backend)
     return {"Notif-only":notif_only, "Backend-only":backend_only, "Both":both}
 
+
