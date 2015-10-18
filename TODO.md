@@ -4,6 +4,7 @@ TODO
 - [ ] Example with Crontab
 - [ ] Cluster Daemon managing resources
 - [ ] Multicore Daemon
+- [ ] Explore "one file all"
 
 Result class
 ------------
