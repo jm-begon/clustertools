@@ -110,7 +110,7 @@ def alldiffnamed():
        +----+----+      +----+----+
       1| 15 | 16 |     1| 51 | 61 |
        +----+----+      +----+----+
-    x 2| 24 | 26 |   x 2| 52 | 62 |
+    x 2| 25 | 26 |   x 2| 52 | 62 |
        +----+----+      +----+----+
       3| 35 | 36 |     3| 53 | 63 |
        +----+----+      +----+----+
@@ -346,21 +346,6 @@ def test_slicing():
     assert_equal(cube2.shape, (2, 3, 1))#w/x/m
 
 
-    """
-    values
-            w                w
-          5    6           5    6
-       +----+----+      +----+----+
-      1| 15 | 16 |     1| 51 | 61 |
-       +----+----+      +----+----+
-    x 2| 24 | 26 |   x 2| 52 | 62 |
-       +----+----+      +----+----+
-      3| 35 | 36 |     3| 53 | 63 |
-       +----+----+      +----+----+
-           f1             f2
-    /!\ tranposed
-    """
-
 
 def test_numpify():
     import numpy as np
@@ -371,8 +356,11 @@ def test_numpify():
     assert_equal(len(cube2.parameters), 0)
     for v1, v2 in zip(cube2.numpify(), [15, 51]):
         assert_equal(v1, v2)
-    arr1 = np.array([[15, 24, 35], [16, 26, 36]])
-    arr2 = np.array([[51, 52, 53], [61, 52, 63]])
+    arr1 = np.array([[15, 25, 35], [16, 26, 36]])
+    arr2 = np.array([[51, 52, 53], [61, 62, 63]])
     array = np.dstack([arr1, arr2])
-    assert_equal(1, 2)
+    for v1, v2 in zip(cube.numpify(), array):
+        for v11, v22 in zip(v1, v2):
+            for v111, v222 in zip(v11, v22):
+                assert_equal(v111, v222)
 

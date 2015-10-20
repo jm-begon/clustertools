@@ -8,11 +8,11 @@ TODO
 
 Result class
 ------------
-- [ ] Slicing
-- [ ] Iter
-- [ ] Numpyfy
+- [x] Slicing
+- [x] Iter
+- [x] Numpyfy
 - [ ] Example
-- [ ] Test suite
+- [x] Test suite
 
 Crontab
 -------
