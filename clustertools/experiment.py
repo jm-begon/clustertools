@@ -17,6 +17,8 @@ import subprocess
 from subprocess import CalledProcessError
 import logging
 from itertools import product
+from copy import copy, deepcopy
+from collections import Mapping
 
 from clusterlib.scheduler import submit
 
@@ -174,6 +176,12 @@ class Hasher(object):
                 self.dom_inv[name] = {val:0}
 
     def hash(self, metric, params):
+        """
+        metric: str
+            A metric name
+        params: mapping str -> value
+            A mapping from parameter names to values of their domain
+        """
         index = self.metric_inv[metric] * self.metric_stride
         for p, pv in params.iteritems():
             index += (self.strides[p] * self.dom_inv[p][pv])
@@ -184,11 +192,34 @@ class Hasher(object):
 
 
 
-class Result(object):
+class Result(Mapping):
     """
     parameterss : iterable of mappings param_name -> value
     resultss : iterable of mappings metric_name -> value
+
+    Instance variables
+    ------------------
+    name: str (default "")
+        The experiment name
+    metadata: mapping str -> value
+        A dictionary containing, for each of the metadatum, the associated value
+    domain: mapping str -> iterable of values
+        A dictionary containing, for each domain name, the iterable of possible
+        values
+    parameters: iterable of str
+        The name of each axis (with correspind index)
+    metrics: iterable of str
+        The name of each metric. The metric is the last axis. Each index in that
+        axis correspond to a metric in the order of `metrics`
+    data: iterable
+        The raw data
+    hash: :class:`Hasher`
+        The hasher to the data
+    shape: tuple (of size `len(parameters)+1`)
+        The shape of the result cube. The N-1 first axis are linked to the
+        parameters and the last one to the metrics
     """
+
 
     def __init__(self, parameterss, resultss, exp_name=""):
         param_tmp = {}
@@ -223,9 +254,11 @@ class Result(object):
 
 
         # Allocate the data vector
-        shape = [len(metrics)]
-        for v in domain.values():
+        shape = []
+        for p in parameter_list:
+            v = domain[p]
             shape.append(len(v))
+        shape.append(len(metrics))
         length = reduce(lambda x,y:x*y, shape, 1)
         data = [None for _ in xrange(length)]
 
@@ -246,19 +279,172 @@ class Result(object):
         self.hash = hasher
         self.shape = tuple(shape)
 
-    def __getitem__(self, cut):
-        """
+    def size(self):
+        return reduce(lambda x,y: x*y, self.shape, 1)
 
-        Result[]
+    def _get_index_by_name(self, n_dim, value):
+        lku = self.metrics
+        if n_dim < len(self.shape) - 1:
+            lku = self.domain[self.parameters[n_dim]]
+        try:
+            return lku.index(value)
+        except ValueError:
+            raise KeyError("Name '%s' for dimension %d" % (value, n_dim))
+
+
+    def __getitem__(self, index):
+        # ====== Building the list of slices (Adapted from NumPy) ======
+        if not isinstance(index, tuple): index = (index,)
+        fixed = []
+        length, dims = len(index), len(self.shape)
+
+        if length > dims:
+            raise IndexError("Too many indices")
+
+        return_scalar = True
+        for i, slice_ in enumerate(index):
+            if slice_ is Ellipsis:
+                fixed.extend([slice(None)] * (dims-length+1))
+                length = len(fixed)
+                return_scalar = False
+
+            elif isinstance(slice_, (int, long)):
+                fixed.append(slice(slice_, slice_+1, 1))
+            elif isinstance(slice_, basestring):
+                # Indexing by a parameter value
+                idx = self._get_index_by_name(i, slice_)
+                fixed.append(slice(idx, idx+1, 1))
+            elif isinstance(slice_, slice):
+                start, stop = slice_.start, slice_.stop
+                if isinstance(start, basestring):
+                    start = self._get_index_by_name(i, start)
+                if isinstance(stop, basestring):
+                    stop = self._get_index_by_name(i, stop) + 1
+                fixed.append(slice(start, stop, slice_.step))
+                return_scalar = False
+            else:
+                fixed.append(slice_)
+                return_scalar = False
+        index = tuple(fixed)
+        if len(index) < dims:
+            index += (slice(None),) * (dims-len(index))
+            return_scalar = False
+
+
+        # ====== Building the return ======
+        # +-> Checking if the slice is whole
+        same_obj = True
+        for i, idx in enumerate(index):
+            tmp = self.domain[self.parameters[i]] if i < dims-1 else self.metrics
+            same_obj = (idx.start is None or idx.start == 0) and same_obj
+            same_obj = (idx.stop is None or (0 < len(tmp) < idx.stop)) and same_obj
+            same_obj = (idx.step is None or idx.step == 1) and same_obj
+        if same_obj:
+            return self
+
+        p_slices, m_slice = index[:-1], index[-1]
+        # +-> Looking for a scalar
+        if return_scalar:
+            metric = self.metrics[m_slice.start]
+            params = {}
+            for i, slc in enumerate(p_slices):
+                p_name = self.parameters[i]
+                vals = self.domain[p_name]
+                params[p_name] = vals[slc.start]
+            return self.data[self.hash(metric, params)]
+
+        # +-> Looking for a sliced Result
+        clone = copy(self)
+        # Deepcopy of the dict which will be modified in place
+        clone.metadata = deepcopy(self.metadata)
+        clone.domain = deepcopy(self.domain)
+
+        # +---> Processing the parameters
+        shape = []
+        for i, slc in enumerate(p_slices):
+            param_name = self.parameters[i]
+            vals = self.domain[param_name]
+            newvals = vals[slc]
+            if len(newvals) == 0:
+                pass   # ??
+            if len(newvals) == 1:
+                # Must shift from domain/param into metadata and remove dim
+                clone.metadata[param_name] = newvals[0]
+                clone.parameters = [x for x in clone.parameters if x != param_name]
+                del clone.domain[param_name]
+            else:
+                # Must update the domain (order of the domain value
+                # is still respected)
+                clone.domain[param_name] = newvals
+                shape.append(len(newvals))
+
+        # +---> Processing the metrics
+        newmetrics = self.metrics[m_slice]
+        if len(newmetrics) == 0:
+            pass   # ??
+        clone.metrics = newmetrics
+        shape.append(len(newmetrics))
+        clone.shape = tuple(shape)
+        return clone
+
+
+    def __iter__(self):
+        if len(self.parameters) == 0:
+            for m in range(len(self.metrics)):
+                yield self[..., m]
+        for v in range(len(self.domain[self.parameters[0]])):
+            yield self[v, ...]
+
+    def __len__(self):
+        return self.shape[0]
+
+    def __call__(self, metric=None, **kwargs):
+        if len(kwargs) == 0 and metric is None:
+            return self
+
+        # # Input checks
+        # if isinstance(metric, basestring) and metric not in self.metrics:
+        #     raise KeyError("Metric '%s' does not exist" % str(metric))
+        # paramset = frozenset(self.parameters)
+        # for k in kwargs.keys():
+        #     if k not in paramset:
+        #         raise KeyError("Parameter '%s' does not exist" % str(k))
+
+        # Computing the slices
+        slices = []
+        for p in self.parameters:
+            v = kwargs.get(p)
+            if v is None:
+                v = slice(None)
+            slices.append(v)
+
+        if metric is None:
+            metric = slice(None)
+        slices.append(metric)
+
+        return self[tuple(slices)]
+
+
+
+    def __getslice__(self, start, stop) :
+        """This solves a subtle bug, where __getitem__ is not called, and all
+        the dimensional checking not done, when a slice of only the first
+        dimension is taken, e.g. a[1:3]. From the Python docs:
+       Deprecated since version 2.0: Support slice objects as parameters
+       to the __getitem__() method. (However, built-in types in CPython
+       currently still implement __getslice__(). Therefore, you have to
+       override it in derived classes when implementing slicing.)
         """
-        # Metric should go first
-        # Quid if only one metric ?
-        # Quid if one param is exhausted? --> becomes a metadata
-        # +--> Quid if one dimension reduces to one ?
-        # Result[:, p11:p12, , :, p2, ...]
-        # If the remaining stay the same, can ignore it?
-        #
-        pass
+        return self.__getitem__(slice(start, stop))
+
+    def numpify(self):
+        import numpy as np
+        if len(self.parameters) == 0:
+            # Only metrics, everything is in metadata
+            return np.array([self.data[self.hash(m, self.metadata)]
+                    for m in self.metrics])
+
+        return np.array([arr.numpify() for arr in self])
 
 
 
