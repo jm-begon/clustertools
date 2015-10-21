@@ -25,7 +25,7 @@ from clusterlib.scheduler import submit
 from .database import save_result, save_experiment, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update, Historic)
-from .util import encode_kwargs
+from .util import encode_kwargs, reorder, hashlist
 
 __EXP_NAME__ = "Experiment"
 __PARAMETERS__ = "Parameters"
@@ -239,10 +239,10 @@ class Result(Mapping):
             ls = [vi for vi in v]
             if len(ls) > 1:
                 ls.sort()
-                domain[k] = ls
+                domain[k] = [str(x) for x in ls]
                 parameter_list.append(k)
             else:
-                metadata[k] = ls[0]
+                metadata[k] = str(ls[0])
         parameter_list.sort()
 
         # Build back the metric list
@@ -251,6 +251,7 @@ class Result(Mapping):
             _set.update(res.keys())
         metrics = list(_set)
         metrics.sort()
+        metrics = [str(m) for m in metrics]
 
 
         # Allocate the data vector
@@ -266,7 +267,8 @@ class Result(Mapping):
         hasher = Hasher(metrics, domain, metadata)
         for params, _metrics in zip(parameterss, resultss):
             for metric_name, val in _metrics.iteritems():
-                index = hasher(metric_name, params)
+                params_ = {k:str(v) for k,v in params.iteritems()}
+                index = hasher(str(metric_name), params_)
                 data[index] = val
 
         # Set info
@@ -289,11 +291,41 @@ class Result(Mapping):
         try:
             return lku.index(value)
         except ValueError:
-            raise KeyError("Name '%s' for dimension %d" % (value, n_dim))
+            try:
+                fval = float(value)
+                lku2 = [float(x) for x in lku]
+                for i, x in lku:
+                    try:
+                        if float(x) == fval:
+                            return i
+                    except ValueError:
+                        pass
+                raise ValueError()
+            except ValueError:
+                raise KeyError("Name '%s' for dimension %d" % (value, n_dim))
 
 
     def __getitem__(self, index):
-        # ====== Building the list of slices (Adapted from NumPy) ======
+        """
+        Index: singleton, cf self[index, ...]
+        Index: tuple -> for each elem
+            elem: int (= index of param value or metric)
+                Select only that value/metric
+            elem: str
+                Same as int but will perform a lookup to get the index
+            elem: slice of int
+                Slice along those values/metrics
+            elem: slice of str
+                Same as slice of int but will perform a lookup to get the indices
+            elem: iterable of int
+                Will select only those values/metrics
+            elem: iterable of str
+                Same as iterable of int but will perform a lookup to get the indices
+        If all indices are ints, return the value and not a view of the Result
+
+        """
+        # ====== Building the list of slices/list (Adapted from NumPy) ======
+        # At the end, fixed will be a list of either slice or list of ints
         if not isinstance(index, tuple): index = (index,)
         fixed = []
         length, dims = len(index), len(self.shape)
@@ -304,17 +336,25 @@ class Result(Mapping):
         return_scalar = True
         for i, slice_ in enumerate(index):
             if slice_ is Ellipsis:
+                # Ellipsis --> Develop
                 fixed.extend([slice(None)] * (dims-length+1))
                 length = len(fixed)
                 return_scalar = False
 
             elif isinstance(slice_, (int, long)):
+                # Int(/long) --> Build the appropriate slice
+                # Wrapping
+                if slice_ < 0:
+                    slice_ += len(self)
+                if slice_ < 0:
+                    raise IndexError("Index out of range from dim. %d" % i)
                 fixed.append(slice(slice_, slice_+1, 1))
             elif isinstance(slice_, basestring):
-                # Indexing by a parameter value
+                # String --> Get the appropriate int
                 idx = self._get_index_by_name(i, slice_)
                 fixed.append(slice(idx, idx+1, 1))
             elif isinstance(slice_, slice):
+                # Slice --> Lookup in case of strings
                 start, stop = slice_.start, slice_.stop
                 if isinstance(start, basestring):
                     start = self._get_index_by_name(i, start)
@@ -323,7 +363,18 @@ class Result(Mapping):
                 fixed.append(slice(start, stop, slice_.step))
                 return_scalar = False
             else:
-                fixed.append(slice_)
+                try:
+                    # List of str/int --> Lookup strings
+                    slice2 = []
+                    for idx in slice_:
+                        if isinstance(idx, basestring):
+                            slice2.append(self._get_index_by_name(i, idx))
+                        else:
+                            slice2.append(idx)
+                    fixed.append(slice2)
+                except TypeError:
+                    # Else ?
+                    fixed.append(slice_)
                 return_scalar = False
         index = tuple(fixed)
         if len(index) < dims:
@@ -336,14 +387,20 @@ class Result(Mapping):
         same_obj = True
         for i, idx in enumerate(index):
             tmp = self.domain[self.parameters[i]] if i < dims-1 else self.metrics
-            same_obj = (idx.start is None or idx.start == 0) and same_obj
-            same_obj = (idx.stop is None or (0 < len(tmp) < idx.stop)) and same_obj
-            same_obj = (idx.step is None or idx.step == 1) and same_obj
+            if isinstance(idx, slice):
+                # In case of slice
+                same_obj = same_obj and (idx.start is None or idx.start == 0)
+                same_obj = same_obj and (idx.stop is None or (0 < len(tmp) < idx.stop))
+                same_obj = same_obj and (idx.step is None or idx.step == 1)
+            else:
+                # In case of list
+                same_obj = same_obj and (idx == tmp)
         if same_obj:
             return self
 
         p_slices, m_slice = index[:-1], index[-1]
         # +-> Looking for a scalar
+        # +--> We are sure to have a list of slice of one item
         if return_scalar:
             metric = self.metrics[m_slice.start]
             params = {}
@@ -364,7 +421,12 @@ class Result(Mapping):
         for i, slc in enumerate(p_slices):
             param_name = self.parameters[i]
             vals = self.domain[param_name]
-            newvals = vals[slc]
+            if isinstance(slc, slice):
+                # In case of slice
+                newvals = vals[slc]
+            else:
+                # In case of list
+                newvals = list(reorder(vals, slc, in_place=False))
             if len(newvals) == 0:
                 pass   # ??
             if len(newvals) == 1:
@@ -373,13 +435,17 @@ class Result(Mapping):
                 clone.parameters = [x for x in clone.parameters if x != param_name]
                 del clone.domain[param_name]
             else:
-                # Must update the domain (order of the domain value
-                # is still respected)
+                # Must update the domain
                 clone.domain[param_name] = newvals
                 shape.append(len(newvals))
 
         # +---> Processing the metrics
-        newmetrics = self.metrics[m_slice]
+        if isinstance(m_slice, slice):
+            # In case of slice
+            newmetrics = self.metrics[m_slice]
+        else:
+            # In case of list
+            newmetrics = list(reorder(self.metrics, m_slice, in_place=False))
         if len(newmetrics) == 0:
             pass   # ??
         clone.metrics = newmetrics
@@ -401,14 +467,6 @@ class Result(Mapping):
     def __call__(self, metric=None, **kwargs):
         if len(kwargs) == 0 and metric is None:
             return self
-
-        # # Input checks
-        # if isinstance(metric, basestring) and metric not in self.metrics:
-        #     raise KeyError("Metric '%s' does not exist" % str(metric))
-        # paramset = frozenset(self.parameters)
-        # for k in kwargs.keys():
-        #     if k not in paramset:
-        #         raise KeyError("Parameter '%s' does not exist" % str(k))
 
         # Computing the slices
         slices = []
@@ -445,6 +503,78 @@ class Result(Mapping):
                     for m in self.metrics])
 
         return np.array([arr.numpify() for arr in self])
+
+    def reorder_parameters(self, *args):
+        order = []
+        for x in args:
+            if isinstance(x, (int, long)):
+                order.append(x)
+            else:
+                # lookup
+                order.append(self.parameters.index(x))
+        diff = [i for i in range(len(self.parameters)) if i not in order]
+        order.extend(diff)
+        tmps = [self.parameters[i] for i in order]
+        for i, param in enumerate(tmps):
+            self.parameters[i] = param
+
+    def iteritems(self):
+        """
+        Yields pairs (params, metrics) in the order of this `Result`
+        """
+        p_gen = product(*[self.domain[p] for p in self.parameters])
+        for params in p_gen:
+            p_dict = {k:v for v,k in zip(params, self.parameters)}
+            idx = [self.hash(m, p_dict) for m in self.metrics]
+            data = tuple(self.data[x] for x in idx)
+            yield params, data
+
+    def out_of_domain(self):
+        ood = []
+        for params, metrics in self.iteritems():
+            for i, metric in enumerate(metrics):
+                if metric is None:
+                    p_dict = {k:v for v,k in zip(params, self.parameters)}
+                    ood.append((p_dict, self.metrics[i]))
+        return ood
+
+    def maximal_hypercube(self):
+        # Find the max range of each param
+        # doms = [copy(self.domain[x]) for x in self.parameters]
+        # for params, metrics in self.iteritems():
+
+        #     if None in metrics:
+        #         for i, pv in enumerate(params):
+        #             try:
+        #                 idx = doms[i].index(pv)
+        #                 print idx
+        #             except ValueError:
+        #                 pass
+        # print doms
+        # return self[tuple(doms)]
+        raise NotImplementedError("Soon.")
+
+    def __str__(self):
+        return """Results of '%s':
+=====================
+Metadata: \t%s
+Parameters: \t%s
+Domain: \t%s
+Metrics: \t%s
+Shape: \t%s
+Values:
+%s""" % (self.name, str(self.metadata), str(self.parameters), str(self.domain),
+         str(self.metrics), str(self.shape), str(self.numpify()))
+
+    def __repr__(self):
+        h = hashlist(self.data)
+        return "%s(name='%s', metadata=%s, parameters=%s, domain=%s," \
+               " metrics=%s, data='%s')" % (self.__class__.__name__, self.name, \
+               str(self.metadata), str(self.parameters), str(self.domain),
+               str(self.metrics), h)
+
+
+
 
 
 

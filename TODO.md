@@ -9,10 +9,15 @@ TODO
 Result class
 ------------
 - [x] Slicing
+- [x] List slicing
 - [x] Iter
 - [x] Numpyfy
 - [ ] Example
 - [x] Test suite
+- [ ] Maximal hypercubic domain
+- [x] Out of domain
+- [x] Swap order of parameters
+- [x] __str__, __repr__
 
 Crontab
 -------
@@ -29,5 +34,4 @@ Cluster Daemon
 
 Multicore Daemon
 ----------------
-- [ ] Job management
-Quid of joblib
+- [ ] Job management (Quid of joblib?)

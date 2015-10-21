@@ -49,14 +49,15 @@ def basic():
             'Results': {'f1': 6, 'f2': 10}}}
 
     # Notice the ordering
-    domain = {'x':[1, 2, 3], 'w':[5, 6]}
-    metadata = {'z':4}
+    domain = {'x':["1", "2", "3"], 'w':["5", "6"]}
+    metadata = {'z':"4"}
     parameters = ["x", "w"]
     parameters.sort()
     metrics = ["f1", "f2"]
     metrics.sort()
     exp_name = "basic"
     return exp_name, metadata, parameters, domain, metrics, res
+
 
 def alldiff():
     """
@@ -93,8 +94,8 @@ def alldiff():
             'Results': {'f1': 36, 'f2': 63}}}
 
     # Notice the ordering
-    domain = {'x':[1, 2, 3], 'w':[5, 6]}
-    metadata = {'z':4}
+    domain = {'x':["1", "2", "3"], 'w':["5", "6"]}
+    metadata = {'z':"4"}
     parameters = ["x", "w"]
     parameters.sort()
     metrics = ["f1", "f2"]
@@ -102,7 +103,8 @@ def alldiff():
     exp_name = "alldiff"
     return exp_name, metadata, parameters, domain, metrics, res
 
-def alldiffnamed():
+
+def some_ood():
     """
     values
             w                w
@@ -110,7 +112,7 @@ def alldiffnamed():
        +----+----+      +----+----+
       1| 15 | 16 |     1| 51 | 61 |
        +----+----+      +----+----+
-    x 2| 25 | 26 |   x 2| 52 | 62 |
+    x 2| N/ | 26 |   x 2| N/ | 62 |
        +----+----+      +----+----+
       3| 35 | 36 |     3| 53 | 63 |
        +----+----+      +----+----+
@@ -118,33 +120,34 @@ def alldiffnamed():
     /!\ tranposed
     """
     res = {u'Computation-alldiff-0': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "5", u'x': "1", u'z': "4"},
+            'Parameters': {u'w': 5, u'x': 1, u'z': 4},
             'Results': {'f1': 15, 'f2': 51}},
             u'Computation-alldiff-1': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "6", u'x': "1", u'z': "4"},
+            'Parameters': {u'w': 6, u'x': 1, u'z': 4},
             'Results': {'f1': 16, 'f2': 61}},
             u'Computation-alldiff-2': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "5", u'x': "2", u'z': "4"},
-            'Results': {'f1': 25, 'f2': 52}},
+            'Parameters': {u'w': 5, u'x': 2, u'z': 4},
+            'Results': {'f1': None, 'f2': None}},
             u'Computation-alldiff-3': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "6", u'x': "2", u'z': "4"},
+            'Parameters': {u'w': 6, u'x': 2, u'z': 4},
             'Results': {'f1': 26, 'f2': 62}},
             u'Computation-alldiff-4': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "5", u'x': "3", u'z': "4"},
+            'Parameters': {u'w': 5, u'x': 3, u'z': 4},
             'Results': {'f1': 35, 'f2': 53}},
             u'Computation-alldiff-5': {'Experiment': 'alldiff',
-            'Parameters': {u'w': "6", u'x': "3", u'z': "4"},
+            'Parameters': {u'w': 6, u'x': 3, u'z': 4},
             'Results': {'f1': 36, 'f2': 63}}}
 
     # Notice the ordering
-    domain = {'x':[1, 2, 3], 'w':[5, 6]}
-    metadata = {'z':4}
+    domain = {'x':["1", "2", "3"], 'w':["5", "6"]}
+    metadata = {'z':"4"}
     parameters = ["x", "w"]
     parameters.sort()
     metrics = ["f1", "f2"]
     metrics.sort()
-    exp_name = "alldiffnamed"
+    exp_name = "alldiff"
     return exp_name, metadata, parameters, domain, metrics, res
+
 
 def build_cube(exp_name, res):
     parameterss = []
@@ -258,7 +261,7 @@ def test_call_indexing():
 
 
 def test_indexing_name():
-    name, metadata, params, dom, metrics, d = alldiffnamed()
+    name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
     print cube.parameters
     # f1(w=5, x=1)
@@ -280,7 +283,7 @@ def test_indexing_name():
 
 
 def test_call_indexing_name():
-    name, metadata, params, dom, metrics, d = alldiffnamed()
+    name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
     # f1(w=5, x=1)
     assert_equal(cube(w="5", x="1", metric="f1"), 15)
@@ -316,8 +319,8 @@ def test_slicing():
     # x=1
     cube2 = cube[:, 0, ...]
     assert_not_equal(id(cube2), id(cube))
-    assert_dict_equal(cube2.domain, {"w":[5, 6]})
-    assert_dict_equal(cube2.metadata, {"z":4, "x":1})
+    assert_dict_equal(cube2.domain, {"w":["5", "6"]})
+    assert_dict_equal(cube2.metadata, {"z":"4", "x":"1"})
     assert_equal(cube2.parameters, ["w"])
     assert_equal(cube2.metrics, cube.metrics)
     assert_equal(cube2.size(), 4)
@@ -327,23 +330,39 @@ def test_slicing():
      # x \in {1, 2}
     cube2 = cube[:, 0:2]
     assert_not_equal(id(cube2), id(cube))
-    assert_dict_equal(cube2.domain, {"x":[1,2], "w":[5, 6]})
+    assert_dict_equal(cube2.domain, {"x":["1","2"], "w":["5", "6"]})
     assert_dict_equal(cube2.metadata, cube.metadata)
     assert_equal(cube2.parameters, cube.parameters)
     assert_equal(cube2.metrics, cube.metrics)
     assert_equal(cube2.size(), 8)
     assert_equal(cube2.shape, (2, 2, 2))#w/x/m
 
+    # ==== Partial slicing: not removing a dim ====
+     # x \in {1, 3}
+    cube2 = cube[:, [0, 2]]
+    assert_not_equal(id(cube2), id(cube))
+    assert_dict_equal(cube2.domain, {"x":["1","3"], "w":["5", "6"]})
+    assert_dict_equal(cube2.metadata, cube.metadata)
+    assert_equal(cube2.parameters, cube.parameters)
+    assert_equal(cube2.metrics, cube.metrics)
+    assert_equal(cube2.size(), 8)
+    assert_equal(cube2.shape, (2, 2, 2))#w/x/m
+
+
     # ==== Partial slicing: selecting a metric ====
     # metrics = f1
     cube2 = cube[..., 0]
     assert_not_equal(id(cube2), id(cube))
-    assert_dict_equal(cube2.domain, {"x":[1,2, 3], "w":[5, 6]})
+    assert_dict_equal(cube2.domain, {"x":["1","2", "3"], "w":["5", "6"]})
     assert_dict_equal(cube2.metadata, cube.metadata)
     assert_equal(cube2.parameters, cube.parameters)
     assert_equal(cube2.metrics, ["f1"])
     assert_equal(cube2.size(), 6)
     assert_equal(cube2.shape, (2, 3, 1))#w/x/m
+
+    # ==== Swapping the metrics ====
+    cube2 = cube[:, :, ["f2", 0]]
+    assert_equal(cube2.metrics, ["f2", "f1"])
 
 
 
@@ -354,13 +373,67 @@ def test_numpify():
     cube = build_cube(name, d)
     cube2 = cube[0, 0]
     assert_equal(len(cube2.parameters), 0)
-    for v1, v2 in zip(cube2.numpify(), [15, 51]):
+    numpified = cube2.numpify()
+    assert_equal(numpified.shape, (2, ))
+    for v1, v2 in zip(numpified, [15, 51]):
         assert_equal(v1, v2)
     arr1 = np.array([[15, 25, 35], [16, 26, 36]])
     arr2 = np.array([[51, 52, 53], [61, 62, 63]])
     array = np.dstack([arr1, arr2])
-    for v1, v2 in zip(cube.numpify(), array):
+    numpified = cube.numpify()
+    assert_equal(numpified.shape, array.shape)
+    for v1, v2 in zip(numpified, array):
         for v11, v22 in zip(v1, v2):
             for v111, v222 in zip(v11, v22):
                 assert_equal(v111, v222)
+
+
+def test_reorder():
+    name, metadata, params, dom, metrics, d = alldiff()
+    cube = build_cube(name, d)
+    p2 = ["x", "w"]
+    cube.reorder_parameters(*p2)
+    assert_equal(cube.parameters, p2)
+    cube.reorder_parameters("w")
+    assert_equal(cube.parameters, params)
+
+
+def test_iteritems():
+    name, metadata, params, dom, metrics, d = alldiff()
+    cube = build_cube(name, d)
+    ls = [( ("5", "1"), (15, 51) ),
+          ( ("5", "2"), (25, 52) ),
+          ( ("5", "3"), (35, 53) ),
+          ( ("6", "1"), (16, 61) ),
+          ( ("6", "2"), (26, 62) ),
+          ( ("6", "3"), (36, 63) )]
+    ls.sort()
+    rs = list(cube.iteritems())
+    rs.sort()
+    assert_equal(ls, rs)
+
+def test_ood():
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d)
+    expected_ood = [( {"x":"2", "w":"5"}, "f1"),
+                    ( {"x":"2", "w":"5"}, "f2")]
+    ood = cube.out_of_domain()
+    assert_equal(len(ood), len(expected_ood))
+    assert_dict_equal(expected_ood[0][0], ood[0][0])
+    assert_dict_equal(expected_ood[1][0], ood[1][0])
+    exp_m = [x for _, x in expected_ood]
+    m = [x for _, x in ood]
+    exp_m.sort()
+    m.sort()
+    assert_equal(m, exp_m)
+
+# def test_max_hypercube():
+#     name, metadata, params, dom, metrics, d = some_ood()
+#     cube = build_cube(name, d)
+#     cube2 = cube.maximal_hypercube()
+#     # print cube2.parameters
+#     # print cube2.domain
+#     # print cube2.metrics
+#     # print cube2.metadata
+#     assert_equal(cube2.shape, (2, 2, 2))#w/x/m
 

@@ -32,14 +32,14 @@ from .experiment import (Computation, Experiment, build_result_cube,
 from .parser import parse_args
 from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
-                   experiment_diff)
+                   experiment_diff, reorder)
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
            "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
            "relaunch_experiment", "get_log_folder", "parse_args",
            "get_log_folder", "get_log_file", "purge_logs", "call_with",
            "encode_kwargs", "decode_kwargs", "bash_submit", "false_submit",
-           "experiment_diff", "set_stdout_logging"]
+           "experiment_diff", "set_stdout_logging", "reorder"]
 
 
 
