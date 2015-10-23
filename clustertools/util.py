@@ -14,6 +14,7 @@ from inspect import getargspec
 from copy import copy
 from hashlib import sha256
 
+
 __CT_FOLDER__ = "clustertools_data"
 __LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
 
@@ -145,6 +146,7 @@ def running_job_diff(exp_name, user=None):
     backend_only = r_backend.difference(notif_only)
     both = r_notif.intersection(r_backend)
     return {"Notif-only":notif_only, "Backend-only":backend_only, "Both":both}
+
 
 def reorder(ls, indices, in_place=False):
     if in_place:

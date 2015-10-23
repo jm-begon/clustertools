@@ -207,3 +207,10 @@ class Historic(object):
             launchable_job_update(self.exp_name, comp_name)
 
 
+
+
+def yield_not_done_computation(experiment, user=os.environ["USER"]):
+    historic = Historic(experiment.name, user)
+    for comp_name, param in experiment:
+        if historic.is_launchable(comp_name):
+            yield comp_name, param

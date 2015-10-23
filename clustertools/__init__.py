@@ -27,9 +27,10 @@ __date__ = "08 Oct. 2015"
 
 from .database import load_experiments, reset_experiment
 from .notification import Historic
-from .experiment import (Computation, Experiment, build_result_cube,
-                         Hasher, Result, run_experiment)
+from .experiment import (Computation, Experiment, Hasher, Result,
+                         build_result_cube)
 from .parser import parse_args
+from .runner import run_experiment
 from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
                    experiment_diff, reorder)

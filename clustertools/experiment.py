@@ -60,7 +60,6 @@ class Computation(object):
 
 
 
-
 class Experiment(object):
 
     def __init__(self, name, params=None):
@@ -108,7 +107,7 @@ class Experiment(object):
 
     def __iter__(self):
         if len(self.params) == 0:
-            yield "Computation-"+self.name+"-0", self.serialize({})
+            yield "Computation-"+self.name+"-0", {}
         else:
             keys = self.params.keys()
             keys.sort()
@@ -142,16 +141,6 @@ class Experiment(object):
         return "Experiment '%s': %s" % (self.name, str(self.params))
 
 
-def build_result_cube(exp_name):
-    res = load_results(exp_name)
-    parameterss = []
-    resultss = []
-    for d in res.values():
-        parameterss.append(d[__PARAMETERS__])
-        resultss.append(d[__RESULTS__])
-    return Result(parameterss, resultss, exp_name)
-
-
 class Hasher(object):
     """
     metrics: iterable of metric_name
@@ -174,6 +163,11 @@ class Hasher(object):
             for name, val in metadata.iteritems():
                 self.strides[name] = 0
                 self.dom_inv[name] = {val:0}
+
+    def add_metadata(self, **kwargs):
+        for k, v in kwargs.iteritems():
+            self.strides[k] = 0
+            self.dom_inv[k] = {v:0}
 
     def hash(self, metric, params):
         """
@@ -270,6 +264,7 @@ class Result(Mapping):
                 params_ = {k:str(v) for k,v in params.iteritems()}
                 index = hasher(str(metric_name), params_)
                 data[index] = val
+        datahash = hashlist(data)
 
         # Set info
         self.name = exp_name
@@ -278,11 +273,21 @@ class Result(Mapping):
         self.parameters = parameter_list
         self.metrics = metrics
         self.data = data
+        self.datahash = datahash
         self.hash = hasher
         self.shape = tuple(shape)
 
     def size(self):
         return reduce(lambda x,y: x*y, self.shape, 1)
+
+    def full_parameters():
+        doms = [self.domain[v] for v in self.parameters]
+        return [(name, dom) for name, dom in zip(self.parameters, doms)]
+
+    def add_metadata(self, **kwargs):
+        self.metadata.update(kwargs)
+        self.hash.add_metadata(**kwargs)
+
 
     def _get_index_by_name(self, n_dim, value):
         lku = self.metrics
@@ -292,6 +297,7 @@ class Result(Mapping):
             return lku.index(value)
         except ValueError:
             try:
+                # TODO not yet working
                 fval = float(value)
                 lku2 = [float(x) for x in lku]
                 for i, x in lku:
@@ -302,7 +308,7 @@ class Result(Mapping):
                         pass
                 raise ValueError()
             except ValueError:
-                raise KeyError("Name '%s' for dimension %d" % (value, n_dim))
+                raise KeyError("Name '%s' unknown for dimension %d" % (value, n_dim))
 
 
     def __getitem__(self, index):
@@ -370,6 +376,11 @@ class Result(Mapping):
                         if isinstance(idx, basestring):
                             slice2.append(self._get_index_by_name(i, idx))
                         else:
+                            # Wrapping
+                            if idx < 0:
+                                idx += len(self)
+                            if idx < 0:
+                                raise IndexError("Index out of range from dim. %d" % i)
                             slice2.append(idx)
                     fixed.append(slice2)
                 except TypeError:
@@ -495,14 +506,17 @@ class Result(Mapping):
         """
         return self.__getitem__(slice(start, stop))
 
-    def numpify(self):
+    def numpify(self, squeeze=False):
         import numpy as np
         if len(self.parameters) == 0:
             # Only metrics, everything is in metadata
             return np.array([self.data[self.hash(m, self.metadata)]
                     for m in self.metrics])
 
-        return np.array([arr.numpify() for arr in self])
+        arr = np.array([arr.numpify() for arr in self])
+        if squeeze and arr.shape[-1] == 1:
+            arr = arr.squeeze(axis=-1)
+        return arr
 
     def reorder_parameters(self, *args):
         order = []
@@ -555,6 +569,10 @@ class Result(Mapping):
         raise NotImplementedError("Soon.")
 
     def __str__(self):
+        try:
+            val = "Values:\n"+str(self.numpify())
+        except:
+            val = "Hash of data: \t"+self.datahash
         return """Results of '%s':
 =====================
 Metadata: \t%s
@@ -562,58 +580,41 @@ Parameters: \t%s
 Domain: \t%s
 Metrics: \t%s
 Shape: \t%s
-Values:
 %s""" % (self.name, str(self.metadata), str(self.parameters), str(self.domain),
-         str(self.metrics), str(self.shape), str(self.numpify()))
+         str(self.metrics), str(self.shape), val)
 
     def __repr__(self):
-        h = hashlist(self.data)
         return "%s(name='%s', metadata=%s, parameters=%s, domain=%s," \
                " metrics=%s, data='%s')" % (self.__class__.__name__, self.name, \
                str(self.metadata), str(self.parameters), str(self.domain),
-               str(self.metrics), h)
+               str(self.metrics), self.datahash)
 
 
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        same = True
+        same = same and (self.name == other.name)
+        same = same and (self.metadata == other.metadata)
+        same = same and (self.parameters == other.parameters)
+        same = same and (self.domain == other.domain)
+        same = same and (self.metrics == other.metrics)
+        same = same and (self.data == other.data)
+        return same
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 
-
-
-def yield_not_done_computation(experiment, user=os.environ["USER"]):
-    historic = Historic(experiment.name, user)
-    for comp_name, param in experiment:
-        if historic.is_launchable(comp_name):
-            yield comp_name, param
-
-
-
-def run_experiment(experiment, script_path, build_script=submit,
-                   overwrite=True, user=os.environ["USER"],
-                   serialize=encode_kwargs):
-    logger = logging.getLogger("clustertools")
-    exp_name = experiment.name
-
-    save_experiment(experiment, overwrite)
-
-    i = -1
-    for job_name, param in yield_not_done_computation(experiment, user):
-        i += 1
-        job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
-                                               exp_name, job_name,
-                                               serialize(param))
-
-        script = build_script(job_command, job_name=job_name)
-        logger.debug("Script:\n%s" % script)
-
-        start = pending_job_update(exp_name, job_name)
-        try:
-            output = subprocess.check_output(script, shell=True)
-            logger.debug("Output:\n%s" % output)
-        except CalledProcessError as exception:
-            aborted_job_update(exp_name, job_name, start, exception)
-            logger.error("Error launching job '%s': %s" % (job_name,
-                exception.message), exc_info=True)
-
-    logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
+def build_result_cube(exp_name):
+    result = load_results(exp_name)
+    parameterss = []
+    resultss = []
+    for d in result.values():
+        parameterss.append(d[__PARAMETERS__])
+        resultss.append(d[__RESULTS__])
+    return Result(parameterss, resultss, exp_name)
 

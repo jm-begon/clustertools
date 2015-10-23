@@ -11,7 +11,7 @@ from nose.tools import with_setup
 
 
 from clustertools.notification import *
-from clustertools.experiment import Experiment, yield_not_done_computation
+from clustertools.experiment import Experiment
 from clustertools.database import get_notifdb
 
 __EXP_NAME__ = "ClustertoolsNoseTest"

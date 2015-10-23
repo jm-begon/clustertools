@@ -5,6 +5,8 @@ TODO
 - [ ] Cluster Daemon managing resources
 - [ ] Multicore Daemon
 - [ ] Explore "one file all"
+- [ ] Catch SIGINT/SIGTERM ?
+- [ ] Add after in Experiment !!
 
 Result class
 ------------
@@ -18,6 +20,7 @@ Result class
 - [x] Out of domain
 - [x] Swap order of parameters
 - [x] __str__, __repr__
+- [ ] numpify, only one metric -> remove that dim
 
 Crontab
 -------
