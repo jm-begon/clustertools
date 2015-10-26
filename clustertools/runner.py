@@ -29,8 +29,10 @@ class PickableCalledProcessError(CalledProcessError):
 def run_experiment(experiment, script_path, build_script=submit,
                    overwrite=True, user=os.environ["USER"],
                    serialize=encode_kwargs):
-    logger = logging.getLogger("clustertools")
+
     exp_name = experiment.name
+    logger = logging.getLogger("clustertools")
+    logger.info("Launching experiment '%s' with script '%s'" %(experiment, script_path))
 
     save_experiment(experiment, overwrite)
 

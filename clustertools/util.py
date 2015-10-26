@@ -17,6 +17,7 @@ from hashlib import sha256
 
 __CT_FOLDER__ = "clustertools_data"
 __LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
+__METALOG__ = "clustertools.log"
 
 def get_ct_folder():
     return os.path.join(os.environ["HOME"], __CT_FOLDER__)
@@ -34,6 +35,9 @@ def get_log_folder(exp_name=None):
     if not os.path.exists(folder):
         os.makedirs(folder)
     return folder
+
+def get_meta_log_file():
+    return os.path.join(get_log_folder(), __METALOG__)
 
 def get_log_file(exp_name, comp_name):
     folder = get_log_folder(exp_name)
