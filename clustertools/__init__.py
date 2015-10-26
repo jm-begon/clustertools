@@ -62,7 +62,7 @@ def set_stdout_logging():
     formatter = logging.Formatter("%(asctime)s - %(name)s - "
                                   "%(levelname)s - %(message)s")
     ch.setFormatter(formatter)
-    fh.setFormatter()
+    fh.setFormatter(formatter)
 
     logger = logging.getLogger("clustertools")
     logger.addHandler(ch)
