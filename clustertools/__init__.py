@@ -33,7 +33,7 @@ from .parser import parse_args
 from .runner import run_experiment
 from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
-                   experiment_diff, reorder)
+                   experiment_diff, reorder, get_meta_log_file)
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
            "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
@@ -55,9 +55,16 @@ def set_stdout_logging():
     import sys
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
+
+    fh = logging.FileHandler(get_meta_log_file())
+    fh.setLevel(logging.INFO)
+
     formatter = logging.Formatter("%(asctime)s - %(name)s - "
                                   "%(levelname)s - %(message)s")
     ch.setFormatter(formatter)
+    fh.setFormatter()
+
     logger = logging.getLogger("clustertools")
     logger.addHandler(ch)
+    logger.addHandler(fh)
     logger.setLevel(logging.DEBUG)

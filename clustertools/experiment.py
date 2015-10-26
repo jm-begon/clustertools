@@ -552,21 +552,58 @@ class Result(Mapping):
                     ood.append((p_dict, self.metrics[i]))
         return ood
 
-    def maximal_hypercube(self):
-        # Find the max range of each param
-        # doms = [copy(self.domain[x]) for x in self.parameters]
-        # for params, metrics in self.iteritems():
+    def _missing_ratio(self, ood=None):
+        if ood is None:
+            ood = self.out_of_domain()
+        return float(len(ood))/self.size()
 
-        #     if None in metrics:
-        #         for i, pv in enumerate(params):
-        #             try:
-        #                 idx = doms[i].index(pv)
-        #                 print idx
-        #             except ValueError:
-        #                 pass
-        # print doms
-        # return self[tuple(doms)]
-        raise NotImplementedError("Soon.")
+    def _some_miss_vs_all_there(self, ood=None):
+        if ood is None:
+            ood = self.out_of_domain()
+        sets = {k:set() for k in self.parameters}
+        ood = self.out_of_domain()
+        for tup in ood:
+            for param in self.parameters:
+                sets[param].add(tup[0][param])
+        some_missings = {}
+        all_there = {}
+        # Same order as in domain
+        for param, domls in self.domain.iteritems():
+            ls = [v for v in domls if v in sets[param]]
+            ts = [v for v in domls if v not in sets[param]]
+            some_missings[param] = ls
+            all_there[param] = ts
+        return some_missings, all_there
+
+
+    def diagnose(self):
+        ood = self.out_of_domain()
+        some_missings, all_there = self._some_miss_vs_all_there(ood)
+
+        diagnosis = {
+            "Missing ratio":self._missing_ratio(ood),
+            "At least one missing": some_missings,
+            "All there": all_there
+        }
+        return diagnosis
+
+    def maximal_hypercube(self, metric=None):
+        cube = self if metric is None else self(metric=metric)
+        _, all_there = cube._some_miss_vs_all_there()
+        max_key, max_len = None, -1
+        for k,v in all_there.iteritems():
+            if len(v) > max_len:
+                max_len = len(v)
+                max_key = k
+        return cube(**{max_key:all_there[max_key]})
+
+
+    def minimal_hypercube(self, metric=None):
+        cube = self if metric is None else self(metric=metric)
+        _, all_there = cube._some_miss_vs_all_there()
+        slicing = {k:v for k,v in all_there.iteritems() if len(v) > 0}
+        return cube(**slicing)
+
 
     def __str__(self):
         try:
