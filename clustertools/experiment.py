@@ -22,7 +22,7 @@ from collections import Mapping
 
 from clusterlib.scheduler import submit
 
-from .database import save_result, save_experiment, load_results
+from .database import save_result, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update, Historic)
 from .util import encode_kwargs, reorder, hashlist
