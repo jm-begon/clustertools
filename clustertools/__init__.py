@@ -29,7 +29,7 @@ from .database import load_experiments, reset_experiment
 from .notification import Historic
 from .experiment import (Computation, Experiment, Hasher, Result,
                          build_result_cube)
-from .parser import parse_args
+from .parser import parse_args, parse_params
 from .runner import run_experiment
 from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
@@ -37,7 +37,7 @@ from .util import (get_log_folder, get_log_file, purge_logs, call_with,
 
 __all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
            "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
-           "relaunch_experiment", "get_log_folder", "parse_args",
+           "relaunch_experiment", "get_log_folder", "parse_args", "parse_params",
            "get_log_folder", "get_log_file", "purge_logs", "call_with",
            "encode_kwargs", "decode_kwargs", "bash_submit", "false_submit",
            "experiment_diff", "set_stdout_logging", "reorder"]

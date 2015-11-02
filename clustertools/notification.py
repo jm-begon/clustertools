@@ -203,8 +203,10 @@ class Historic(object):
 
 
     def aborted_to_launchable(self):
-        for comp_name in self.aborted_jobs().keys():
-            launchable_job_update(self.exp_name, comp_name)
+        launchable_jobs_update(self.exp_name, self.aborted_jobs().keys())
+
+    def pending_to_launchable(self):
+        launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
 
 
 

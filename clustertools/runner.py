@@ -28,7 +28,7 @@ class PickableCalledProcessError(CalledProcessError):
 
 
 def run_experiment(experiment, script_path, build_script=submit,
-                   overwrite=True, user=os.environ["USER"],
+                   overwrite=True, force=False, user=os.environ["USER"],
                    serialize=encode_kwargs):
 
     exp_name = experiment.name
@@ -55,6 +55,8 @@ def run_experiment(experiment, script_path, build_script=submit,
             aborted_job_update(exp_name, job_name, start, picklify(exception))
             logger.error("Error launching job '%s': %s" % (job_name,
                 exception.message), exc_info=True)
+            if not force:
+                break
 
-    logger.info("Experiment '%s': %d computation(s)" % (exp_name, (i+1)))
+    logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, (i+1), len(experiment)))
 

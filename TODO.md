@@ -1,6 +1,7 @@
 TODO
 ====
-- [ ] Result class
+- [ ] Reset pending jobs
+- [ ] Result class
 - [ ] Example with Crontab
 - [ ] Cluster Daemon managing resources
 - [ ] Multicore Daemon
@@ -16,11 +17,12 @@ Result class
 - [x] Numpyfy
 - [ ] Example
 - [x] Test suite
-- [ ] Maximal hypercubic domain
+- [x] Maximal hypercubic domain
 - [x] Out of domain
 - [x] Swap order of parameters
 - [x] __str__, __repr__
-- [ ] numpify, only one metric -> remove that dim
+- [x] numpify, only one metric -> remove that dim
+- [ ] Merge results?
 
 Crontab
 -------

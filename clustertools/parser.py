@@ -67,3 +67,34 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
                              backend=args.backend, shell_script=args.shell)
     return exp_name, script, script_builder
 
+def parse_params(exp_name, description="Cluster job launcher.", args=None, namespace=None):
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("--backend", "-b", default="auto",
+                        help="""{'auto', 'slurm', 'sge'}
+        Backend where the job will be submitted. If 'auto', try detect
+        the backend to use based on the commands available in the PATH
+        variable looking first for 'slurm' and then for 'sge' if slurm is
+        not found. The default backend selected when backend='auto' can also
+        be fixed by setting the "CLUSTERLIB_BACKEND" environment variable.""")
+    parser.add_argument("--time", "-t", default="24:00:00",
+                        help='Maximum time format "HH:MM:SS"')
+    parser.add_argument("--memory", "-m", default=4000, type=int,
+                        help="Maximum virtual memory in mega-bytes")
+    parser.add_argument("--email", "-e", default=None,
+                        help='Email where job information is sent. '
+                             'If None, no email is asked to be sent')
+    parser.add_argument("--emailopt", default=None,
+                        help="""Specify email options:
+            - SGE : Format char from beas (begin,end,abort,stop) for SGE.
+            - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
+        See the documenation for more information""")
+    parser.add_argument("--shell", "-s", default="#!/bin/bash",
+                        help='Maximum time format "HH:MM:SS"')
+
+    args = parser.parse_args(args=args, namespace=namespace)
+    script_builder = partial(submit, time=args.time, memory=args.memory,
+                             email=args.email, email_options=args.emailopt,
+                             log_directory=get_log_folder(exp_name),
+                             backend=args.backend, shell_script=args.shell)
+    return script_builder
+

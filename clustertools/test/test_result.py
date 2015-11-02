@@ -67,7 +67,7 @@ def alldiff():
        +----+----+      +----+----+
       1| 15 | 16 |     1| 51 | 61 |
        +----+----+      +----+----+
-    x 2| 24 | 26 |   x 2| 52 | 62 |
+    x 2| 25 | 26 |   x 2| 52 | 62 |
        +----+----+      +----+----+
       3| 35 | 36 |     3| 53 | 63 |
        +----+----+      +----+----+
@@ -112,7 +112,7 @@ def some_ood():
        +----+----+      +----+----+
       1| 15 | 16 |     1| 51 | 61 |
        +----+----+      +----+----+
-    x 2| N/ | 26 |   x 2| N/ | 62 |
+    x 2|    | 26 |   x 2|    | 62 |
        +----+----+      +----+----+
       3| 35 | 36 |     3| 53 | 63 |
        +----+----+      +----+----+
@@ -263,7 +263,6 @@ def test_call_indexing():
 def test_indexing_name():
     name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
-    print cube.parameters
     # f1(w=5, x=1)
     assert_equal(cube["5", "1", "f1"], 15)
     # f1(w=6, x=1)
@@ -363,6 +362,18 @@ def test_slicing():
     # ==== Swapping the metrics ====
     cube2 = cube[:, :, ["f2", 0]]
     assert_equal(cube2.metrics, ["f2", "f1"])
+
+
+def test_indexing_path():
+    name, metadata, params, dom, metrics, d = alldiff()
+    cube = build_cube(name, d)
+    val = cube(w="5", x="2", metric="f1")
+    c2 = cube(w="5", x="2")
+    val2 = c2(metric="f1")
+    vs = [v for v in c2]
+    assert_equal(vs[c2.metrics.index("f1")], val)
+    assert_equal(val, val2)
+
 
 
 

@@ -280,7 +280,7 @@ class Result(Mapping):
     def size(self):
         return reduce(lambda x,y: x*y, self.shape, 1)
 
-    def full_parameters():
+    def full_parameters(self):
         doms = [self.domain[v] for v in self.parameters]
         return [(name, dom) for name, dom in zip(self.parameters, doms)]
 
@@ -411,10 +411,11 @@ class Result(Mapping):
 
         p_slices, m_slice = index[:-1], index[-1]
         # +-> Looking for a scalar
-        # +--> We are sure to have a list of slice of one item
+        # +--> We are sure to have a list of slices of one item
         if return_scalar:
             metric = self.metrics[m_slice.start]
-            params = {}
+            # We need to include the metadata for the hasher
+            params = {k:v for k,v in self.metadata.iteritems()}
             for i, slc in enumerate(p_slices):
                 p_name = self.parameters[i]
                 vals = self.domain[p_name]
@@ -468,9 +469,12 @@ class Result(Mapping):
     def __iter__(self):
         if len(self.parameters) == 0:
             for m in range(len(self.metrics)):
-                yield self[..., m]
-        for v in range(len(self.domain[self.parameters[0]])):
-            yield self[v, ...]
+                # If there are only metrics, yield their values not
+                # a Result view
+                yield self[m]
+        else:
+            for v in range(len(self.domain[self.parameters[0]])):
+                yield self[v, ...]
 
     def __len__(self):
         return self.shape[0]
@@ -486,6 +490,10 @@ class Result(Mapping):
             if v is None:
                 v = slice(None)
             slices.append(v)
+
+        for k in kwargs.keys():
+            if k not in self.parameters:
+                raise IndexError("Parameter '%s' does not exist"%str(k))
 
         if metric is None:
             metric = slice(None)
@@ -561,18 +569,16 @@ class Result(Mapping):
         if ood is None:
             ood = self.out_of_domain()
         sets = {k:set() for k in self.parameters}
-        ood = self.out_of_domain()
         for tup in ood:
             for param in self.parameters:
-                sets[param].add(tup[0][param])
+                miss_dict = tup[0]
+                sets[param].add(miss_dict[param])
         some_missings = {}
         all_there = {}
         # Same order as in domain
         for param, domls in self.domain.iteritems():
-            ls = [v for v in domls if v in sets[param]]
-            ts = [v for v in domls if v not in sets[param]]
-            some_missings[param] = ls
-            all_there[param] = ts
+            some_missings[param] = [v for v in domls if v in sets[param]]
+            all_there[param] = [v for v in domls if v not in sets[param]]
         return some_missings, all_there
 
 

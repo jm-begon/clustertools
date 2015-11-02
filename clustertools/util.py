@@ -13,6 +13,8 @@ import json
 from inspect import getargspec
 from copy import copy
 from hashlib import sha256
+from datetime import datetime
+
 
 
 __CT_FOLDER__ = "clustertools_data"
@@ -37,7 +39,8 @@ def get_log_folder(exp_name=None):
     return folder
 
 def get_meta_log_file():
-    return os.path.join(get_log_folder(), __METALOG__)
+    fname = "clustertools_%s.log" % (datetime.now().strftime("%B%Y"))
+    return os.path.join(get_log_folder(), fname)
 
 def get_log_file(exp_name, comp_name):
     folder = get_log_folder(exp_name)
