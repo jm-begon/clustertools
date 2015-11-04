@@ -143,9 +143,11 @@ class Historic(object):
             job_dict = load_notifications(self.exp_name)
 
         # Updating the false running jobs
-        r_jobs = _filter(job_dict, __RUNNING__)
         queued = frozenset(queued_or_running_jobs(self.user))
+        r_jobs = _filter(job_dict, __RUNNING__)
+        p_jobs = _filter(job_dict, __PENDING__)
         launchables = {k for k in r_jobs.keys() if k not in queued}
+        launchables.update({k for k in p_jobs.keys() if k not in queued})
         launchable_jobs_update(self.exp_name, launchables)
         # +--- Applying local change
         for comp_name in launchables:

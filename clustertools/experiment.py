@@ -137,8 +137,17 @@ class Experiment(object):
     def __getitem__(self, sel):
         return self.get_params_for(sel)
 
+    def __repr__(self):
+        return "%s(name='%s', params=%s)" % (self.__class__.__name__, self.name,
+                                             str(self.params))
+
     def __str__(self):
-        return "Experiment '%s': %s" % (self.name, str(self.params))
+        return repr(self)
+
+def _sort_back(dictionary):
+    tmp = [(v, k) for k,v in dictionary.iteritems()]
+    tmp.sort()
+    return [x for _, x in tmp]
 
 
 class Hasher(object):
@@ -164,6 +173,28 @@ class Hasher(object):
                 self.strides[name] = 0
                 self.dom_inv[name] = {val:0}
 
+    def get_cons_args(self):
+        metrics = _sort_back(self.metric_inv)
+        metadata = {}
+        domain = {}
+        for param, domdic in self.dom_inv.iteritems():
+            if self.strides[param] == 0:
+                metadata[param] = _sort_back(domdic)[0]
+            else:
+                domain[param] = _sort_back(domdic)
+        if len(metadata) == 0:
+            metadata = None
+        return metrics, domain, metadata
+
+    def __repr__(self):
+        metrics, domain, metadata = self.get_cons_args()
+        cls_name = self.__class__.__name__
+        return "%s(metrics=%s, domain=%s, metadata=%s)" % (cls_name,
+                                                           repr(metrics),
+                                                           repr(domain),
+                                                           repr(metadata))
+
+
     def add_metadata(self, **kwargs):
         for k, v in kwargs.iteritems():
             self.strides[k] = 0
@@ -176,10 +207,36 @@ class Hasher(object):
         params: mapping str -> value
             A mapping from parameter names to values of their domain
         """
+        if len(params) != len(self.strides):
+            raise IndexError("Expecting %d parameters/metadata, got %d" % (len(self.strides), len(params)))
         index = self.metric_inv[metric] * self.metric_stride
         for p, pv in params.iteritems():
             index += (self.strides[p] * self.dom_inv[p][pv])
         return index
+
+    def dehash(self, index):
+        res = {}
+        # First, find the metric:
+        metric_index = index // self.metric_stride
+        metrics = _sort_back(self.metric_inv)
+        res["metric"] = metrics[metric_index]
+
+        # Then, find the parameters
+        index = index % self.metric_stride
+        dims = [(v, k) for k,v in self.strides.iteritems()]
+        dims.sort(reverse=True)
+        for stride, param in dims:
+            if stride == 0:
+                # We arrived at the metadata
+                continue
+            dom = _sort_back(self.dom_inv[param])
+            p_idx = index // stride
+            res[param] = dom[p_idx]
+            index = index % stride
+
+        return res
+
+
 
     def __call__(self, metric, params):
         return self.hash(metric, params)
@@ -546,7 +603,8 @@ class Result(Mapping):
         """
         p_gen = product(*[self.domain[p] for p in self.parameters])
         for params in p_gen:
-            p_dict = {k:v for v,k in zip(params, self.parameters)}
+            p_dict = {k:v for k,v in zip(self.parameters, params)}
+            p_dict.update(self.metadata)
             idx = [self.hash(m, p_dict) for m in self.metrics]
             data = tuple(self.data[x] for x in idx)
             yield params, data
