@@ -580,7 +580,7 @@ class Result(Mapping):
 
         arr = np.array([arr.numpify() for arr in self])
         if squeeze and arr.shape[-1] == 1:
-            arr = arr.squeeze(axis=-1)
+            arr = arr.squeeze()
         return arr
 
     def reorder_parameters(self, *args):

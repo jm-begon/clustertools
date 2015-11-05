@@ -69,6 +69,9 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
 
 def parse_params(exp_name, description="Cluster job launcher.", args=None, namespace=None):
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("database", help="The database on which to run")
+    parser.add_argument("custopt", nargs="*",
+                        help="Custom options to be passed on")
     parser.add_argument("--backend", "-b", default="auto",
                         help="""{'auto', 'slurm', 'sge'}
         Backend where the job will be submitted. If 'auto', try detect
@@ -89,12 +92,15 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
             - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
         See the documenation for more information""")
     parser.add_argument("--shell", "-s", default="#!/bin/bash",
-                        help='Maximum time format "HH:MM:SS"')
+                        help='Maximum time in "HH:MM:SS" format')
 
     args = parser.parse_args(args=args, namespace=namespace)
+    db = args.database
+    custopt = args.custopt
+    exp_name += db
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
                              log_directory=get_log_folder(exp_name),
                              backend=args.backend, shell_script=args.shell)
-    return script_builder
+    return script_builder, db, exp_name, custopt
 
