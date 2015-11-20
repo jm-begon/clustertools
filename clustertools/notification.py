@@ -210,6 +210,9 @@ class Historic(object):
     def pending_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
 
+    def reset(self):
+        launchable_jobs_update(self.exp_name, self.job_dict.keys())
+
 
 
 

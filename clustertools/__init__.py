@@ -25,7 +25,7 @@ __version__ = '0.0.1'
 __date__ = "08 Oct. 2015"
 
 
-from .database import load_experiments, reset_experiment
+from .database import load_experiments, erase_experiment
 from .notification import Historic
 from .experiment import (Computation, Experiment, Hasher, Result,
                          build_result_cube)
@@ -35,7 +35,7 @@ from .util import (get_log_folder, get_log_file, purge_logs, call_with,
                    encode_kwargs, decode_kwargs, bash_submit,false_submit,
                    experiment_diff, reorder, get_meta_log_file)
 
-__all__ = ["load_experiments", "reset_experiment", "Historic", "Computation",
+__all__ = ["load_experiments", "erase_experiment", "Historic", "Computation",
            "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
            "relaunch_experiment", "get_log_folder", "parse_args", "parse_params",
            "get_log_folder", "get_log_file", "purge_logs", "call_with",
