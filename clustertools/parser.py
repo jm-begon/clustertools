@@ -92,7 +92,7 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
             - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
         See the documenation for more information""")
     parser.add_argument("--shell", "-s", default="#!/bin/bash",
-                        help='Maximum time in "HH:MM:SS" format')
+                        help='The shell in which to launch the jobs')
 
     args = parser.parse_args(args=args, namespace=namespace)
     db = args.database

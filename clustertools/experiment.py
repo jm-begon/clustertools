@@ -321,7 +321,7 @@ class Result(Mapping):
                 params_ = {k:str(v) for k,v in params.iteritems()}
                 index = hasher(str(metric_name), params_)
                 data[index] = val
-        datahash = hashlist(data)
+        datahash = "n/a"
 
         # Set info
         self.name = exp_name
@@ -333,6 +333,10 @@ class Result(Mapping):
         self.datahash = datahash
         self.hash = hasher
         self.shape = tuple(shape)
+
+    def compute_data_hash(self):
+        self.datahash = hashlist(data)
+        return self.datahash
 
     def size(self):
         return reduce(lambda x,y: x*y, self.shape, 1)
