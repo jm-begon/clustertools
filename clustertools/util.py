@@ -10,7 +10,7 @@ __copyright__ = "3-clause BSD License"
 import os
 import sys
 import shutil
-import logger
+import logging
 import json
 import collections
 from inspect import getargspec
