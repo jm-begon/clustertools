@@ -13,6 +13,7 @@ import shutil
 import logging
 import json
 import collections
+import glob
 from inspect import getargspec
 from copy import copy
 from hashlib import sha256
@@ -46,21 +47,24 @@ def get_meta_log_file():
     return os.path.join(get_log_folder(), fname)
 
 def get_log_file(exp_name, comp_name):
+    """Return the most recent (ctime) matching file"""
     folder = get_log_folder(exp_name)
-    for fname in os.listdir(folder):
-        fp = os.path.join(folder, fname)
-        if os.path.isfile(fp) and fname.startswith(comp_name+".") and fname.endswith(".txt"):
-            return fp
+    prefix = os.path.join(folder, comp_name)
+    try:
+        return max(glob.iglob("%s.*"%prefix), key=os.path.getctime)
+    except ValueError:
+        return None
+
 
 def print_log_file(exp_name, comp_name, last_lines=None, out=sys.stdout):
     f = get_log_file(exp_name, comp_name)
-    if not os.path.exists(f):
+    if f is None:
         logger = logging.getLogger("clustertools.util.print_log_file")
         logger.warn("File '%s' does not exists."%f)
         return
     if last_lines is None:
         with open(f) as fhd:
-            out.write(f.read())
+            out.write(fhd.read())
     else:
         buffer_ = collections.deque(maxlen=last_lines)
         with open(f) as fhd:
