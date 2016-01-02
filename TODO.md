@@ -1,7 +1,7 @@
 TODO
 ====
 - [x] Reset pending jobs
-- [ ] Partial saving + partial status
+- [x] Partial saving + partial status
 - [ ] Result class
 - [ ] Add after in Experiment
 - [ ] Remote launching

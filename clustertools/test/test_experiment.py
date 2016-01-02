@@ -24,30 +24,6 @@ def test_len():
     assert_equal(i, 6)
     assert_equal(len(exp), 6)
 
-def test_metadata():
-    exp_meta = Experiment("TestMeta")
-    p3 = "param"
-
-    exp_meta.add_params(p1=1, p2=[2, 3], p3=p3)
-    exp_meta.add_params(p1=4, p2=5)
-
-
-    md = exp_meta.get_metadata()
-    assert_equal(len(md), 1)
-    assert_equal(md.keys()[0], "p3")
-    assert_equal(md.values()[0], p3)
-
-def test_domain():
-    exp = Experiment("TestDomain")
-    exp.add_params(p1=1, p2=[2, 3], p3="param")
-    exp.add_params(p1=4, p2=5)
-
-    print exp
-
-    domain = exp.get_domain()
-    assert_equal(len(domain), 2)
-    assert_equal(len(domain["p1"]), 2)
-    assert_equal(len(domain["p2"]), 3)
 
 def test_getitem():
     exp = Experiment("TestItem")

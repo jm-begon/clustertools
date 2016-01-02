@@ -24,7 +24,8 @@ from clusterlib.scheduler import submit
 
 from .database import save_result, load_results
 from .notification import (pending_job_update, running_job_update,
-                           completed_job_update, aborted_job_update, Historic)
+                           completed_job_update, aborted_job_update,
+                           partial_job_update, Historic)
 from .util import encode_kwargs, reorder, hashlist
 
 __EXP_NAME__ = "Experiment"
@@ -81,32 +82,111 @@ class PartialComputation(Computation):
             raise
 
 
-
-
 class Experiment(object):
-
+    """
+    param_seq : list of dict
+    """
     def __init__(self, name, params=None):
         self.name = name
         if not params:
             self.params = {}
         else:
             self.params = params
+        self.param_seq = [copy(self.params)]
 
     def add_params(self, **kwargs):
         for k, v in kwargs.iteritems():
             vp = self.params.get(k)
             if vp is None:
-                vp = []
+                if len(self.param_seq) > 1:
+                    raise ValueError("New keyword (i.e. '%s') cannot be addded after the first barrier" % str(k))
+                vp = set()
                 self.params[k] = vp
+            vps = self.param_seq[-1].get(k)
+            if vps is None:
+                vps = set()
+                self.param_seq[-1][k] = vps
             try:
                 if isinstance(v, basestring):
                     raise TypeError
                 for vi in v:
-                    vp.append(vi)
+                    if not vi in vp:
+                        vp.add(vi)
+                        vps.add(vi)
             except TypeError:
-                vp.append(v)
-            finally:
-                vp.sort()
+                if v not in vp:
+                    vp.add(v)
+                    vps.add(v)
+        return self
+
+    def add_separator(self):
+        self.param_seq.append({k:set() for k in self.param_seq[0].keys()})
+        return self
+
+    def __len__(self):
+        nb = 1
+        for val in self.params.values():
+            nb *= len(val)
+        return nb
+
+    def __iter__(self):
+        # TODO less memory by factorization
+        if len(self.params) == 0:
+            yield "Computation-"+self.name+"-0", {}
+        else:
+            keys = self.params.keys()
+            keys.sort()
+            inc = {k:set() for k in keys}
+            seen = set()
+            nb = 0
+            for params_ in self.param_seq:
+                for key, value in params_.iteritems():
+                    inc[key].update(value)
+
+                values = []
+                for vals in [inc[k] for k in keys]:
+                    ls = list(vals)
+                    ls.sort()
+                    values.append(ls)
+                for v in product(*values):
+                    tup = tuple(zip(keys, v))
+                    params = dict(zip(keys, v))
+                    if tup in seen:
+                        continue
+                    label = "Computation-"+self.name+"-"+str(nb)
+                    yield label, params
+                    nb += 1
+                    seen.add(tup)
+
+
+    def get_params_for(self, sel):
+        index = -1
+        name = ""
+        try:
+            index = int(sel)
+            # sel is a int
+            if index < 0 or index >= len(self):
+                raise KeyError("%d not in the range [0, %d]" %
+                                    (index, len(self)-1))
+        except ValueError:
+            # sel is a string
+            name = sel
+        name = name.encode("utf-8")
+        for i, (label, param) in enumerate(self):
+            if i == index or name == label.encode("utf-8"):
+                return label, param
+        raise KeyError("Key '%s' not found" % str(sel))
+
+    def __getitem__(self, sel):
+        return self.get_params_for(sel)
+
+    def __repr__(self):
+        return "%s(name='%s', param_seq=%s)" % (self.__class__.__name__, self.name,
+                                             repr(self.param_seq))
+
+    def __str__(self):
+        return repr(self)
+
 
     def get_metadata(self):
         d = {}
@@ -122,50 +202,6 @@ class Experiment(object):
                 d[k] = v
         return d
 
-    def __len__(self):
-        nb = 1
-        for val in self.params.values():
-            nb *= len(val)
-        return nb
-
-    def __iter__(self):
-        if len(self.params) == 0:
-            yield "Computation-"+self.name+"-0", {}
-        else:
-            keys = self.params.keys()
-            keys.sort()
-            values = [self.params[k] for k in keys]
-            for i, v in enumerate(product(*values)):
-                params = dict(zip(keys, v))
-                label = "Computation-"+self.name+"-"+str(i)
-                yield label, params
-
-    def get_params_for(self, sel):
-        index = -1
-        name = ""
-        try:
-            index = int(sel)
-            # sel is a int
-            if index < 0 or index >= len(self):
-                raise KeyError("%d not in the range [0, %d]" %
-                                    (index, len(self)-1))
-        except ValueError:
-            # sel is a string
-            name = sel
-        for i, (label, param) in enumerate(self):
-            if i == index or name.encode("utf-8") == label.encode("utf-8"):
-                return label, param
-        raise KeyError("Key '%s' not found" % str(sel))
-
-    def __getitem__(self, sel):
-        return self.get_params_for(sel)
-
-    def __repr__(self):
-        return "%s(name='%s', params=%s)" % (self.__class__.__name__, self.name,
-                                             str(self.params))
-
-    def __str__(self):
-        return repr(self)
 
 def _sort_back(dictionary):
     tmp = [(v, k) for k,v in dictionary.iteritems()]
