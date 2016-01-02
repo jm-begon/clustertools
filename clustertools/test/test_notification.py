@@ -32,6 +32,7 @@ def test_notif_update():
     launchable = "test_lauchable"
     launchable1 = "test_lauchable1"
     launchable2 = "test_lauchable2"
+    partial = "test_partial"
     aborted = "test_aborted"
     aborted_except = KeyError("test_aborted")
 
@@ -43,6 +44,7 @@ def test_notif_update():
     start = running_job_update(__EXP_NAME__, running)
     completed_job_update(__EXP_NAME__, completed, start)
     aborted_job_update(__EXP_NAME__, aborted, start, aborted_except)
+    partial_job_update(__EXP_NAME__, partial)
 
     histo = Historic(__EXP_NAME__, None)
 
@@ -54,6 +56,7 @@ def test_notif_update():
     assert_in(launchable1, histo.launchable_jobs().keys())
     assert_in(launchable2, histo.launchable_jobs().keys())
     assert_in(aborted, histo.aborted_jobs().keys())
+    assert_in(partial, histo.partial_jobs().keys())
 
     # Running has been set to launchable
     assert_in(running, histo.launchable_jobs().keys())

@@ -58,6 +58,29 @@ class Computation(object):
             aborted_job_update(self.exp_name, self.comp_name, start, excep)
             raise
 
+class PartialComputation(Computation):
+    """
+    Expect the run method to be a generator
+    """
+    def __call__(self, **parameters):
+        start = running_job_update(self.exp_name, self.comp_name)
+        try:
+            for partial_result in self.run(**parameters):
+                result = {
+                    self.comp_name: {
+                        __EXP_NAME__: self.exp_name,
+                        __PARAMETERS__: parameters,
+                        __RESULTS__: partial_result
+                    }
+                }
+                save_result(self.exp_name, result)
+                partial_job_update(self.exp_name, self.comp_name, start)
+            completed_job_update(self.exp_name, self.comp_name, start)
+        except Exception as excep:
+            aborted_job_update(self.exp_name, self.comp_name, start, excep)
+            raise
+
+
 
 
 class Experiment(object):

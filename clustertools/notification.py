@@ -31,9 +31,11 @@ __COMPLETED__ = "COMPLETED"
 __ABORTED__ = "ABORTED"
 __PENDING__ = "PENDING"
 __LAUNCHABLE__ = "LAUNCHABLE"
+__PARTIAL__ = "PARTIAL"
 
 __STATE__= "STATE"
 __DATE__ = "date"
+__LASTSAVE__ = "last save"
 __DURATION__ = "duration"
 __EXCEPT__ = "exception"
 
@@ -75,6 +77,16 @@ def running_job_update(exp_name, comp_name):
     d = {
         __STATE__: __RUNNING__,
         __DATE__: now
+    }
+    update_notification(exp_name, {comp_name : d})
+    return now
+
+def partial_job_update(exp_name, comp_name, startdate):
+    now = datetime.now()
+    d = {
+        __STATE__: __PARTIAL__,
+        __DATE__: startdate
+        __LASTSAVE__: now
     }
     update_notification(exp_name, {comp_name : d})
     return now
@@ -172,6 +184,8 @@ class Historic(object):
         return _filter(self.job_dict, __ABORTED__)
     def launchable_jobs(self):
         return _filter(self.job_dict, __LAUNCHABLE__)
+    def partial_jobs(self):
+        return _filter(self.job_dict, __PARTIAL__)
 
     def get_state(self, comp_name):
         info = self.job_dict.get(comp_name)
@@ -209,6 +223,9 @@ class Historic(object):
 
     def pending_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
+
+    def partial_to_launchable(self):
+        launchable_jobs_update(self.exp_name, self.partial_jobs().keys())
 
     def reset(self):
         launchable_jobs_update(self.exp_name, self.job_dict.keys())

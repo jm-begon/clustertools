@@ -27,8 +27,8 @@ __date__ = "08 Oct. 2015"
 
 from .database import load_experiments, erase_experiment
 from .notification import Historic
-from .experiment import (Computation, Experiment, Hasher, Result,
-                         build_result_cube)
+from .experiment import (Computation, PartialComputation, Experiment, Hasher,
+                         Result,build_result_cube)
 from .parser import parse_args, parse_params
 from .runner import run_experiment
 from .util import (get_log_folder, get_log_file, print_log_file, purge_logs,
@@ -36,11 +36,12 @@ from .util import (get_log_folder, get_log_file, print_log_file, purge_logs,
                    false_submit, experiment_diff, reorder, get_meta_log_file)
 
 __all__ = ["load_experiments", "erase_experiment", "Historic", "Computation",
-           "Experiment", "build_result_cube", "Hasher", "Result", "run_experiment",
-           "relaunch_experiment", "get_log_folder", "parse_args", "parse_params",
-           "get_log_folder", "get_log_file", "purge_logs", "call_with",
-           "encode_kwargs", "decode_kwargs", "bash_submit", "false_submit",
-           "experiment_diff", "set_stdout_logging", "reorder", "print_log_file"]
+           "PartialComputation", "Experiment", "build_result_cube", "Hasher",
+           "Result", "run_experiment", "relaunch_experiment", "get_log_folder",
+           "parse_args", "parse_params", "get_log_folder", "get_log_file",
+           "purge_logs", "call_with", "encode_kwargs", "decode_kwargs",
+           "bash_submit", "false_submit", "experiment_diff",
+           "set_stdout_logging", "reorder", "print_log_file"]
 
 
 

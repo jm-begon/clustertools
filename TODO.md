@@ -1,42 +1,29 @@
 TODO
 ====
-- [ ] Reset pending jobs
+- [x] Reset pending jobs
+- [ ] Partial saving + partial status
 - [ ] Result class
-- [ ] Example with Crontab
-- [ ] Cluster Daemon managing resources
-- [ ] Multicore Daemon
-- [ ] Explore "one file all"
-- [ ] Catch SIGINT/SIGTERM ?
-- [ ] Add after in Experiment !!
+- [ ] Add after in Experiment
+- [ ] Remote launching
+- [ ] Refactoring
+- [ ] Automatic resource management & job relaunch
 
 Result class
 ------------
-- [x] Slicing
-- [x] List slicing
-- [x] Iter
-- [x] Numpyfy
-- [ ] Example
-- [x] Test suite
-- [x] Maximal hypercubic domain
-- [x] Out of domain
-- [x] Swap order of parameters
-- [x] __str__, __repr__
-- [x] numpify, only one metric -> remove that dim
-- [ ] Merge results?
+- [ ] Deal with floats and stuff as such
 
-Crontab
--------
-Script for relaunching one experiment.
-Quid of resource management?
+Automatic resource management & job relaunch
+--------------------------------------------
+Either use contrab or manual relaunch but with automatic resource managment
 
-Daemon
-------
-- [ ] Command to kill the daemon
+Refactoring
+-----------
+- [ ] Scheduler
+- [ ] Storage
 
-Cluster Daemon
---------------
-- [ ] Resource management
+Scheduler takes the Experiment class and manages the computations (slurm/SGE via clusterlib, joblib, direct batch).
 
-Multicore Daemon
-----------------
-- [ ] Job management (Quid of joblib?)
+Storage is responsible for storing notifications and results from computations.
+
+Quid of the experiment DB ?
+
