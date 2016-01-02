@@ -85,7 +85,7 @@ def partial_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
     d = {
         __STATE__: __PARTIAL__,
-        __DATE__: startdate
+        __DATE__: startdate,
         __LASTSAVE__: now
     }
     update_notification(exp_name, {comp_name : d})
