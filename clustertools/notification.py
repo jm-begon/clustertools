@@ -32,6 +32,7 @@ __ABORTED__ = "ABORTED"
 __PENDING__ = "PENDING"
 __LAUNCHABLE__ = "LAUNCHABLE"
 __PARTIAL__ = "PARTIAL"
+__INCOMPLETE__ = "INCOMPLETE"
 
 __STATE__= "STATE"
 __DATE__ = "date"
@@ -113,6 +114,28 @@ def aborted_job_update(exp_name, comp_name, startdate, exception):
     update_notification(exp_name, {comp_name : d})
     return now
 
+def incomplete_job_update(exp_name, comp_name, startdate):
+    now = datetime.now()
+    d = {
+        __STATE__: __INCOMPLETE__,
+        __DATE__: startdate,
+        __LASTSAVE__: now
+    }
+    update_notification(exp_name, {comp_name : d})
+    return now
+
+def incomplete_jobs_update(exp_name, comp_names):
+    now = datetime.now()
+    dictionary = {
+        comp_name:
+        {
+            __STATE__:__INCOMPLETE__,
+            __DATE__: now
+        }
+        for comp_name in comp_names
+    }
+    update_notification(exp_name, dictionary)
+    return now
 
 #======================= LOOKUPS =======================#
 
@@ -128,7 +151,7 @@ def _sort_by_state(dico):
 
 def is_up(status):
     return (status == __COMPLETED__ or status == __RUNNING__
-            or status == __PENDING__)
+            or status == __PENDING__ or status == __PARTIAL__)
 
 def _filter(job_dict, status):
     return {k:v for k,v in job_dict.iteritems() if v[__STATE__] == status}
@@ -158,13 +181,19 @@ class Historic(object):
         queued = frozenset(queued_or_running_jobs(self.user))
         r_jobs = _filter(job_dict, __RUNNING__)
         p_jobs = _filter(job_dict, __PENDING__)
+        i_jobs = _filter(job_dict, __PARTIAL__)
         launchables = {k for k in r_jobs.keys() if k not in queued}
         launchables.update({k for k in p_jobs.keys() if k not in queued})
         launchable_jobs_update(self.exp_name, launchables)
+        incompletes = {k for k in i_jobs.keys() if k not in queued}
+        incomplete_jobs_update(self.exp_name, incompletes)
         # +--- Applying local change
         for comp_name in launchables:
             info = job_dict[comp_name]
             info[__STATE__] = __LAUNCHABLE__
+        for comp_name in incompletes:
+            info = job_dict[comp_name]
+            info[__STATE__] = __INCOMPLETE__
 
         # Setting the refreshment
         self.job_dict = job_dict
@@ -186,6 +215,8 @@ class Historic(object):
         return _filter(self.job_dict, __LAUNCHABLE__)
     def partial_jobs(self):
         return _filter(self.job_dict, __PARTIAL__)
+    def incomplete_jobs(self):
+        return _filter(self.job_dict, __INCOMPLETE__)
 
     def get_state(self, comp_name):
         info = self.job_dict.get(comp_name)
@@ -199,8 +230,6 @@ class Historic(object):
             return {k:v for k,v in self.job_dict.iteritems()
                     if is_up(v[__STATE__])}
 
-
-
         state = self.get_state(comp_name)
 
         return is_up(state)
@@ -210,7 +239,10 @@ class Historic(object):
 
         if state == __ABORTED__:
             logger = logging.getLogger("clustertools")
-            logger.warn("Computation '%s' is in aborted state." % comp_name)
+            logger.info("Computation '%s' is in aborted state." % comp_name)
+        if state == __INCOMPLETE__:
+            logger = logging.getLogger("clustertools")
+            logger.info("Computation '%s' is in incomplete state." % comp_name)
 
         return state == __LAUNCHABLE__
 
@@ -224,8 +256,8 @@ class Historic(object):
     def pending_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
 
-    def partial_to_launchable(self):
-        launchable_jobs_update(self.exp_name, self.partial_jobs().keys())
+    def incomplete_to_launchable(self):
+        launchable_jobs_update(self.exp_name, self.incomplete_jobs().keys())
 
     def reset(self):
         launchable_jobs_update(self.exp_name, self.job_dict.keys())
