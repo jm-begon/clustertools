@@ -25,63 +25,6 @@ __CT_FOLDER__ = "clustertools_data"
 __LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
 __METALOG__ = "clustertools.log"
 
-def get_ct_folder():
-    return os.path.join(os.environ["HOME"], __CT_FOLDER__)
-
-def get_log_folder(exp_name=None):
-    try:
-        folder = os.environ[__LOG_ENV__]
-    except KeyError:
-        folder = os.path.join(get_ct_folder(), "logs")
-        os.environ[__LOG_ENV__] = folder
-
-    if exp_name is not None:
-        folder = os.path.join(folder, exp_name)
-
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    return folder
-
-def get_meta_log_file():
-    fname = "clustertools_%s.log" % (datetime.now().strftime("%B%Y"))
-    return os.path.join(get_log_folder(), fname)
-
-def get_log_file(exp_name, comp_name):
-    """Return the most recent (ctime) matching file"""
-    folder = get_log_folder(exp_name)
-    prefix = os.path.join(folder, comp_name)
-    try:
-        return max(glob.iglob("%s.*"%prefix), key=os.path.getctime)
-    except ValueError:
-        return None
-
-
-def print_log_file(exp_name, comp_name, last_lines=None, out=sys.stdout):
-    f = get_log_file(exp_name, comp_name)
-    if f is None:
-        logger = logging.getLogger("clustertools.util.print_log_file")
-        logger.warn("File '%s' does not exists."%f)
-        return
-    if last_lines is None:
-        with open(f) as fhd:
-            out.write(fhd.read())
-    else:
-        buffer_ = collections.deque(maxlen=last_lines)
-        with open(f) as fhd:
-            for line in fhd:
-                buffer_.append(line)
-        for line in buffer_:
-            out.write(line)
-
-
-
-def purge_logs(exp_name, comp_name=None):
-    if comp_name is None:
-        shutil.rmtree(get_log_folder(exp_name))
-    else:
-        fp = get_log_file(exp_name, comp_name)
-        if fp is not None:
-            os.remove(fp)
 
 
 def kw_intersect(function, dictionary, *args, **kwargs):

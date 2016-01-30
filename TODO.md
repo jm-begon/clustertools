@@ -1,9 +1,9 @@
-TODO
-====
+TODOs
+=====
 - [x] Reset pending jobs
 - [x] Partial saving + partial status
-- [ ] Result class
-- [ ] Add after in Experiment
+- [ ] Remote survey
+- [x] Add after in Experiment
 - [ ] Remote launching
 - [ ] Refactoring
 - [ ] Automatic resource management & job relaunch

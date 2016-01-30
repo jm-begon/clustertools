@@ -1,0 +1,2 @@
+Main: {folder: clustertools_data}
+Storage: {default: pickle}

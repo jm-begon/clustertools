@@ -23,8 +23,7 @@ import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 
-from .database import update_notification, load_notifications, load_experiments
-
+from .database import get_storage, load_experiment_names
 
 __RUNNING__ = "RUNNING"
 __COMPLETED__ = "COMPLETED"
@@ -48,20 +47,19 @@ def launchable_job_update(exp_name, comp_name):
         __STATE__: __LAUNCHABLE__,
         __DATE__: now,
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def launchable_jobs_update(exp_name, comp_names):
     now = datetime.now()
-    dictionary = {
-        comp_name:
+    dictionaries = [
         {
             __STATE__:__LAUNCHABLE__,
             __DATE__: now
         }
         for comp_name in comp_names
-    }
-    update_notification(exp_name, dictionary)
+    ]
+    get_storage(exp_name).update_notifications(comp_names, dictionaries)
     return now
 
 def pending_job_update(exp_name, comp_name):
@@ -70,7 +68,7 @@ def pending_job_update(exp_name, comp_name):
         __STATE__: __PENDING__,
         __DATE__: now,
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def running_job_update(exp_name, comp_name):
@@ -79,7 +77,7 @@ def running_job_update(exp_name, comp_name):
         __STATE__: __RUNNING__,
         __DATE__: now
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def partial_job_update(exp_name, comp_name, startdate):
@@ -89,7 +87,7 @@ def partial_job_update(exp_name, comp_name, startdate):
         __DATE__: startdate,
         __LASTSAVE__: now
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 
@@ -100,7 +98,7 @@ def completed_job_update(exp_name, comp_name, startdate):
         __DATE__: now,
         __DURATION__: str(now - startdate)
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def aborted_job_update(exp_name, comp_name, startdate, exception):
@@ -111,7 +109,7 @@ def aborted_job_update(exp_name, comp_name, startdate, exception):
         __DURATION__: (now - startdate).total_seconds(),
         __EXCEPT__: exception
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def incomplete_job_update(exp_name, comp_name, startdate):
@@ -121,20 +119,19 @@ def incomplete_job_update(exp_name, comp_name, startdate):
         __DATE__: startdate,
         __LASTSAVE__: now
     }
-    update_notification(exp_name, {comp_name : d})
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
 def incomplete_jobs_update(exp_name, comp_names):
     now = datetime.now()
-    dictionary = {
-        comp_name:
+    dictionaries = [
         {
             __STATE__:__INCOMPLETE__,
             __DATE__: now
         }
         for comp_name in comp_names
-    }
-    update_notification(exp_name, dictionary)
+    ]
+    get_storage(exp_name).update_notifications(comp_names, dictionaries)
     return now
 
 #======================= LOOKUPS =======================#
@@ -171,8 +168,7 @@ class Historic(object):
     def refresh(self):
         if self.exp_name is None:
             job_dict = {}
-            exps = load_experiments()
-            for exp in exps.keys():
+            for exp in load_experiment_names():
                 job_dict.update(load_notifications(exp))
         else:
             job_dict = load_notifications(self.exp_name)
@@ -261,6 +257,9 @@ class Historic(object):
 
     def reset(self):
         launchable_jobs_update(self.exp_name, self.job_dict.keys())
+
+    def print_log(self, comp_name, last_lines=None):
+        get_storage(self.exp_name).print_log(comp_name, last_lines=last_lines)
 
 
 

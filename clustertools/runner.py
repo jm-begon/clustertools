@@ -15,7 +15,7 @@ from clusterlib.scheduler import submit
 
 from .notification import (pending_job_update, aborted_job_update,
                            yield_not_done_computation)
-from .database import save_experiment
+from .database import get_storage
 from .util import encode_kwargs
 
 
@@ -28,14 +28,14 @@ class PickableCalledProcessError(CalledProcessError):
 
 
 def run_experiment(experiment, script_path, build_script=submit,
-                   overwrite=True, force=False, user=os.environ["USER"],
-                   serialize=encode_kwargs):
+                   force=False, user=os.environ["USER"],
+                   serialize=encode_kwargs, capacity=sys.maxsize):
 
     exp_name = experiment.name
     logger = logging.getLogger("clustertools")
     logger.info("Launching experiment '%s' with script '%s'" %(experiment, script_path))
 
-    save_experiment(experiment, overwrite)
+    get_storage(exp_name).init()
 
     i = -1
     for job_name, param in yield_not_done_computation(experiment, user):
@@ -57,6 +57,8 @@ def run_experiment(experiment, script_path, build_script=submit,
                 exception.message), exc_info=True)
             if not force:
                 break
+        if i > capacity:
+            break
 
     logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, (i+1), len(experiment)))
 

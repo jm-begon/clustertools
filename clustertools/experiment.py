@@ -22,7 +22,7 @@ from collections import Mapping
 
 from clusterlib.scheduler import submit
 
-from .database import save_result, load_results
+from .database import get_storage, load_experiment_names, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update,
                            partial_job_update, Historic)
@@ -39,6 +39,10 @@ class Computation(object):
         self.exp_name = exp_name
         self.comp_name = comp_name
         self.overwrite = overwrite
+        self.storage = get_storage(self.exp_name)
+
+    def _save(self, result):
+        self.storage.save_result(self.comp_name, result, self.overwrite)
 
     def run(self, **parameters):
         pass
@@ -53,7 +57,7 @@ class Computation(object):
                     __RESULTS__: self.run(**parameters)
                 }
             }
-            save_result(self.exp_name, result)
+            self._save(result)
             completed_job_update(self.exp_name, self.comp_name, start)
         except Exception as excep:
             aborted_job_update(self.exp_name, self.comp_name, start, excep)
@@ -74,7 +78,7 @@ class PartialComputation(Computation):
                         __RESULTS__: partial_result
                     }
                 }
-                save_result(self.exp_name, result)
+                self._save(result)
                 partial_job_update(self.exp_name, self.comp_name, start)
             completed_job_update(self.exp_name, self.comp_name, start)
         except Exception as excep:

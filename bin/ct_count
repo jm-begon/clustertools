@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+#TODO regular expression style
+#TODO refresh mode
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
+
+import argparse
+import subprocess
+from clustertools import Historic, load_experiment_names
+
+__LH__ = "localhost"
+__WC__ = "*"
+
+if __name__ == "__main__":
+    description = "Clustertools task monitoring script"
+    doc = """The experiment(s) to monitor.
+Use ssh-like syntax: 'luke@skywalker:exp_about_the_force'. The first part can
+be omitted for local survey. A wildcard '%s' can be used to list all the
+experiment. Several queries are separated by a space. Queries for a remote
+host are sent as once. By default, all the local experiment are listed
+""" % __WC__
+
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("queries", help=doc, nargs="*")
+
+    args = parser.parse_args()
+    queries = args.queries
+    if len(queries) == 0:
+        queries = ["*"]
+
+    sorted_queries = {}
+    for query in queries:
+        try:
+            host, exp_name = query.split(":")
+        except ValueError:
+            host = __LH__
+            exp_name = query
+        qls = sorted_queries.get(host)
+        if qls is None:
+            qls = []
+            sorted_queries[host] = qls
+        qls.append(exp_name)
+
+    # Local queries
+    for exp_name in sorted_queries[__LH__]:
+        if exp_name == __WC__:
+            for name in load_experiment_names():
+                print Historic(name).count_by_state()
+        else:
+            print Historic(exp_name).count_by_state()
+
+    # Remote queries
+    del sorted_queries[__LH__]
+    cmd = "ssh {host} ct_count {exp}"
+    for host, exp_names in sorted_queries.iteritems():
+        for exp_name in exp_names:
+            subprocess.call(cmd.fomat(host=host, exp=exp_name), shell=True)
+

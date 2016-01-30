@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
+
+if __name__ == '__main__':
+    # --logs enable
+    # --notifications enable
+    # --results disable
+    pass

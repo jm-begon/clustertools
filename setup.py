@@ -18,7 +18,7 @@ DESCRIPTION = 'Toolkit to run experiments on supercomputers'
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 CLASSIFIERS = [
-    'Development Status :: 2 - Pre-Alpha',
+    'Development Status :: 2 - Pre-Alp  ha',
     'Environment :: Console',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
@@ -35,8 +35,8 @@ CLASSIFIERS = [
 ]
 
 if __name__ == '__main__':
-    from clustertools.database import _get_db_folder
-    _get_db_folder()
+    from clustertools.config import dump_config
+    dump_config()
     setup(name=NAME,
           version=VERSION,
           author=AUTHOR,
@@ -48,5 +48,6 @@ if __name__ == '__main__':
           classifiers=CLASSIFIERS,
           platforms='any',
           install_requires=['clusterlib',],
-          packages=['clustertools', 'clustertools.test'])
+          packages=['clustertools', 'clustertools.test'],
+          scripts=['bin/ct_count', 'bin/ct_sync', 'bin/ct_001to002'])
 

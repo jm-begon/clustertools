@@ -6,11 +6,12 @@ __copyright__ = "3-clause BSD License"
 
 
 import argparse
+import sys
 from functools import partial
 
 from clusterlib.scheduler import submit
 
-from .util import get_log_folder
+from database import get_storage
 
 
 def parse_args(description="Cluster job launcher.", args=None, namespace=None):
@@ -56,16 +57,20 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
             - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
         See the documenation for more information""")
     parser.add_argument("--shell", "-s", default="#!/bin/bash",
-                        help='Maximum time format "HH:MM:SS"')
+                        help='The shell to use')
+    parser.add_argument("--capacity", "-c", default=sys.maxsize, type=int,
+                        help="""The maximum number of job to launch
+                        (default: sys.maxsize)""")
 
     args = parser.parse_args(args=args, namespace=namespace)
     exp_name = args.name
     script = args.script
+    log_folder = get_storage(exp_name).get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
-                             log_directory=get_log_folder(exp_name),
-                             backend=args.backend, shell_script=args.shell)
-    return exp_name, script, script_builder
+                             log_directory=log_folder, backend=args.backend,
+                             shell_script=args.shell)
+    return exp_name, script, script_builder, args.capacity
 
 def parse_params(exp_name, description="Cluster job launcher.", args=None, namespace=None):
     parser = argparse.ArgumentParser(description=description)
@@ -93,14 +98,18 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
         See the documenation for more information""")
     parser.add_argument("--shell", "-s", default="#!/bin/bash",
                         help='The shell in which to launch the jobs')
+    parser.add_argument("--capacity", "-c", default=sys.maxsize, type=int,
+                        help="""The maximum number of job to launch
+                        (default: sys.maxsize)""")
 
     args = parser.parse_args(args=args, namespace=namespace)
     db = args.database
     custopt = args.custopt
     exp_name += db
+    log_folder = get_storage(exp_name).get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
-                             log_directory=get_log_folder(exp_name),
+                             log_directory=log_folder,
                              backend=args.backend, shell_script=args.shell)
-    return script_builder, db, exp_name, custopt
+    return script_builder, db, exp_name, custopt, args.capacity
 
