@@ -46,17 +46,18 @@ host are sent as once. By default, all the local experiment are listed
         qls.append(exp_name)
 
     # Local queries
-    for exp_name in sorted_queries[__LH__]:
-        if exp_name == __WC__:
-            for name in load_experiment_names():
-                print Historic(name).count_by_state()
-        else:
-            print Historic(exp_name).count_by_state()
+    if __LH__ in sorted_queries:
+        for exp_name in sorted_queries[__LH__]:
+            if exp_name == __WC__:
+                    for name in load_experiment_names():
+                        print name, Historic(name).count_by_state()
+            else:
+                print exp_name, Historic(exp_name).count_by_state()
+        del sorted_queries[__LH__]
 
     # Remote queries
-    del sorted_queries[__LH__]
     cmd = "ssh {host} ct_count {exp}"
     for host, exp_names in sorted_queries.iteritems():
         for exp_name in exp_names:
-            subprocess.call(cmd.fomat(host=host, exp=exp_name), shell=True)
+            subprocess.call(cmd.format(host=host, exp=exp_name), shell=True)
 

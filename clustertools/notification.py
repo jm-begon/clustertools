@@ -158,20 +158,16 @@ class Historic(object):
     job_dict : mapping {comp_name -> mapping}
     state_dict: mapping {state -> job_dict}
     """
-    def __init__(self, exp_name=None, user=os.environ["USER"]):
+    def __init__(self, exp_name, user=os.environ["USER"]):
         self.exp_name = exp_name
         self.job_dict = {}
         self.state_dict = {}
         self.user = user
+        self.storage = get_storage(self.exp_name)
         self.refresh()
 
     def refresh(self):
-        if self.exp_name is None:
-            job_dict = {}
-            for exp in load_experiment_names():
-                job_dict.update(load_notifications(exp))
-        else:
-            job_dict = load_notifications(self.exp_name)
+        job_dict = self.storage.load_notifications()
 
         # Updating the false running jobs
         queued = frozenset(queued_or_running_jobs(self.user))
