@@ -202,7 +202,7 @@ class SQLiteStorage(BaseStorage):
 
     def update_notifications(self, comp_names, dictionaries):
         dic2 = {x:y for x, y in zip(comp_names, dictionaries)}
-        db = self._get_notifdb()+".sqlite3"
+        db = self._get_notifdb()
         self._save(dic2, db, overwrite=True)
 
     def load_notifications(self):

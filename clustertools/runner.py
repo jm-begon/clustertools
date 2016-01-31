@@ -41,6 +41,7 @@ def run_experiment(experiment, script_path, build_script=submit,
     for job_name, param in yield_not_done_computation(experiment, user):
         i += 1
         if i >= capacity:
+            i -= 1
             break
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
                                                exp_name, job_name,
