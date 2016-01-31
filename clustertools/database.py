@@ -98,7 +98,7 @@ class BaseStorage(object):
 
     def makedirs(self):
         for folder in [self.get_expdb(), self._get_notifdb(),
-                       self._get_resultdb(), get_log_folder()]:
+                       self._get_resultdb(), self.get_log_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
@@ -192,7 +192,7 @@ class SQLiteStorage(BaseStorage):
         return os.path.join(self.folder, "results")+".sqlite3"
 
     def makedirs(self):
-        for folder in [self.folder, get_log_folder()]:
+        for folder in [self.folder, self.get_log_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
