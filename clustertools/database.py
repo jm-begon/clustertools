@@ -60,7 +60,7 @@ def get_meta_log_file():
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
     fname = "clustertools_%s.log" % (datetime.now().strftime("%B%Y"))
-    return os.path.join(log_folder(), fname)
+    return os.path.join(log_folder, fname)
 
 
 
