@@ -191,7 +191,7 @@ class SQLiteStorage(BaseStorage):
         return os.path.join(self.folder, "results")+".sqlite3"
 
     def makedirs(self):
-        folder = self.folder()
+        folder = self.folder
         if not os.path.exists(folder):
             os.makedirs(folder)
         return self
