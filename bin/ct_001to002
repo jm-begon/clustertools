@@ -40,7 +40,7 @@ if __name__ == '__main__':
         full = os.path.join(log_folder, item)
         if os.path.isdir(full):
             folder_ = mkdir(ct_folder, "exp_%s"%item)
-            shutil.move(full, os.path.join(folder_, item))
+            shutil.move(full, os.path.join(folder_, "logs"))
 
 
 
