@@ -40,6 +40,8 @@ def run_experiment(experiment, script_path, build_script=submit,
     i = -1
     for job_name, param in yield_not_done_computation(experiment, user):
         i += 1
+        if i >= capacity:
+            break
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
                                                exp_name, job_name,
                                                serialize(param))
@@ -57,8 +59,7 @@ def run_experiment(experiment, script_path, build_script=submit,
                 exception.message), exc_info=True)
             if not force:
                 break
-        if i > capacity:
-            break
+
 
     logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, (i+1), len(experiment)))
 

@@ -58,6 +58,6 @@ host are sent as once. By default, all the local experiment are listed
     # Remote queries
     cmd = "ssh {host} ct_count {exp}"
     for host, exp_names in sorted_queries.iteritems():
-        for exp_name in exp_names:
-            subprocess.call(cmd.format(host=host, exp=exp_name), shell=True)
+        exp_string = " ".join(exp_names)
+        subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
 
