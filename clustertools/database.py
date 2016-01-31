@@ -27,6 +27,7 @@ __copyright__ = "3-clause BSD License"
 import os, sys
 import glob
 import logging
+from datetime import datetime
 try:
     import cPickle as pickle
 except ImportError:
@@ -225,7 +226,14 @@ def load_results(exp_name):
 
 
 def get_storage(exp_name):
-    return __STORAGE_KW__[get_storage_type()](exp_name)
+    storage_type = get_storage_type()
+    storage = __STORAGE_KW__.get(storage_type)
+    if storage:
+        return storage(exp_name)
+    else:
+        logger = logging.getLogger("clustertools.database")
+        logger.wran("Unrecognized storage key '%s'. Falling back to BaseStorage." % storage_type, exc_info=True)
+        return BaseStorage(exp_name)
 
 
 __STORAGES__ = [BaseStorage, SQLiteStorage]

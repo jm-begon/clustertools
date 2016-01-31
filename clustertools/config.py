@@ -21,9 +21,8 @@ def _get_default_config():
             "folder": __CT_FOLDER__,
         },
         "Storage":{
-            "default":"pickle"
-        }
-
+            "default":"sqlite3"
+        },
     }
 
 def get_ct_folder(conf=_get_default_config()):
@@ -36,7 +35,8 @@ def get_config():
     if not os.path.exists(fpath):
         return _get_default_config()
     with open(fpath) as hdl:
-        return yaml.load(hdl)
+        config =  yaml.load(hdl)
+    return config
 
 
 def dump_config(conf=_get_default_config(), fname=__CONF_NAME__, erase=False):
