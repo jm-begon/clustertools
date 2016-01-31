@@ -93,9 +93,12 @@ class BaseStorage(object):
     def _get_resultdb(self):
         return os.path.join(self.folder, "results")
 
+    def get_log_folder(self):
+        return os.path.join(self.folder, "logs")
+
     def makedirs(self):
         for folder in [self.get_expdb(), self._get_notifdb(),
-                       self._get_resultdb()]:
+                       self._get_resultdb(), get_log_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
@@ -134,8 +137,6 @@ class BaseStorage(object):
             res[basename] = self._load(fpath)
         return res
 
-    def get_log_folder(self):
-        return os.path.join(self.folder, "logs")
 
     def get_log_file(self, comp_name):
         """Return the most recent (ctime) matching file"""
@@ -191,9 +192,9 @@ class SQLiteStorage(BaseStorage):
         return os.path.join(self.folder, "results")+".sqlite3"
 
     def makedirs(self):
-        folder = self.folder
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        for folder in [self.folder, get_log_folder()]:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
         return self
 
     def update_notification(self, comp_name, dictionary):
