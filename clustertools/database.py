@@ -97,8 +97,8 @@ class BaseStorage(object):
         return os.path.join(self.folder, "logs")
 
     def makedirs(self):
-        for folder in [self.get_expdb(), self._get_notifdb(),
-                       self._get_resultdb(), self.get_log_folder()]:
+        for folder in [self._get_notifdb(), self._get_resultdb(),
+                       self.get_log_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
@@ -235,6 +235,7 @@ def get_storage(exp_name):
         logger = logging.getLogger("clustertools.database")
         logger.wran("Unrecognized storage key '%s'. Falling back to BaseStorage." % storage_type, exc_info=True)
         return BaseStorage(exp_name)
+
 
 
 __STORAGES__ = [BaseStorage, SQLiteStorage]

@@ -2,8 +2,9 @@ TODOs
 =====
 - [x] Reset pending jobs
 - [x] Partial saving + partial status
-- [ ] Remote survey
+- [x] Remote survey
 - [x] Add after in Experiment
+- [ ] pkl files to sqlite3 ?
 - [ ] Remote launching
 - [ ] Refactoring
 - [ ] Automatic resource management & job relaunch
