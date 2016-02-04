@@ -122,8 +122,8 @@ class BaseStorage(object):
     def load_notifications(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_notifdb(), "*.pkl")):
-            basename = os.path.basename(fpath)[4:]   # Remove .pkl
-            res[basename] = self._load(fpath)
+            basename = os.path.basename(fpath)[:-4]   # Remove .pkl
+            res.update(self._load(fpath))
         return res
 
     def save_result(self, comp_name, dictionary, overwrite=True):
@@ -133,8 +133,8 @@ class BaseStorage(object):
     def load_results(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_resultdb(), "*.pkl")):
-            basename = os.path.basename(fpath)[4:]   # Remove .pkl
-            res[basename] = self._load(fpath)
+            basename = os.path.basename(fpath)[:-4]   # Remove .pkl
+            res.update(self._load(fpath))
         return res
 
 
@@ -235,6 +235,19 @@ def get_storage(exp_name):
         logger = logging.getLogger("clustertools.database")
         logger.wran("Unrecognized storage key '%s'. Falling back to BaseStorage." % storage_type, exc_info=True)
         return BaseStorage(exp_name)
+
+def from_pkl2sqlite(exp_name):
+    pkl_sto = BaseStorage(exp_name)
+    sq_sto = SQLiteStorage(exp_name)
+    notifs = pkl_sto.load_notifications()
+    # Notificaitons
+    comp_names = notifs.keys()
+    dictionaries = notifs.values()
+    sq_sto.update_notifictions(comp_names, dinctionaries)
+    # Results
+    res = pkl_sto.load_results()
+    sq_sto.save_result("unused", res)  # Not well encapsulated
+
 
 
 
