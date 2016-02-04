@@ -123,7 +123,7 @@ class BaseStorage(object):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_notifdb(), "*.pkl")):
             basename = os.path.basename(fpath)[:-4]   # Remove .pkl
-            res.update(self._load(fpath))
+            res[basename] = (self._load(fpath)
         return res
 
     def save_result(self, comp_name, dictionary, overwrite=True):
@@ -134,7 +134,7 @@ class BaseStorage(object):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_resultdb(), "*.pkl")):
             basename = os.path.basename(fpath)[:-4]   # Remove .pkl
-            res.update(self._load(fpath))
+            res[basename] = (self._load(fpath)
         return res
 
 

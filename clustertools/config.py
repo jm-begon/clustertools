@@ -44,7 +44,7 @@ def dump_config(conf=_get_default_config(), fname=__CONF_NAME__, erase=False):
     if not os.path.exists(folder):
         os.makedirs(folder)
     fpath = os.path.join(folder, fname)
-    if erase and not os.path.exists(fpath):
+    if not erase and os.path.exists(fpath):
         return
     with open(fpath, "w") as hdl:
         yaml.dump(conf, hdl)
