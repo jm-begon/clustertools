@@ -204,7 +204,10 @@ class SQLiteStorage(BaseStorage):
 
     def update_notifications(self, comp_names, dictionaries):
         db = self._get_notifdb()
-        self._save(dictionaries, db, overwrite=True)
+        tmp = {}
+        for dic in dictionaries:
+            tmp.update(dic)
+        self._save(tmp, db, overwrite=True)
 
     def load_notifications(self):
         db = self._get_notifdb()
