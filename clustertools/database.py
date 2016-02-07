@@ -27,6 +27,7 @@ __copyright__ = "3-clause BSD License"
 import os, sys
 import glob
 import logging
+import collections
 from datetime import datetime
 try:
     import cPickle as pickle
@@ -122,7 +123,7 @@ class BaseStorage(object):
     def load_notifications(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_notifdb(), "*.pkl")):
-            basename = os.path.basename(fpath)[:-4]   # Remove .pkl
+            # basename = os.path.basename(fpath)[:-4]   # Remove .pkl
             res.update(self._load(fpath))
         return res
 
@@ -133,7 +134,7 @@ class BaseStorage(object):
     def load_results(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_resultdb(), "*.pkl")):
-            basename = os.path.basename(fpath)[:-4]   # Remove .pkl
+            # basename = os.path.basename(fpath)[:-4]   # Remove .pkl
             res.update(self._load(fpath))
         return res
 
@@ -151,7 +152,7 @@ class BaseStorage(object):
         if comp_name is None:
             shutil.rmtree(self.get_log_folder())
         else:
-            fp = get_log_file(exp_name, comp_name)
+            fp = self.get_log_file(comp_name)
             if fp is not None:
                 os.remove(fp)
 
@@ -202,9 +203,8 @@ class SQLiteStorage(BaseStorage):
         self._save(dictionary, db, overwrite=True)
 
     def update_notifications(self, comp_names, dictionaries):
-        dic2 = {x:y for x, y in zip(comp_names, dictionaries)}
         db = self._get_notifdb()
-        self._save(dic2, db, overwrite=True)
+        self._save(dictionaries, db, overwrite=True)
 
     def load_notifications(self):
         db = self._get_notifdb()

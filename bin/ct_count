@@ -49,8 +49,8 @@ host are sent as once. By default, all the local experiment are listed
     if __LH__ in sorted_queries:
         for exp_name in sorted_queries[__LH__]:
             if exp_name == __WC__:
-                    for name in load_experiment_names():
-                        print name, Historic(name).count_by_state()
+                for name in load_experiment_names():
+                    print name, Historic(name).count_by_state()
             else:
                 print exp_name, Historic(exp_name).count_by_state()
         del sorted_queries[__LH__]
