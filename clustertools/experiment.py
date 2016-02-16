@@ -85,6 +85,10 @@ class PartialComputation(Computation):
             aborted_job_update(self.exp_name, self.comp_name, start, excep)
             raise
 
+    def load_partial(self):
+        """return a dict"""
+        return self.storage.load_result(self.comp_name)
+
 
 class Experiment(object):
     """

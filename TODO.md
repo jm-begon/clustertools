@@ -4,9 +4,10 @@ TODOs
 - [x] Partial saving + partial status
 - [x] Remote survey
 - [x] Add after in Experiment
-- [ ] pkl files to sqlite3 ?
+- [ ] Sync
+- [ ] Partial reloading
 - [ ] Remote launching
-- [ ] Refactoring
+- [x] Refactoring
 - [ ] Automatic resource management & job relaunch
 
 Result class

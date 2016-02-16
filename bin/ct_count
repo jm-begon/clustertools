@@ -9,6 +9,7 @@ __copyright__ = "3-clause BSD License"
 
 import argparse
 import subprocess
+import socket
 from clustertools import Historic, load_experiment_names
 
 __LH__ = "localhost"
@@ -46,13 +47,19 @@ host are sent as once. By default, all the local experiment are listed
         qls.append(exp_name)
 
     # Local queries
+
+    try:
+        hostname = socket.gethostname()
+    except:
+        hostname = "Unkown host"
     if __LH__ in sorted_queries:
         for exp_name in sorted_queries[__LH__]:
             if exp_name == __WC__:
+                print hostname, ":"
                 for name in load_experiment_names():
-                    print name, Historic(name).count_by_state()
+                    print "\t", name, Historic(name).count_by_state()
             else:
-                print exp_name, Historic(exp_name).count_by_state()
+                print hostname,":", exp_name, Historic(exp_name).count_by_state()
         del sorted_queries[__LH__]
 
     # Remote queries

@@ -124,11 +124,11 @@ def incomplete_job_update(exp_name, comp_name, startdate):
 
 def incomplete_jobs_update(exp_name, comp_names):
     now = datetime.now()
-    dictionaries = [
+    dictionaries = [{comp_name:
         {
             __STATE__:__INCOMPLETE__,
             __DATE__: now
-        }
+        }}
         for comp_name in comp_names
     ]
     get_storage(exp_name).update_notifications(comp_names, dictionaries)

@@ -131,6 +131,12 @@ class BaseStorage(object):
         fpath = os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
         self._save(dictionary, fpath)
 
+    def load_result(self, comp_name):
+        fpath = os.os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
+        if os.path.exists(fpath):
+            return self._load(fpath)
+        return {}
+
     def load_results(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_resultdb(), "*.pkl")):
@@ -220,6 +226,10 @@ class SQLiteStorage(BaseStorage):
     def load_results(self):
         db = self._get_resultdb()
         return self._load(db)
+
+    def load_result(self, comp_name):
+        db = self._get_resultdb()
+        return self._load(db, comp_name)
 
 def load_results(exp_name):
     for sto_cls in [BaseStorage, SQLiteStorage]:
