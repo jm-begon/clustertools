@@ -273,7 +273,7 @@ def sqlite2pkl(exp_name):
     notifs = sq_sto.load_notifications()
     comp_names = notifs.keys()
     dictionaries = [{k:notifs[k]} for k in comp_names]
-    pkl_sto.update_notifictions(comp_names, dictionaries)
+    pkl_sto.update_notifications(comp_names, dictionaries)
     # Results
     res = sq_sto.load_results()
     for comp_name in res.keys():
