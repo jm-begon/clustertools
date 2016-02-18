@@ -36,6 +36,7 @@ except ImportError:
 import shutil
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
+from sqlite3 import OperationalError
 
 from .config import get_ct_folder, get_storage_type
 
@@ -190,7 +191,12 @@ class SQLiteStorage(BaseStorage):
         sqlite3_dumps(stuff, fpath, overwrite=overwrite)
 
     def _load(cls, fpath, mask=None):
-        return sqlite3_loads(fpath, mask)
+        try:
+            tmp = sqlite3_loads(fpath, mask)
+        except OperationalError:
+            tmp = {}
+        return tmp
+
 
     def _get_notifdb(self):
         return os.path.join(self.folder, "notifications")+".sqlite3"
@@ -212,10 +218,7 @@ class SQLiteStorage(BaseStorage):
         db = self._get_notifdb()
         tmp = {}
         for dic in dictionaries:
-            print dic
             tmp.update(dic)
-            print "------"
-            print tmp
         self._save(tmp, db, overwrite=True)
 
     def load_notifications(self):
@@ -252,19 +255,30 @@ def get_storage(exp_name):
         logger.wran("Unrecognized storage key '%s'. Falling back to BaseStorage." % storage_type, exc_info=True)
         return BaseStorage(exp_name)
 
-def from_pkl2sqlite(exp_name):
+def pkl2sqlite(exp_name):
     pkl_sto = BaseStorage(exp_name)
     sq_sto = SQLiteStorage(exp_name)
-    notifs = pkl_sto.load_notifications()
     # Notificaitons
-    comp_names = notifs.keys()
-    dictionaries = notifs.values()
-    sq_sto.update_notifictions(comp_names, dinctionaries)
+    notifs = pkl_sto.load_notifications()
+    sq_sto.update_notifictions("unused", notifs)
     # Results
     res = pkl_sto.load_results()
     sq_sto.save_result("unused", res)  # Not well encapsulated
 
 
+def sqlite2pkl(exp_name):
+    pkl_sto = BaseStorage(exp_name)
+    sq_sto = SQLiteStorage(exp_name)
+    # Notificaitons
+    notifs = sq_sto.load_notifications()
+    comp_names = notifs.keys()
+    dictionaries = [{k:notifs[k]} for k in comp_names]
+    pkl_sto.update_notifictions(comp_names, dictionaries)
+    # Results
+    res = sq_sto.load_results()
+    for comp_name in res.keys():
+        dic = {comp_name: res[comp_name]}
+        pkl_sto.save_result(comp_name, dic)  # Not well encapsulated
 
 
 __STORAGES__ = [BaseStorage, SQLiteStorage]
