@@ -237,11 +237,21 @@ class SQLiteStorage(BaseStorage):
         db = self._get_resultdb()
         return self._load(db, comp_name)
 
+
+# ========================== Agnostic ========================== #
+
 def load_results(exp_name):
     for sto_cls in [BaseStorage, SQLiteStorage]:
         storage = sto_cls(exp_name)
         if os.path.exists(storage._get_resultdb()):
             return storage.load_results()
+    return {}
+
+def load_notifications(exp_name):
+    for sto_cls in [BaseStorage, SQLiteStorage]:
+        storage = sto_cls(exp_name)
+        if os.path.exists(storage._get_notifdb()):
+            return storage.load_notifications()
     return {}
 
 
@@ -255,12 +265,14 @@ def get_storage(exp_name):
         logger.wran("Unrecognized storage key '%s'. Falling back to BaseStorage." % storage_type, exc_info=True)
         return BaseStorage(exp_name)
 
+# ========================== From To ========================== #
+
 def pkl2sqlite(exp_name):
     pkl_sto = BaseStorage(exp_name)
     sq_sto = SQLiteStorage(exp_name)
     # Notificaitons
     notifs = pkl_sto.load_notifications()
-    sq_sto.update_notifictions("unused", notifs)
+    sq_sto.update_notifications("unused", [notifs])
     # Results
     res = pkl_sto.load_results()
     sq_sto.save_result("unused", res)  # Not well encapsulated
@@ -280,6 +292,8 @@ def sqlite2pkl(exp_name):
         dic = {comp_name: res[comp_name]}
         pkl_sto.save_result(comp_name, dic)  # Not well encapsulated
 
+
+# ========================== Misc. ========================== #
 
 __STORAGES__ = [BaseStorage, SQLiteStorage]
 __STORAGE_KW__ = {"pickle": BaseStorage, "sqlite3":SQLiteStorage}

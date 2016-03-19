@@ -23,7 +23,7 @@ import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 
-from .database import get_storage, load_experiment_names
+from .database import get_storage, load_experiment_names, load_notifications
 
 __RUNNING__ = "RUNNING"
 __COMPLETED__ = "COMPLETED"
@@ -167,7 +167,7 @@ class Historic(object):
         self.refresh()
 
     def refresh(self):
-        job_dict = self.storage.load_notifications()
+        job_dict = load_notifications(self.exp_name)
 
         # Updating the false running jobs
         queued = frozenset(queued_or_running_jobs(self.user))

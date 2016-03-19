@@ -4,8 +4,89 @@ __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
+import argparse
+import subprocess
+import socket
+from clustertools import Historic, load_experiment_names, get_ct_folder
+
+__LH__ = "localhost"
+
+# TODO do something more portable
+__CT_FOLDER__ = "~/clustertools_data/"
+
+
+
 if __name__ == '__main__':
-    # --logs enable
-    # --notifications enable
-    # --results disable
-    pass
+    description = "Clustertools task synchro script"
+    source_doc = """The source.
+Use scp-like syntax: 'luke@skywalker:exp_about_the_force' to specify that you
+are targeting experiment 'exp_about_the_force' on machine 'skywalker' where your
+id is 'luke'. Use a dot '.' for localhost."""
+    dest_doc = """The destination.
+Use the syntax: 'vador@deathstar' to specify that you the destination is
+machine 'deathstar' where your id is 'vador'. Use a dot '.' for localhost."""
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("source", help=source_doc)
+    parser.add_argument("destination", help=dest_doc)
+    parser.add_argument("--quiet", "-q", default=False, action="store_true",
+                        help="Runs in quiet mode.")
+    parser.add_argument("--test", "-t", default=False, action="store_true",
+                        help="print the command instead of running it.")
+
+    # TODO allow for some flexibility
+    # parser.add_argument("--results", action="store_false", default=True,
+    #                     help="Disable result synchronization.")
+    # parser.add_argument("--notifications", action="store_false", default=True,
+    #                     help="Disable notification synchronization.")
+    # parser.add_argument("--logs", action="store_true", default=False,
+    #                     help="Disable log synchronization.")
+
+    args = parser.parse_args()
+
+    source_info = args.source.split(":")
+    dest_info = args.destination.split(":")
+
+    if len(source_info) == len(dest_info):
+        if len(source_info) == 1:
+            raise ValueError("""
+Either the source or the destination must specify an experiment.""")
+        elif len(source_info) == 2:
+            raise ValueError("""Only one of the source or the destination can
+specify an experiment.""")
+
+    source = source_info[0].strip()
+    destination = dest_info[0].strip()
+    if source == destination:
+        raise ValueError("Source and destination must be different.")
+    if len(source_info) == 2:
+        experiment = source_info[1].strip()
+    if len(dest_info) == 2:
+        experiment = dest_info[1].strip()
+
+    if source == ".":
+        source = __CT_FOLDER__
+    else:
+        source += ":"+__CT_FOLDER__
+    if destination == ".":
+        destination = __CT_FOLDER__
+    else:
+        destination += ":" + __CT_FOLDER__
+
+    source += "exp_" + experiment + "/"
+    destination += "exp_" + experiment
+
+    if args.quiet:
+        r_args = "-az"
+    else:
+        r_args = "-azP"
+
+    cmd = "rsync {r_args} {source} {dest}".format(r_args=r_args, source=source,
+                                                  dest=destination)
+
+    if args.test:
+        print cmd
+    else:
+        subprocess.call(cmd, shell=True)
+
+

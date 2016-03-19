@@ -49,13 +49,14 @@ from .parser import parse_args, parse_params
 from .runner import run_experiment
 from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
                    false_submit, experiment_diff, reorder)
+from .config import get_ct_folder
 
 __all__ = ["load_experiment_names", "Historic", "Computation",
            "PartialComputation", "Experiment", "build_result_cube", "Hasher",
            "Result", "run_experiment", "relaunch_experiment",
            "parse_args", "parse_params", "call_with", "encode_kwargs",
            "decode_kwargs", "bash_submit", "false_submit", "experiment_diff",
-           "set_stdout_logging", "reorder",]
+           "set_stdout_logging", "reorder", "get_ct_folder"]
 
 
 

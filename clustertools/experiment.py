@@ -94,13 +94,17 @@ class Experiment(object):
     """
     param_seq : list of dict
     """
-    def __init__(self, name, params=None):
+    def __init__(self, name, params=None, param_seq=None):
         self.name = name
         if not params:
             self.params = {}
         else:
             self.params = params
-        self.param_seq = [copy(self.params)]
+        if param_seq:
+            self.param_seq = [copy(self.params)] + list(param_seq)
+            self.params = self.param_seq[-1]
+        else:
+            self.param_seq = [copy(self.params)]
 
     def add_params(self, **kwargs):
         for k, v in kwargs.iteritems():
@@ -781,12 +785,19 @@ Shape: \t%s
 
 
 
-def build_result_cube(exp_name):
-    result = load_results(exp_name)
+
+def build_result_cube(exp_name, *exp_names):
+    exps = [exp_name]
+    if len(exp_names) > 0:
+        exps = exps + list(exp_names)
     parameterss = []
     resultss = []
-    for d in result.values():
-        parameterss.append(d[__PARAMETERS__])
-        resultss.append(d[__RESULTS__])
+    for exp in exps:
+        result = load_results(exp)
+        for d in result.values():
+            parameterss.append(d[__PARAMETERS__])
+            resultss.append(d[__RESULTS__])
     return Result(parameterss, resultss, exp_name)
+
+
 

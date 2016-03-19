@@ -14,6 +14,7 @@ import yaml
 __CT_FOLDER__ = "clustertools_data"
 __CONF_NAME__ = "config.yaml"
 
+# /!\ Changing the default folder is not yet well supported
 
 def _get_default_config():
     return {
