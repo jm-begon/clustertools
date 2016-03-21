@@ -141,8 +141,8 @@ class BaseStorage(object):
         fpath = os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
         self._save(dictionary, tmp_path)
         # Back up
-        fpath = os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
-        shutil.move(fpath, bc_path)
+        if os.path.exists(fpath):
+            shutil.move(fpath, bc_path)
         shutil.move(tmp_path, fpath)
 
     def load_result(self, comp_name):
