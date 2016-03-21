@@ -78,7 +78,6 @@ class BaseStorage(object):
     def _load(cls, fpath):
         try:
             with open(fpath, "rb") as hdl:
-                print fpath
                 rtn = pickle.load(hdl)
         except EOFError:
             logger = logging.getLogger("clustertools.database")
