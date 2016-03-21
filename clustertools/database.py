@@ -66,7 +66,6 @@ def get_meta_log_file():
 
 
 
-
 #======================= STORAGE MANAGER =======================#
 
 class BaseStorage(object):
@@ -77,8 +76,14 @@ class BaseStorage(object):
             pickle.dump(stuff, hdl, -1)
 
     def _load(cls, fpath):
-        with open(fpath, "rb") as hdl:
-            rtn = pickle.load(hdl)
+        try:
+            with open(fpath, "rb") as hdl:
+                print fpath
+                rtn = pickle.load(hdl)
+        except EOFError:
+            logger = logging.getLogger("clustertools.database")
+            logger.error("End of files encountered in '%s'" % fpath)
+            return {}
         return rtn
 
     def __init__(self, experiment_name):
@@ -98,9 +103,12 @@ class BaseStorage(object):
     def get_log_folder(self):
         return os.path.join(self.folder, "logs")
 
+    def get_tmp_folder(self):
+        return os.path.join(self.folder, "temp")
+
     def makedirs(self):
         for folder in [self._get_notifdb(), self._get_resultdb(),
-                       self.get_log_folder()]:
+                       self.get_log_folder(), self.get_tmp_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
@@ -129,8 +137,14 @@ class BaseStorage(object):
         return res
 
     def save_result(self, comp_name, dictionary, overwrite=True):
+        tmp_path = os.path.join(self.get_tmp_folder(), "%s.pkl"%comp_name)
+        bc_path = os.path.join(self.get_tmp_folder(), "%s.bc.pkl"%comp_name)
         fpath = os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
-        self._save(dictionary, fpath)
+        self._save(dictionary, tmp_path)
+        # Back up
+        fpath = os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)
+        shutil.move(fpath, bc_path)
+        shutil.move(tmp_path, fpath)
 
     def load_result(self, comp_name):
         fpath = os.os.path.join(self._get_resultdb(), "%s.pkl"%comp_name)

@@ -57,6 +57,7 @@ class Computation(object):
                     __RESULTS__: self.run(**parameters)
                 }
             }
+            critical_job_update(self.exp_name, self.comp_name, start)
             self._save(result)
             completed_job_update(self.exp_name, self.comp_name, start)
         except Exception as excep:
@@ -78,6 +79,7 @@ class PartialComputation(Computation):
                         __RESULTS__: partial_result
                     }
                 }
+                critical_job_update(self.exp_name, self.comp_name, start)
                 self._save(result)
                 partial_job_update(self.exp_name, self.comp_name, start)
             completed_job_update(self.exp_name, self.comp_name, start)
@@ -683,6 +685,20 @@ class Result(Mapping):
             idx = [self.hash(m, p_dict) for m in self.metrics]
             data = tuple(self.data[x] for x in idx)
             yield params, data
+
+    def in_domain(self):
+        idom = []
+        for params, metrics in self.iteritems():
+            append = True
+            for i, metric in enumerate(metrics):
+                if metric is None:
+                    append = False
+                    break
+            if append:
+                p_dict = {k:v for v,k in zip(params, self.parameters)}
+                idom.append(p_dict)
+        return idom
+
 
     def out_of_domain(self):
         ood = []

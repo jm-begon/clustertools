@@ -32,6 +32,7 @@ __PENDING__ = "PENDING"
 __LAUNCHABLE__ = "LAUNCHABLE"
 __PARTIAL__ = "PARTIAL"
 __INCOMPLETE__ = "INCOMPLETE"
+__CRITICAL__ = "CRITIC"
 
 __STATE__= "STATE"
 __DATE__ = "date"
@@ -95,6 +96,16 @@ def completed_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
     d = {
         __STATE__: __COMPLETED__,
+        __DATE__: now,
+        __DURATION__: str(now - startdate)
+    }
+    get_storage(exp_name).update_notification(comp_name, {comp_name : d})
+    return now
+
+def critical_job_update(exp_name, comp_name, startdate):
+    now = datetime.now()
+    d = {
+        __STATE__: __CRITICAL__,
         __DATE__: now,
         __DURATION__: str(now - startdate)
     }
@@ -209,6 +220,8 @@ class Historic(object):
         return _filter(self.job_dict, __PARTIAL__)
     def incomplete_jobs(self):
         return _filter(self.job_dict, __INCOMPLETE__)
+    def critical_jobs(self):
+        return _filter(self.job_dict, __CRITICAL__)
 
     def get_state(self, comp_name):
         info = self.job_dict.get(comp_name)
@@ -249,10 +262,16 @@ class Historic(object):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
 
     def incomplete_to_launchable(self):
+        launchable_jobs_update(self.exp_name, self.critical_jobs().keys())
+
+    def critical_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.incomplete_jobs().keys())
 
-    def reset(self):
-        launchable_jobs_update(self.exp_name, self.job_dict.keys())
+    def reset(self, comp_name=None):
+        if comp_name:
+            launchable_job_update(self.exp_name, comp_name)
+        else:
+            launchable_jobs_update(self.exp_name, self.job_dict.keys())
 
     def print_log(self, comp_name, last_lines=None):
         get_storage(self.exp_name).print_log(comp_name, last_lines=last_lines)
