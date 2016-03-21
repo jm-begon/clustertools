@@ -25,7 +25,7 @@ from clusterlib.scheduler import submit
 from .database import get_storage, load_experiment_names, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update,
-                           partial_job_update, Historic)
+                           partial_job_update, critical_job_update, Historic)
 from .util import encode_kwargs, reorder, hashlist
 
 __EXP_NAME__ = "Experiment"
