@@ -56,11 +56,14 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
             - SGE : Format char from beas (begin,end,abort,stop) for SGE.
             - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
         See the documenation for more information""")
-    parser.add_argument("--shell", "-s", default="#!/bin/bash",
+    parser.add_argument("--shell", default="#!/bin/bash",
                         help='The shell to use')
     parser.add_argument("--capacity", "-c", default=sys.maxsize, type=int,
                         help="""The maximum number of job to launch
                         (default: sys.maxsize)""")
+    parser.add_argument("--start", "-s", default=0, type=int,
+                        help="""The index from which to start the computations
+                        (default: 0)""")
 
     args = parser.parse_args(args=args, namespace=namespace)
     exp_name = args.name
@@ -70,7 +73,7 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder, backend=args.backend,
                              shell_script=args.shell)
-    return exp_name, script, script_builder, args.capacity
+    return exp_name, script, script_builder, {"capacity":args.capacity, "start":args.start}
 
 def parse_params(exp_name, description="Cluster job launcher.", args=None, namespace=None):
     parser = argparse.ArgumentParser(description=description)
@@ -111,5 +114,5 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder,
                              backend=args.backend, shell_script=args.shell)
-    return script_builder, db, exp_name, custopt, args.capacity
+    return script_builder, db, exp_name, custopt, {"capacity":args.capacity, "start":args.start}
 

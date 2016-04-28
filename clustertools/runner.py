@@ -29,7 +29,8 @@ class PickableCalledProcessError(CalledProcessError):
 
 def run_experiment(experiment, script_path, build_script=submit,
                    force=False, user=os.environ["USER"],
-                   serialize=encode_kwargs, capacity=sys.maxsize):
+                   serialize=encode_kwargs, capacity=sys.maxsize,
+                   start=0):
 
     exp_name = experiment.name
     logger = logging.getLogger("clustertools")
@@ -37,11 +38,11 @@ def run_experiment(experiment, script_path, build_script=submit,
 
     get_storage(exp_name).init()
 
-    i = -1
-    for job_name, param in yield_not_done_computation(experiment, user):
-        i += 1
+    i = 0
+    for j, (job_name, param) in enumerate(yield_not_done_computation(experiment, user)):
+        if j < start:
+            continue
         if i >= capacity:
-            i -= 1
             break
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
                                                exp_name, job_name,
@@ -60,7 +61,8 @@ def run_experiment(experiment, script_path, build_script=submit,
                 exception.message), exc_info=True)
             if not force:
                 break
+        i += 1
 
 
-    logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, (i+1), len(experiment)))
+    logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, i, len(experiment)))
 

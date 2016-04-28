@@ -255,16 +255,22 @@ class SQLiteStorage(BaseStorage):
 
 def load_results(exp_name):
     for sto_cls in [BaseStorage, SQLiteStorage]:
-        storage = sto_cls(exp_name)
-        if os.path.exists(storage._get_resultdb()):
-            return storage.load_results()
+        try:
+            storage = sto_cls(exp_name)
+            if os.path.exists(storage._get_resultdb()):
+                return storage.load_results()
+        except:
+            continue
     return {}
 
 def load_notifications(exp_name):
     for sto_cls in [BaseStorage, SQLiteStorage]:
-        storage = sto_cls(exp_name)
-        if os.path.exists(storage._get_notifdb()):
-            return storage.load_notifications()
+        try:
+            storage = sto_cls(exp_name)
+            if os.path.exists(storage._get_notifdb()):
+                return storage.load_notifications()
+        except:
+            continue
     return {}
 
 

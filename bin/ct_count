@@ -6,9 +6,9 @@
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-
+import time, datetime
 import argparse
-import subprocess
+import subprocess, os
 import socket
 from clustertools import Historic, load_experiment_names
 
@@ -27,6 +27,10 @@ host are sent as once. By default, all the local experiment are listed
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("queries", help=doc, nargs="*")
+    parser.add_argument("-l", "--loop", default=-1, type=int,
+                        help="Number of minute to wait between two refreshment. Set to negative (default) for no refreshment.")
+
+    # =========== Preprocessing ============= #
 
     args = parser.parse_args()
     queries = args.queries
@@ -46,25 +50,35 @@ host are sent as once. By default, all the local experiment are listed
             sorted_queries[host] = qls
         qls.append(exp_name)
 
-    # Local queries
+    # =========== Main ============= #
 
-    try:
-        hostname = socket.gethostname()
-    except:
-        hostname = "Unkown host"
-    if __LH__ in sorted_queries:
-        for exp_name in sorted_queries[__LH__]:
-            if exp_name == __WC__:
-                print hostname, ":"
-                for name in load_experiment_names():
-                    print "\t", name, Historic(name).count_by_state()
-            else:
-                print hostname,":", exp_name, Historic(exp_name).count_by_state()
-        del sorted_queries[__LH__]
+    def main():
+        # Local queries
+        try:
+            hostname = socket.gethostname()
+        except:
+            hostname = "Unkown host"
+        if __LH__ in sorted_queries:
+            for exp_name in sorted_queries[__LH__]:
+                if exp_name == __WC__:
+                    print hostname, ":"
+                    for name in load_experiment_names():
+                        print "\t", name, Historic(name).count_by_state()
+                else:
+                    print hostname,":", exp_name, Historic(exp_name).count_by_state()
+            del sorted_queries[__LH__]
 
-    # Remote queries
-    cmd = "ssh {host} ct_count {exp}"
-    for host, exp_names in sorted_queries.iteritems():
-        exp_string = " ".join(exp_names)
-        subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
+        # Remote queries
+        cmd = "ssh {host} ct_count {exp}"
+        for host, exp_names in sorted_queries.iteritems():
+            exp_string = " ".join(exp_names)
+            subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
 
+    if args.loop < 0:
+        main()
+    else:
+        while True:
+            os.system("clear")
+            print datetime.datetime.now().strftime("%A %d %h %Y %H:%M:%S")
+            main()
+            time.sleep(args.loop*60)

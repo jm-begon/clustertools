@@ -262,10 +262,10 @@ class Historic(object):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())
 
     def incomplete_to_launchable(self):
-        launchable_jobs_update(self.exp_name, self.critical_jobs().keys())
+        launchable_jobs_update(self.exp_name, self.incomplete_jobs().keys())
 
     def critical_to_launchable(self):
-        launchable_jobs_update(self.exp_name, self.incomplete_jobs().keys())
+        launchable_jobs_update(self.exp_name, self.critical_jobs().keys())
 
     def reset(self, comp_name=None):
         if comp_name:
