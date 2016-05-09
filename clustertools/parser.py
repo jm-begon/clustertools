@@ -104,6 +104,9 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
     parser.add_argument("--capacity", "-c", default=sys.maxsize, type=int,
                         help="""The maximum number of job to launch
                         (default: sys.maxsize)""")
+    parser.add_argument("--start", "-s", default=0, type=int,
+                        help="""The index from which to start the computations
+                        (default: 0)""")
 
     args = parser.parse_args(args=args, namespace=namespace)
     db = args.database
