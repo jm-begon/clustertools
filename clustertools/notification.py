@@ -267,9 +267,10 @@ class Historic(object):
     def critical_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.critical_jobs().keys())
 
-    def reset(self, comp_name=None):
-        if comp_name:
-            launchable_job_update(self.exp_name, comp_name)
+    def reset(self, *comp_names):
+        if len(comp_names) > 0:
+            for comp_name in comp_names:
+                launchable_job_update(self.exp_name, comp_name)
         else:
             launchable_jobs_update(self.exp_name, self.job_dict.keys())
 

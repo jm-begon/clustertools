@@ -34,6 +34,8 @@ try:
 except ImportError:
     import pickle
 import shutil
+import logging
+
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
 from sqlite3 import OperationalError
@@ -81,7 +83,10 @@ class BaseStorage(object):
                 rtn = pickle.load(hdl)
         except EOFError:
             logger = logging.getLogger("clustertools.database")
-            logger.error("End of files encountered in '%s'" % fpath)
+            logger.error("End of file encountered in '%s'" % fpath)
+            return {}
+        except:
+            logging.exception("Error while loading file '%s'" %fpath)
             return {}
         return rtn
 
@@ -131,7 +136,6 @@ class BaseStorage(object):
     def load_notifications(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_notifdb(), "*.pkl")):
-            # basename = os.path.basename(fpath)[:-4]   # Remove .pkl
             res.update(self._load(fpath))
         return res
 
@@ -154,8 +158,13 @@ class BaseStorage(object):
     def load_results(self):
         res = {}
         for fpath in glob.glob(os.path.join(self._get_resultdb(), "*.pkl")):
-            # basename = os.path.basename(fpath)[:-4]   # Remove .pkl
-            res.update(self._load(fpath))
+            comp = self._load(fpath)
+            if len(comp) == 0:
+                # Trying to restore from backup
+                comp_name = os.path.basename(fpath)[:-4]  # Extract comp_name. TODO: do better
+                bc_path = os.path.join(self.get_tmp_folder(), "%s.bc.pkl"%comp_name)
+                comp = self._load(bc_path)
+            res.update(comp)
         return res
 
 
