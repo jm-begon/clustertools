@@ -51,12 +51,12 @@ def run_experiment(experiment, script_path, build_script=submit,
         script = build_script(job_command, job_name=job_name)
         logger.debug("Script:\n%s" % script)
 
-        start = pending_job_update(exp_name, job_name)
+        start_date = pending_job_update(exp_name, job_name)
         try:
             output = subprocess.check_output(script, shell=True)
             logger.debug("Output:\n%s" % output)
         except CalledProcessError as exception:
-            aborted_job_update(exp_name, job_name, start, picklify(exception))
+            aborted_job_update(exp_name, job_name, start_date, picklify(exception))
             logger.error("Error launching job '%s': %s" % (job_name,
                 exception.message), exc_info=True)
             if not force:
