@@ -99,7 +99,7 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
             - SGE : Format char from beas (begin,end,abort,stop) for SGE.
             - SLURM : either BEGIN, END, FAIL, REQUEUE or ALL.
         See the documenation for more information""")
-    parser.add_argument("--shell", "-s", default="#!/bin/bash",
+    parser.add_argument("--shell", default="#!/bin/bash",
                         help='The shell in which to launch the jobs')
     parser.add_argument("--capacity", "-c", default=sys.maxsize, type=int,
                         help="""The maximum number of job to launch
