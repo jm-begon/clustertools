@@ -254,6 +254,8 @@ class Historic(object):
     def count_by_state(self):
         return {k:len(v) for k,v in self.state_dict.iteritems()}
 
+    def to_launchable(self, comp_name):
+        launchable_job_update(self.exp_name, comp_name)
 
     def aborted_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.aborted_jobs().keys())

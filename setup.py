@@ -49,5 +49,6 @@ if __name__ == '__main__':
           platforms='any',
           install_requires=['clusterlib',],
           packages=['clustertools', 'clustertools.test'],
-          scripts=['bin/ct_count', 'bin/ct_sync', 'bin/ct_001to002'])
+          scripts=['bin/ct_count', 'bin/ct_sync', 'bin/ct_001to002',
+                   'bin/ct_reset'])
 

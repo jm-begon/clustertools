@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+#TODO regular expression style
+#TODO refresh mode
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
+import time, datetime
+import argparse
+import subprocess, os
+import socket
+from collections import defaultdict
+from clustertools import Historic, load_experiment_names
+
+__LH__ = "localhost"
+
+
+def reset(exp_name, hostname):
+    try:
+        histo = Historic(exp_name)
+        print(hostname,":", exp_name, histo.count_by_state(), end=" ")
+        histo.reset()
+        histo.refresh()
+        print(histo.count_by_state)
+    except:
+        print("No such experiment")
+
+
+if __name__ == "__main__":
+    description = "Clustertools task monitoring script"
+    doc = """The experiment(s) to reset.
+Use ssh-like syntax: 'luke@skywalker:exp_about_the_force'. The first part can
+be omitted for local resetting."""
+
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("queries", help=doc, nargs="*")
+
+
+    # =========== Preprocessing ============= #
+
+    args = parser.parse_args()
+    queries = args.queries
+
+    # Sort query by host to group them
+    sorted_queries = defaultdict(list)
+    for query in queries:
+        try:
+            host, exp_name = query.split(":")
+        except ValueError:
+            host = __LH__
+            exp_name = query
+        sorted_queries[host] = exp_name
+
+
+    # =========== Main ============= #
+    try:
+        hostname = socket.gethostname()
+    except:
+        hostname = "Unkown host"
+    if __LH__ in sorted_queries:
+        for exp_name in sorted_queries[__LH__]:
+            reset(exp_name, hostname)
+        del sorted_queries[__LH__]
+
+    # Remote queries
+    cmd = "ssh {host} {prog} {exp}".format(prog=args.prog)
+    for host, exp_names in sorted_queries.iteritems():
+        exp_string = " ".join(exp_names)
+        subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
+

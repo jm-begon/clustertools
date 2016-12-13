@@ -37,18 +37,15 @@ host are sent as once. By default, all the local experiment are listed
     if len(queries) == 0:
         queries = ["*"]
 
-    sorted_queries = {}
+    # Sort query by host to group them
+    sorted_queries = defaultdict(list)
     for query in queries:
         try:
             host, exp_name = query.split(":")
         except ValueError:
             host = __LH__
             exp_name = query
-        qls = sorted_queries.get(host)
-        if qls is None:
-            qls = []
-            sorted_queries[host] = qls
-        qls.append(exp_name)
+        sorted_queries[host] = exp_name
 
     # =========== Main ============= #
 
@@ -61,15 +58,15 @@ host are sent as once. By default, all the local experiment are listed
         if __LH__ in sorted_queries:
             for exp_name in sorted_queries[__LH__]:
                 if exp_name == __WC__:
-                    print hostname, ":"
+                    print(hostname, ":")
                     for name in load_experiment_names():
-                        print "\t", name, Historic(name).count_by_state()
+                        print("\t", name, Historic(name).count_by_state())
                 else:
-                    print hostname,":", exp_name, Historic(exp_name).count_by_state()
+                    print(hostname,":", exp_name, Historic(exp_name).count_by_state())
             del sorted_queries[__LH__]
 
         # Remote queries
-        cmd = "ssh {host} ct_count {exp}"
+        cmd = "ssh {host} {prog} {exp}".format(prog=args.prog)
         for host, exp_names in sorted_queries.iteritems():
             exp_string = " ".join(exp_names)
             subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
@@ -79,6 +76,6 @@ host are sent as once. By default, all the local experiment are listed
     else:
         while True:
             os.system("clear")
-            print datetime.datetime.now().strftime("%A %d %h %Y %H:%M:%S")
+            print(datetime.datetime.now().strftime("%A %d %h %Y %H:%M:%S"))
             main()
             time.sleep(args.loop*60)
