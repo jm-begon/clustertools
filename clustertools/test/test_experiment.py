@@ -49,3 +49,18 @@ def test_getitem():
         assert_equal(l, li)
         assert_equal(p, pi)
 
+
+def test_get_computation_with():
+    exp = Experiment("TestGetComputationWith")
+    exp.add_params(p1=[0, 1, 2])
+    exp.add_params(p2=[10, 11, 12])
+    exp.add_params(p3=[20,21])
+    exp.add_separator()
+    exp.add_params(p1=3)
+    indices = [x for x,y in exp.get_computations_with(p1=3, p2=12)]
+    expected = [22, 23]
+    assert_equal(indices, expected)
+
+    assert_equal(len(list(exp.get_computations_with(p1=-5))), 0)
+
+

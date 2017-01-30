@@ -180,8 +180,8 @@ class Experiment(object):
             index = int(sel)
             # sel is a int
             if index < 0 or index >= len(self):
-                raise KeyError("%d not in the range [0, %d]" %
-                                    (index, len(self)-1))
+                raise KeyError("%d not in the range (0, %d)" % (index,
+                                                                len(self)-1))
         except ValueError:
             # sel is a string
             name = sel
@@ -191,16 +191,31 @@ class Experiment(object):
                 return label, param
         raise KeyError("Key '%s' not found" % str(sel))
 
+    def get_computations_with(self, **kwargs):
+        keys = kwargs.keys()
+        for i, (label, params) in enumerate(self):
+            yield_it = True
+            for key in keys:
+                if key not in params:
+                    yield_it = False
+                    break
+                if not params[key] == kwargs[key]:
+                    yield_it = False
+                    break
+            if yield_it:
+                yield i, label
+
+
     def __getitem__(self, sel):
         return self.get_params_for(sel)
 
     def __repr__(self):
-        return "%s(name='%s', param_seq=%s)" % (self.__class__.__name__, self.name,
-                                             repr(self.param_seq))
+        return "%s(name='%s', param_seq=%s)" % (self.__class__.__name__,
+                                                self.name,
+                                                repr(self.param_seq))
 
     def __str__(self):
         return repr(self)
-
 
     def get_metadata(self):
         d = {}
