@@ -131,6 +131,21 @@ def aborted_job_update(exp_name, comp_name, startdate, exception):
     return now
 
 
+def aborted_jobs_update(exp_name, comp_names, exception):
+    now = datetime.now()
+    dictionaries = [{comp_name:
+        {
+            __STATE__:__ABORTED__,
+            __DATE__:now,
+            __EXCEPT__:exception
+
+         }}
+        for comp_name in comp_names
+    ]
+    get_storage(exp_name).update_notifications(comp_names, dictionaries)
+    return now
+
+
 def incomplete_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
     d = {
@@ -271,6 +286,14 @@ class Historic(object):
 
     def aborted_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.aborted_jobs().keys())
+
+    def not_completed_to_aborted(self, comp_names):
+        completed = self.done_jobs().keys()
+        comp_names = [comp_name for comp_name in comp_names
+                      if comp_name not in completed]
+        aborted_jobs_update(self.exp_name, comp_names, Exception('Force statis'))
+
+
 
     def pending_to_launchable(self):
         launchable_jobs_update(self.exp_name, self.pending_jobs().keys())

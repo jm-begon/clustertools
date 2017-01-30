@@ -9,24 +9,22 @@ Restriction
 Experiment names should always elligible file names.
 """
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
-import sys, os
-import subprocess
-from subprocess import CalledProcessError
-import logging
 from itertools import product
 from copy import copy, deepcopy
-from collections import Mapping
+from collections import Mapping, defaultdict
 
 from clusterlib.scheduler import submit
 
-from .database import get_storage, load_experiment_names, load_results
+from .database import get_storage, load_results
 from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update,
                            partial_job_update, critical_job_update, Historic)
-from .util import encode_kwargs, reorder, hashlist
+from .util import reorder, hashlist
+
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
 
 __EXP_NAME__ = "Experiment"
 __PARAMETERS__ = "Parameters"
@@ -113,7 +111,8 @@ class Experiment(object):
             vp = self.params.get(k)
             if vp is None:
                 if len(self.param_seq) > 1:
-                    raise ValueError("New keyword (i.e. '%s') cannot be addded after the first barrier" % str(k))
+                    raise ValueError("New keyword (i.e. '%s') cannot be addded "
+                                     "after the first barrier" % str(k))
                 vp = set()
                 self.params[k] = vp
             vps = self.param_seq[-1].get(k)
@@ -205,7 +204,6 @@ class Experiment(object):
             if yield_it:
                 yield i, label
 
-
     def __getitem__(self, sel):
         return self.get_params_for(sel)
 
@@ -230,6 +228,17 @@ class Experiment(object):
             if len(v) > 1:
                 d[k] = v
         return d
+
+    def seen_by(self, n_computations):
+        seen = defaultdict(set)
+        for i, (_, params) in enumerate(self):
+            if i >= n_computations:
+                break
+            for k, v in params.items():
+                seen[k].add(v)
+        return seen
+
+
 
 
 def _sort_back(dictionary):
