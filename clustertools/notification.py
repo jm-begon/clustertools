@@ -284,8 +284,11 @@ class Historic(object):
     def to_launchable(self, comp_name):
         launchable_job_update(self.exp_name, comp_name)
 
-    def aborted_to_launchable(self):
-        launchable_jobs_update(self.exp_name, self.aborted_jobs().keys())
+    def aborted_to_launchable(self, filter_dict=None):
+        filter_lambda = (lambda x:True) if filter_dict is None else \
+            (lambda x:x in filter_dict)
+        aborted = [x for x in self.aborted_jobs().keys() if filter_lambda(x)]
+        launchable_jobs_update(self.exp_name, aborted)
 
     def not_completed_to_aborted(self, comp_names):
         completed = self.done_jobs().keys()
