@@ -3,7 +3,6 @@
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-import os
 
 from nose.tools import assert_in
 from nose.tools import assert_equal
@@ -12,14 +11,14 @@ from nose.tools import with_setup
 
 from clustertools.notification import *
 from clustertools.experiment import Experiment
-from clustertools.database import get_notifdb
+from clustertools.database import get_storage
 
 __EXP_NAME__ = "ClustertoolsNoseTest"
 
 def purge():
-    db = get_notifdb(__EXP_NAME__)
+    storage = get_storage(__EXP_NAME__)
     try:
-        os.remove(db)
+        storage.delete()
     except OSError:
         pass
 
