@@ -149,6 +149,52 @@ def some_ood():
     return exp_name, metadata, parameters, domain, metrics, res
 
 
+def some_meta():
+    """
+    values
+            w                w
+          5    6           5    6
+       +----+----+      +----+----+
+      1| 15 | 16 |     1| 51 | 61 |
+       +----+----+      +----+----+
+    x 2| 25 | 26 |   x 2| 52 | 62 |
+       +----+----+      +----+----+
+      3| 35 | 36 |     3| 53 | 63 |
+       +----+----+      +----+----+
+           f1             f2
+    /!\ tranposed
+    """
+    res = {u'Computation-somemeta-0': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 5, u'x': 1, u'z': 4, 'y':7},
+            'Results': {'f1': 15, 'f2': 51}},
+            u'Computation-somemeta-1': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 6, u'x': 1, u'z': 4, 'y':7},
+            'Results': {'f1': 16, 'f2': 61}},
+            u'Computation-somemeta-2': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 5, u'x': 2, u'z': 4, 'y':7},
+            'Results': {'f1': 25, 'f2': 52}},
+            u'Computation-somemeta-3': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 6, u'x': 2, u'z': 4, 'y':7},
+            'Results': {'f1': 26, 'f2': 62}},
+            u'Computation-somemeta-4': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 5, u'x': 3, u'z': 4, 'y':7},
+            'Results': {'f1': 35, 'f2': 53}},
+            u'Computation-somemeta-5': {'Experiment': 'somemeta',
+            'Parameters': {u'w': 6, u'x': 3, u'z': 4, 'y':7},
+            'Results': {'f1': 36, 'f2': 63}}}
+
+    # Notice the ordering
+    domain = {'x':["1", "2", "3"], 'w':["5", "6"]}
+    metadata = {'z':"4", 'y':'7'}
+    parameters = ["x", "w"]
+    parameters.sort()
+    metrics = ["f1", "f2"]
+    metrics.sort()
+    exp_name = "somemeta"
+    return exp_name, metadata, parameters, domain, metrics, res
+
+
+
 def build_cube(exp_name, res):
     parameterss = []
     resultss = []
@@ -447,4 +493,38 @@ def test_ood():
 #     # print cube2.metrics
 #     # print cube2.metadata
 #     assert_equal(cube2.shape, (2, 2, 2))#w/x/m
+
+
+def test_iter_dimensions():
+    name, metadata, params, dom, metrics, d = some_meta()
+    cube = build_cube(name, d)
+    """
+    values
+            w                w
+          5    6           5    6
+       +----+----+      +----+----+
+      1| 15 | 16 |     1| 51 | 61 |
+       +----+----+      +----+----+
+    x 2| 25 | 26 |   x 2| 52 | 62 |
+       +----+----+      +----+----+
+      3| 35 | 36 |     3| 53 | 63 |
+       +----+----+      +----+----+
+           f1             f2
+    /!\ tranposed
+    """
+    # y=7, z=4 are metadata
+    expected = [
+        (('1', '7', '5', '4'), 15),
+        (('1', '7', '6', '4'), 16),
+        (('2', '7', '5', '4'), 25),
+        (('2', '7', '6', '4'), 26),
+        (('3', '7', '5', '4'), 35),
+        (('3', '7', '6', '4'), 36),
+    ]
+    for (values, cube_i), (exp_val, exp_res) in zip(cube.iter_dimensions("x", "y", "w", "z"), expected):
+        assert_equal(values, exp_val)
+        assert_equal(cube_i("f1"), exp_res)
+
+
+
 
