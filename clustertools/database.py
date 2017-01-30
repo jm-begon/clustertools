@@ -202,7 +202,9 @@ class BaseStorage(object):
             for line in buffer_:
                 out.write(line)
 
-
+    def delete(self):
+        #shutil.rmtree(self.folder)
+        pass
 
 
 
@@ -258,6 +260,11 @@ class SQLiteStorage(BaseStorage):
     def load_result(self, comp_name):
         db = self._get_resultdb()
         return self._load(db, comp_name)
+
+    def delete(self):
+        #shutil.rmtree(self.folder)
+        pass
+
 
 
 # ========================== Agnostic ========================== #
