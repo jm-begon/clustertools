@@ -14,16 +14,17 @@ A running job aborted for uncatchable reasons will stay in running state
 although it is not running any longer. Refresh the historic to get it right
 """
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
 import os
 from datetime import datetime
 import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 
-from .database import get_storage, load_experiment_names, load_notifications
+from .database import get_storage, load_notifications
+
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
 
 __RUNNING__ = "RUNNING"
 __COMPLETED__ = "COMPLETED"
@@ -41,7 +42,7 @@ __DURATION__ = "duration"
 __EXCEPT__ = "exception"
 
 
-#======================= STATUS UPDATE =======================#
+# ======================= STATUS UPDATE ======================= #
 def launchable_job_update(exp_name, comp_name):
     now = datetime.now()
     d = {
@@ -50,6 +51,7 @@ def launchable_job_update(exp_name, comp_name):
     }
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
+
 
 def launchable_jobs_update(exp_name, comp_names):
     now = datetime.now()
@@ -63,6 +65,7 @@ def launchable_jobs_update(exp_name, comp_names):
     get_storage(exp_name).update_notifications(comp_names, dictionaries)
     return now
 
+
 def pending_job_update(exp_name, comp_name):
     now = datetime.now()
     d = {
@@ -72,6 +75,7 @@ def pending_job_update(exp_name, comp_name):
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
+
 def running_job_update(exp_name, comp_name):
     now = datetime.now()
     d = {
@@ -80,6 +84,7 @@ def running_job_update(exp_name, comp_name):
     }
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
+
 
 def partial_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
@@ -102,6 +107,7 @@ def completed_job_update(exp_name, comp_name, startdate):
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
+
 def critical_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
     d = {
@@ -111,6 +117,7 @@ def critical_job_update(exp_name, comp_name, startdate):
     }
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
+
 
 def aborted_job_update(exp_name, comp_name, startdate, exception):
     now = datetime.now()
@@ -123,6 +130,7 @@ def aborted_job_update(exp_name, comp_name, startdate, exception):
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
 
+
 def incomplete_job_update(exp_name, comp_name, startdate):
     now = datetime.now()
     d = {
@@ -132,6 +140,7 @@ def incomplete_job_update(exp_name, comp_name, startdate):
     }
     get_storage(exp_name).update_notification(comp_name, {comp_name : d})
     return now
+
 
 def incomplete_jobs_update(exp_name, comp_names):
     now = datetime.now()
@@ -145,7 +154,8 @@ def incomplete_jobs_update(exp_name, comp_names):
     get_storage(exp_name).update_notifications(comp_names, dictionaries)
     return now
 
-#======================= LOOKUPS =======================#
+# ======================= LOOKUPS ======================= #
+
 
 def _sort_by_state(dico):
     sorted = {}
@@ -157,12 +167,15 @@ def _sort_by_state(dico):
         state_dict[k] = v
     return sorted
 
+
 def is_up(status):
     return (status == __COMPLETED__ or status == __RUNNING__
             or status == __PENDING__ or status == __PARTIAL__)
 
+
 def _filter(job_dict, status):
     return {k:v for k,v in job_dict.iteritems() if v[__STATE__] == status}
+
 
 class Historic(object):
     """
@@ -204,7 +217,6 @@ class Historic(object):
 
     def __len__(self):
         return len(self.job_dict)
-
 
     def done_jobs(self):
         return _filter(self.job_dict, __COMPLETED__)
@@ -278,7 +290,6 @@ class Historic(object):
 
     def print_log(self, comp_name, last_lines=None):
         get_storage(self.exp_name).print_log(comp_name, last_lines=last_lines)
-
 
 
 
