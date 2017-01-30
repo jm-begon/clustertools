@@ -674,6 +674,26 @@ class Result(Mapping):
         for i, param in enumerate(tmps):
             self.parameters[i] = param
 
+    def iter_dimensions(self, *dimensions):
+        if len(dimensions) == 0:
+            yield (), self
+        else:
+            dim = dimensions[0]
+            if dim in self.metadata:
+                for values, dbi in self.iter_dimensions(*dimensions[1:]):
+                    new_values = tuple([self.metadata[dim]] + list(values))
+                    yield new_values, dbi
+            else:
+                for dim_value in self.domain[dim]:
+                    # Slicing is fast, no need to cache intermediate result
+                    res_tmp = self(**{dim:dim_value})
+                    for values, dbi in res_tmp.iter_dimensions(*dimensions[1:]):
+
+                        new_values = tuple([dim_value] + list(values))
+                        yield new_values, dbi
+
+
+
     def iteritems(self):
         """
         Yields pairs (params, metrics) in the order of this `Result`
