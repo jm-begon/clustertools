@@ -11,6 +11,8 @@ import time, datetime
 import argparse
 import subprocess, os
 import socket
+import sys
+from collections import defaultdict
 from clustertools import Historic, load_experiment_names
 
 __LH__ = "localhost"
@@ -46,7 +48,7 @@ host are sent as once. By default, all the local experiment are listed
         except ValueError:
             host = __LH__
             exp_name = query
-        sorted_queries[host] = exp_name
+        sorted_queries[host].append(exp_name)
 
     # =========== Main ============= #
 
@@ -67,16 +69,21 @@ host are sent as once. By default, all the local experiment are listed
             del sorted_queries[__LH__]
 
         # Remote queries
-        cmd = "ssh {host} {prog} {exp}".format(prog=args.prog)
-        for host, exp_names in sorted_queries.iteritems():
+        cmd = "ssh {host} {prog} {exp}"
+        prog = os.path.basename(sys.argv[0])
+        for host, exp_names in sorted_queries.items():
             exp_string = " ".join(exp_names)
-            subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
+            act_cmd = cmd.format(host=host, exp=exp_string, prog=prog)
+            subprocess.call(act_cmd, shell=True)
 
     if args.loop < 0:
         main()
     else:
-        while True:
-            os.system("clear")
-            print(datetime.datetime.now().strftime("%A %d %h %Y %H:%M:%S"))
-            main()
-            time.sleep(args.loop*60)
+        try:
+            while True:
+                os.system("clear")
+                print(datetime.datetime.now().strftime("%A %d %h %Y %H:%M:%S"))
+                main()
+                time.sleep(args.loop*60)
+        except (KeyboardInterrupt, SystemExit):
+            print("")
