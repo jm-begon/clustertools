@@ -13,8 +13,7 @@ Note
 A running job aborted for uncatchable reasons will stay in running state
 although it is not running any longer. Refresh the historic to get it right
 """
-
-import os
+import getpass
 from datetime import datetime
 import logging
 
@@ -197,7 +196,7 @@ class Historic(object):
     job_dict : mapping {comp_name -> mapping}
     state_dict: mapping {state -> job_dict}
     """
-    def __init__(self, exp_name, user=os.environ["USER"]):
+    def __init__(self, exp_name, user=getpass.getuser()):
         self.exp_name = exp_name
         self.job_dict = {}
         self.state_dict = {}
@@ -318,8 +317,9 @@ class Historic(object):
         get_storage(self.exp_name).print_log(comp_name, last_lines=last_lines)
 
 
-
-def yield_not_done_computation(experiment, user=os.environ["USER"]):
+def yield_not_done_computation(experiment, user=None):
+    if user is None:
+        user = getpass.getuser()
     historic = Historic(experiment.name, user)
     for comp_name, param in experiment:
         if historic.is_launchable(comp_name):
