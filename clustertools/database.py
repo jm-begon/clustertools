@@ -121,7 +121,7 @@ class BaseStorage(object):
         logger = logging.getLogger("clustertools")
         try:
             shutil.rmtree(self.folder)
-        except OSError, reason:
+        except OSError as reason:
             logger.warn("Trouble erasing the databases: %s" % reason,
                         exc_info=True)
 

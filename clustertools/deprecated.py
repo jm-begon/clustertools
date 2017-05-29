@@ -162,17 +162,17 @@ def erase_experiment0_0_1(exp_name):
     logger = logging.getLogger("clustertools")
     try:
         os.remove(db)
-    except OSError, reason:
+    except OSError as reason:
         logger.warn("Trouble erasing result database: %s" % reason, exc_info=True)
     db = get_notifdb0_0_1(exp_name)
     try:
         os.remove(db)
-    except OSError, reason:
+    except OSError as reason:
         logger.warn("Trouble erasing notification database: %s" % reason, exc_info=True)
     try:
         log_folder = get_log_folder0_0_1(exp_name)
         os.remove(log_folder)
-    except OSError, reason:
+    except OSError as reason:
         logger.warn("Trouble erasing log folder: %s"%reason, exc_info=True)
     # TODO move this to clusterlib
     try:
@@ -181,7 +181,7 @@ def erase_experiment0_0_1(exp_name):
         entry = (exp_name, )
         with sqlite3.connect(db, timeout=7200.0) as connection:
             connection.execute("""DELETE FROM dict WHERE key=%s"""%entry)
-    except Exception, reason:
+    except Exception as reason:
         logger.warn("Trouble erasing entry in experiment database: %s"%reason, exc_info=True)
 
 # ---------------------- from experiment.py ---------------------- #
