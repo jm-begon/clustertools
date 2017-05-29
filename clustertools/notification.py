@@ -196,11 +196,11 @@ class Historic(object):
     job_dict : mapping {comp_name -> mapping}
     state_dict: mapping {state -> job_dict}
     """
-    def __init__(self, exp_name, user=getpass.getuser()):
+    def __init__(self, exp_name, user=None):
         self.exp_name = exp_name
         self.job_dict = {}
         self.state_dict = {}
-        self.user = user
+        self.user = getpass.getuser() if user is None else user
         self.storage = get_storage(self.exp_name)
         self.refresh()
 
