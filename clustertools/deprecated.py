@@ -37,7 +37,7 @@ __RESULTS__ = "Results"
 # ---------------------- from util.py ---------------------- #
 
 def get_ct_folder0_0_1():
-    return os.path.join(os.environ["HOME"], __CT_FOLDER__)
+    return os.path.join(os.path.expanduser("~"), __CT_FOLDER__)
 
 def get_log_folder0_0_1(exp_name=None):
     try:
