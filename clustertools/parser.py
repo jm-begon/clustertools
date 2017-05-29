@@ -11,7 +11,7 @@ from functools import partial
 
 from clusterlib.scheduler import submit
 
-from database import get_storage
+from .database import get_storage
 
 
 def parse_args(description="Cluster job launcher.", args=None, namespace=None):
