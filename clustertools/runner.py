@@ -2,6 +2,7 @@
 
 """
 """
+import getpass
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -28,10 +29,11 @@ class PickableCalledProcessError(CalledProcessError):
 
 
 def run_experiment(experiment, script_path, build_script=submit,
-                   force=False, user=os.environ["USER"],
+                   force=False, user=None,
                    serialize=encode_kwargs, capacity=sys.maxsize,
                    start=0):
-
+    if user is None:
+        user = getpass.getuser()
     exp_name = experiment.name
     logger = logging.getLogger("clustertools")
     logger.info("Launching experiment '%s' with script '%s'" %(experiment, script_path))
