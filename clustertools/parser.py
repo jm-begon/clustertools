@@ -121,6 +121,6 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
                               backend=args.backend, shell_script=args.shell)
     script_builder = builder_partial
     if args.partition is not None:  # optionally add partition
-        script_builder = lambda *args, **kwargs: "{} --partition={}".format(builder_partial(*args, **kwargs), args.partition)
+        script_builder = lambda *nargs, **kwargs: "{} --partition={}".format(builder_partial(*nargs, **kwargs), args.partition)
     return script_builder, db, exp_name, custopt, {"capacity":args.capacity, "start":args.start}
 
