@@ -107,6 +107,8 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
     parser.add_argument("--start", "-s", default=0, type=int,
                         help="""The index from which to start the computations
                         (default: 0)""")
+    parser.add_argument("--partition", "-p", default=None,
+                        help="The cluster's partition/queue on which the computation will run.")
 
     args = parser.parse_args(args=args, namespace=namespace)
     db = args.database
@@ -117,5 +119,7 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder,
                              backend=args.backend, shell_script=args.shell)
+    if args.partition is not None:  # optionally add partition
+        script_builder = lambda *args, **kwargs: "{} --partition={}".format(script_builder(*args, **kwargs), args.partition)
     return script_builder, db, exp_name, custopt, {"capacity":args.capacity, "start":args.start}
 
