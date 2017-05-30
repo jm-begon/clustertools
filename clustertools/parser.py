@@ -115,11 +115,12 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
     custopt = args.custopt
     exp_name += db
     log_folder = get_storage(exp_name).get_log_folder()
-    script_builder = partial(submit, time=args.time, memory=args.memory,
-                             email=args.email, email_options=args.emailopt,
-                             log_directory=log_folder,
-                             backend=args.backend, shell_script=args.shell)
+    builder_partial = partial(submit, time=args.time, memory=args.memory,
+                              email=args.email, email_options=args.emailopt,
+                              log_directory=log_folder,
+                              backend=args.backend, shell_script=args.shell)
+    script_builder = builder_partial
     if args.partition is not None:  # optionally add partition
-        script_builder = lambda *args, **kwargs: "{} --partition={}".format(script_builder(*args, **kwargs), args.partition)
+        script_builder = lambda *args, **kwargs: "{} --partition={}".format(builder_partial(*args, **kwargs), args.partition)
     return script_builder, db, exp_name, custopt, {"capacity":args.capacity, "start":args.start}
 
