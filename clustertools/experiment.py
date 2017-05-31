@@ -149,7 +149,7 @@ class Experiment(object):
         if len(self.params) == 0:
             yield "Computation-"+self.name+"-0", {}
         else:
-            keys = self.params.keys()
+            keys = list(self.params.keys())
             keys.sort()
             inc = {k:set() for k in keys}
             seen = set()
