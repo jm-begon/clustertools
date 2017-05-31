@@ -32,13 +32,13 @@ if __name__ == "__main__":
     results = load_results(exp_name)
 
     if len(results) == 0:
-        print "No result"
+        print("No result")
         sys.exit()
 
     # Display the results
-    print "="*50
-    print "Experiment: '"+exp_name+"'"
-    print "="*50
+    print("="*50)
+    print("Experiment: '"+exp_name+"'")
+    print("="*50)
 
     r0 = results[results.keys()[0]]
 
@@ -48,8 +48,8 @@ if __name__ == "__main__":
     metrics = r0["Results"].keys()
 
     for i, m in enumerate(metrics):
-        print "Metric", i, ":", str(m), ""
-        print "~"*37
+        print("Metric", i, ":", str(m), "")
+        print("~"*37)
 
 
         template = " {} |"*len(parameters)
@@ -60,18 +60,18 @@ if __name__ == "__main__":
         title_template.append("Computation name")
         title = template.format(*title_template)
 
-        print title
-        print "-"*len(title)
+        print(title)
+        print("-"*len(title))
 
 
-        for comp_name, info in results.iteritems():
+        for comp_name, info in results.items():
             params = info["Parameters"]
             row_template = [nicefy(params[p]) for p in parameters]
             row_template.append(nicefy(info["Results"][m]))
             row_template.append(comp_name)
-            print template.format(*row_template)
+            print(template.format(*row_template))
 
-        print
+        print()
 
 
 
