@@ -13,6 +13,8 @@ from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping, defaultdict
 
+from functools import reduce
+from six import string_types
 from clusterlib.scheduler import submit
 
 from .database import get_storage, load_results
@@ -120,7 +122,7 @@ class Experiment(object):
                 vps = set()
                 self.param_seq[-1][k] = vps
             try:
-                if isinstance(v, basestring):
+                if isinstance(v, string_types):
                     raise TypeError
                 for vi in v:
                     if not vi in vp:
@@ -409,7 +411,7 @@ class Result(Mapping):
             shape.append(len(v))
         shape.append(len(metrics))
         length = reduce(lambda x,y:x*y, shape, 1)
-        data = [None for _ in xrange(length)]
+        data = [None for _ in range(length)]
 
         # Fill the data vector
         hasher = Hasher(metrics, domain, metadata)
@@ -513,16 +515,16 @@ class Result(Mapping):
                 if slice_ < 0:
                     raise IndexError("Index out of range from dim. %d" % i)
                 fixed.append(slice(slice_, slice_+1, 1))
-            elif isinstance(slice_, basestring):
+            elif isinstance(slice_, string_types):
                 # String --> Get the appropriate int
                 idx = self._get_index_by_name(i, slice_)
                 fixed.append(slice(idx, idx+1, 1))
             elif isinstance(slice_, slice):
                 # Slice --> Lookup in case of strings
                 start, stop = slice_.start, slice_.stop
-                if isinstance(start, basestring):
+                if isinstance(start, string_types):
                     start = self._get_index_by_name(i, start)
-                if isinstance(stop, basestring):
+                if isinstance(stop, string_types):
                     stop = self._get_index_by_name(i, stop) + 1
                 fixed.append(slice(start, stop, slice_.step))
                 return_scalar = False
@@ -531,7 +533,7 @@ class Result(Mapping):
                     # List of str/int --> Lookup strings
                     slice2 = []
                     for idx in slice_:
-                        if isinstance(idx, basestring):
+                        if isinstance(idx, string_types):
                             slice2.append(self._get_index_by_name(i, idx))
                         else:
                             # Wrapping
