@@ -122,8 +122,8 @@ class BaseStorage(object):
         try:
             shutil.rmtree(self.folder)
         except OSError as reason:
-            logger.warn("Trouble erasing the databases: %s" % reason,
-                        exc_info=True)
+            logger.warning("Trouble erasing the databases: %s" % reason,
+                           exc_info=True)
 
     def update_notification(self, comp_name, dictionary):
         fpath = os.path.join(self._get_notifdb(), "%s.pkl"%comp_name)
@@ -189,7 +189,7 @@ class BaseStorage(object):
         f = self.get_log_file(comp_name)
         if f is None:
             logger = logging.getLogger("clustertools.print_log_file")
-            logger.warn("File '%s' does not exists."%f)
+            logger.warning("File '%s' does not exists."%f)
             return
         if last_lines is None:
             with open(f) as fhd:

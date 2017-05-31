@@ -71,7 +71,7 @@ def print_log_file0_0_1(exp_name, comp_name, last_lines=None, out=sys.stdout):
     f = get_log_file0_0_1(exp_name, comp_name)
     if f is None:
         logger = logging.getLogger("clustertools.util.print_log_file")
-        logger.warn("File '%s' does not exists."%f)
+        logger.warning("File '%s' does not exists."%f)
         return
     if last_lines is None:
         with open(f) as fhd:
@@ -163,17 +163,17 @@ def erase_experiment0_0_1(exp_name):
     try:
         os.remove(db)
     except OSError as reason:
-        logger.warn("Trouble erasing result database: %s" % reason, exc_info=True)
+        logger.warning("Trouble erasing result database: %s" % reason, exc_info=True)
     db = get_notifdb0_0_1(exp_name)
     try:
         os.remove(db)
     except OSError as reason:
-        logger.warn("Trouble erasing notification database: %s" % reason, exc_info=True)
+        logger.warning("Trouble erasing notification database: %s" % reason, exc_info=True)
     try:
         log_folder = get_log_folder0_0_1(exp_name)
         os.remove(log_folder)
     except OSError as reason:
-        logger.warn("Trouble erasing log folder: %s"%reason, exc_info=True)
+        logger.warning("Trouble erasing log folder: %s"%reason, exc_info=True)
     # TODO move this to clusterlib
     try:
         import sqlite3
@@ -182,7 +182,7 @@ def erase_experiment0_0_1(exp_name):
         with sqlite3.connect(db, timeout=7200.0) as connection:
             connection.execute("""DELETE FROM dict WHERE key=%s"""%entry)
     except Exception as reason:
-        logger.warn("Trouble erasing entry in experiment database: %s"%reason, exc_info=True)
+        logger.warning("Trouble erasing entry in experiment database: %s"%reason, exc_info=True)
 
 # ---------------------- from experiment.py ---------------------- #
 

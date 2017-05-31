@@ -84,10 +84,10 @@ def test_yield_not_done_computation():
     completed_job_update(__EXP_NAME__, comp_name(ls[-1]), now)
 
     historic = Historic(exp.name)
-    print historic.job_dict
+    print(historic.job_dict)
 
     remains = list(yield_not_done_computation(exp))
-    print remains
+    print(remains)
     assert_equal(len(remains), len(ls)-2)
     for t in ls[1:-1]:
         assert_in(t, remains)

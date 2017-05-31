@@ -13,6 +13,8 @@ from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping, defaultdict
 
+from functools import reduce
+from six import string_types
 from clusterlib.scheduler import submit
 
 from .database import get_storage, load_results
@@ -107,7 +109,7 @@ class Experiment(object):
             self.param_seq = [copy(self.params)]
 
     def add_params(self, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             vp = self.params.get(k)
             if vp is None:
                 if len(self.param_seq) > 1:
@@ -120,7 +122,7 @@ class Experiment(object):
                 vps = set()
                 self.param_seq[-1][k] = vps
             try:
-                if isinstance(v, basestring):
+                if isinstance(v, string_types):
                     raise TypeError
                 for vi in v:
                     if not vi in vp:
@@ -147,13 +149,13 @@ class Experiment(object):
         if len(self.params) == 0:
             yield "Computation-"+self.name+"-0", {}
         else:
-            keys = self.params.keys()
+            keys = list(self.params.keys())
             keys.sort()
             inc = {k:set() for k in keys}
             seen = set()
             nb = 0
             for params_ in self.param_seq:
-                for key, value in params_.iteritems():
+                for key, value in params_.items():
                     inc[key].update(value)
 
                 values = []
@@ -217,14 +219,14 @@ class Experiment(object):
 
     def get_metadata(self):
         d = {}
-        for k, v in self.params.iteritems():
+        for k, v in self.params.items():
             if len(v) == 1:
                 d[k] = v[0]
         return d
 
     def get_domain(self):
         d = {}
-        for k, v in self.params.iteritems():
+        for k, v in self.params.items():
             if len(v) > 1:
                 d[k] = v
         return d
@@ -242,7 +244,7 @@ class Experiment(object):
 
 
 def _sort_back(dictionary):
-    tmp = [(v, k) for k,v in dictionary.iteritems()]
+    tmp = [(v, k) for k,v in dictionary.items()]
     tmp.sort()
     return [x for _, x in tmp]
 
@@ -258,7 +260,7 @@ class Hasher(object):
         self.dom_inv = {}
         last_stride = 1
         self.strides = {}
-        for name, vals in domain.iteritems():
+        for name, vals in domain.items():
             inv = {p:i for i, p in enumerate(vals)}
             self.dom_inv[name] = inv
             self.strides[name] = last_stride
@@ -266,7 +268,7 @@ class Hasher(object):
 
         self.metric_stride = last_stride
         if metadata is not None:
-            for name, val in metadata.iteritems():
+            for name, val in metadata.items():
                 self.strides[name] = 0
                 self.dom_inv[name] = {val:0}
 
@@ -274,7 +276,7 @@ class Hasher(object):
         metrics = _sort_back(self.metric_inv)
         metadata = {}
         domain = {}
-        for param, domdic in self.dom_inv.iteritems():
+        for param, domdic in self.dom_inv.items():
             if self.strides[param] == 0:
                 metadata[param] = _sort_back(domdic)[0]
             else:
@@ -293,7 +295,7 @@ class Hasher(object):
 
 
     def add_metadata(self, **kwargs):
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             self.strides[k] = 0
             self.dom_inv[k] = {v:0}
 
@@ -307,7 +309,7 @@ class Hasher(object):
         if len(params) != len(self.strides):
             raise IndexError("Expecting %d parameters/metadata, got %d" % (len(self.strides), len(params)))
         index = self.metric_inv[metric] * self.metric_stride
-        for p, pv in params.iteritems():
+        for p, pv in params.items():
             index += (self.strides[p] * self.dom_inv[p][pv])
         return index
 
@@ -320,7 +322,7 @@ class Hasher(object):
 
         # Then, find the parameters
         index = index % self.metric_stride
-        dims = [(v, k) for k,v in self.strides.iteritems()]
+        dims = [(v, k) for k,v in self.strides.items()]
         dims.sort(reverse=True)
         for stride, param in dims:
             if stride == 0:
@@ -373,7 +375,7 @@ class Result(Mapping):
         param_tmp = {}
         # Build back the parameters domain
         for parameters in parameterss:
-            for k, v in parameters.iteritems():
+            for k, v in parameters.items():
                 _set = param_tmp.get(k)
                 if _set is None:
                     _set = set()
@@ -383,7 +385,7 @@ class Result(Mapping):
         metadata = {}
         parameter_list = []
         domain = {}
-        for k, v in param_tmp.iteritems():
+        for k, v in param_tmp.items():
             ls = [vi for vi in v]
             if len(ls) > 1:
                 ls.sort()
@@ -409,13 +411,13 @@ class Result(Mapping):
             shape.append(len(v))
         shape.append(len(metrics))
         length = reduce(lambda x,y:x*y, shape, 1)
-        data = [None for _ in xrange(length)]
+        data = [None for _ in range(length)]
 
         # Fill the data vector
         hasher = Hasher(metrics, domain, metadata)
         for params, _metrics in zip(parameterss, resultss):
-            for metric_name, val in _metrics.iteritems():
-                params_ = {k:str(v) for k,v in params.iteritems()}
+            for metric_name, val in _metrics.items():
+                params_ = {k:str(v) for k,v in params.items()}
                 index = hasher(str(metric_name), params_)
                 data[index] = val
         datahash = "n/a"
@@ -513,16 +515,16 @@ class Result(Mapping):
                 if slice_ < 0:
                     raise IndexError("Index out of range from dim. %d" % i)
                 fixed.append(slice(slice_, slice_+1, 1))
-            elif isinstance(slice_, basestring):
+            elif isinstance(slice_, string_types):
                 # String --> Get the appropriate int
                 idx = self._get_index_by_name(i, slice_)
                 fixed.append(slice(idx, idx+1, 1))
             elif isinstance(slice_, slice):
                 # Slice --> Lookup in case of strings
                 start, stop = slice_.start, slice_.stop
-                if isinstance(start, basestring):
+                if isinstance(start, string_types):
                     start = self._get_index_by_name(i, start)
-                if isinstance(stop, basestring):
+                if isinstance(stop, string_types):
                     stop = self._get_index_by_name(i, stop) + 1
                 fixed.append(slice(start, stop, slice_.step))
                 return_scalar = False
@@ -531,7 +533,7 @@ class Result(Mapping):
                     # List of str/int --> Lookup strings
                     slice2 = []
                     for idx in slice_:
-                        if isinstance(idx, basestring):
+                        if isinstance(idx, string_types):
                             slice2.append(self._get_index_by_name(i, idx))
                         else:
                             # Wrapping
@@ -573,7 +575,7 @@ class Result(Mapping):
         if return_scalar:
             metric = self.metrics[m_slice.start]
             # We need to include the metadata for the hasher
-            params = {k:v for k,v in self.metadata.iteritems()}
+            params = {k:v for k,v in self.metadata.items()}
             for i, slc in enumerate(p_slices):
                 p_name = self.parameters[i]
                 vals = self.domain[p_name]
@@ -732,7 +734,7 @@ class Result(Mapping):
 
     def in_domain(self):
         idom = []
-        for params, metrics in self.iteritems():
+        for params, metrics in self.items():
             append = True
             for i, metric in enumerate(metrics):
                 if metric is None:
@@ -746,7 +748,7 @@ class Result(Mapping):
 
     def out_of_domain(self):
         ood = []
-        for params, metrics in self.iteritems():
+        for params, metrics in self.items():
             for i, metric in enumerate(metrics):
                 if metric is None:
                     p_dict = {k:v for v,k in zip(params, self.parameters)}
@@ -769,7 +771,7 @@ class Result(Mapping):
         some_missings = {}
         all_there = {}
         # Same order as in domain
-        for param, domls in self.domain.iteritems():
+        for param, domls in self.domain.items():
             some_missings[param] = [v for v in domls if v in sets[param]]
             all_there[param] = [v for v in domls if v not in sets[param]]
         return some_missings, all_there
@@ -790,7 +792,7 @@ class Result(Mapping):
         cube = self if metric is None else self(metric=metric)
         _, all_there = cube._some_miss_vs_all_there()
         max_key, max_len = None, -1
-        for k,v in all_there.iteritems():
+        for k,v in all_there.items():
             if len(v) > max_len:
                 max_len = len(v)
                 max_key = k
@@ -800,7 +802,7 @@ class Result(Mapping):
     def minimal_hypercube(self, metric=None):
         cube = self if metric is None else self(metric=metric)
         _, all_there = cube._some_miss_vs_all_there()
-        slicing = {k:v for k,v in all_there.iteritems() if len(v) > 0}
+        slicing = {k:v for k,v in all_there.items() if len(v) > 0}
         return cube(**slicing)
 
 

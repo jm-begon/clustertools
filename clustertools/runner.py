@@ -56,7 +56,7 @@ def run_experiment(experiment, script_path, build_script=submit,
         start_date = pending_job_update(exp_name, job_name)
         try:
             output = subprocess.check_output(script, shell=True)
-            logger.debug("Output:\n%s" % output)
+            logger.debug("Output:\n%s" % output.decode("utf-8"))
         except CalledProcessError as exception:
             aborted_job_update(exp_name, job_name, start_date, picklify(exception))
             logger.error("Error launching job '%s': %s" % (job_name,
