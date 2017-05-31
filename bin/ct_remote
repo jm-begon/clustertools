@@ -72,7 +72,7 @@ be omitted for local processing."""
 
     # =========== Main ============= #
     if __LH__ in sorted_queries:
-            try:
+        try:
             hostname = socket.gethostname()
         except:
             hostname = "Unkown host"
@@ -85,7 +85,7 @@ be omitted for local processing."""
 
     # Remote queries
     cmd = "ssh {host} {prog} {exp}".format(prog=args.prog)
-    for host, exp_names in sorted_queries.iteritems():
+    for host, exp_names in sorted_queries.items():
         exp_string = " ".join(exp_names)
         subprocess.call(cmd.format(host=host, exp=exp_string), shell=True)
 

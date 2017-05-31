@@ -173,7 +173,7 @@ def incomplete_jobs_update(exp_name, comp_names):
 
 def _sort_by_state(dico):
     sorted = {}
-    for k, v in dico.iteritems():
+    for k, v in dico.items():
         state_dict = sorted.get(v[__STATE__])
         if state_dict is None:
             state_dict = {}
@@ -188,7 +188,7 @@ def is_up(status):
 
 
 def _filter(job_dict, status):
-    return {k:v for k,v in job_dict.iteritems() if v[__STATE__] == status}
+    return {k:v for k,v in job_dict.items() if v[__STATE__] == status}
 
 
 class Historic(object):
@@ -258,7 +258,7 @@ class Historic(object):
 
     def already_up(self, comp_name=None):
         if comp_name is None:
-            return {k:v for k,v in self.job_dict.iteritems()
+            return {k:v for k,v in self.job_dict.items()
                     if is_up(v[__STATE__])}
 
         state = self.get_state(comp_name)
@@ -278,7 +278,7 @@ class Historic(object):
         return state == __LAUNCHABLE__
 
     def count_by_state(self):
-        return {k:len(v) for k,v in self.state_dict.iteritems()}
+        return {k:len(v) for k,v in self.state_dict.items()}
 
     def to_launchable(self, comp_name):
         launchable_job_update(self.exp_name, comp_name)
