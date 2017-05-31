@@ -85,7 +85,7 @@ specify an experiment.""")
                                                   dest=destination)
 
     if args.test:
-        print cmd
+        print(cmd)
     else:
         subprocess.call(cmd, shell=True)
 
