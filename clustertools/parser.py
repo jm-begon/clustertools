@@ -135,5 +135,10 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
             " ".join(["--{}={}".format(k, v) for k, v in additional_flags.items()])
         ])
 
-    return script_builder, db, exp_name, custopt, {"capacity": args.capacity, "start": args.start}
+    # build other params dict
+    others = {"capacity": args.capacity, "start": args.start}
+    others.update(additional_flags)
+
+    return script_builder, db, exp_name, custopt, others
+
 
