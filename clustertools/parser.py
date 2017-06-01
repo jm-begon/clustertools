@@ -109,6 +109,8 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
                         (default: 0)""")
     parser.add_argument("--partition", "-p", default=None,
                         help="The cluster's partition/queue on which the computation will run.")
+    parser.add_argument("--ntasks", "-j", default=None,
+                        help="Number of processor to use for running each task (default to 1).")
 
     args = parser.parse_args(args=args, namespace=namespace)
     db = args.database
@@ -119,8 +121,24 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
                               email=args.email, email_options=args.emailopt,
                               log_directory=log_folder,
                               backend=args.backend, shell_script=args.shell)
-    script_builder = builder_partial
-    if args.partition is not None:  # optionally add partition
-        script_builder = lambda *nargs, **kwargs: "{} --partition={}".format(builder_partial(*nargs, **kwargs), args.partition)
-    return script_builder, db, exp_name, custopt, {"capacity":args.capacity, "start":args.start}
+
+    # optionally add additional flags
+    additional_flags = dict()
+    if args.partition is not None:
+        additional_flags["partition"] = args.partition
+    if args.ntasks is not None:
+        additional_flags["ntasks"] = args.ntasks
+
+    def script_builder(*nargs, **kwargs):
+        return " ".join([
+            builder_partial(*nargs, **kwargs),
+            " ".join(["--{}={}".format(k, v) for k, v in additional_flags.items()])
+        ])
+
+    # build other params dict
+    others = {"capacity": args.capacity, "start": args.start}
+    others.update(additional_flags)
+
+    return script_builder, db, exp_name, custopt, others
+
 
