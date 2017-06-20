@@ -16,15 +16,17 @@ __CONF_NAME__ = "config.yaml"
 
 # /!\ Changing the default folder is not yet well supported
 
+
 def _get_default_config():
     return {
         "Main": {
             "folder": __CT_FOLDER__,
         },
         "Storage":{
-            "default":"sqlite3"
+            "default":"picke"
         },
     }
+
 
 def get_ct_folder(conf=_get_default_config()):
     folder_name = conf["Main"]["folder"]

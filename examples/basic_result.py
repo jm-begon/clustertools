@@ -6,7 +6,7 @@ This example illustrates how to retrieve experiment results
 """
 import sys
 
-from clustertools.database import load_results
+from clustertools.storage import load_results
 
 __COLWIDTH__ = 10
 

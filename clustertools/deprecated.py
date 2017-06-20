@@ -17,7 +17,7 @@ from datetime import datetime
 
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
-from .experiment import Result
+from .experiment import Datacube
 
 __CT_FOLDER__ = "clustertools_data"
 __LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
@@ -30,6 +30,21 @@ __EXP_NAME__ = "Experiment"
 __PARAMETERS__ = "Parameters"
 __RESULTS__ = "Results"
 
+
+# from http://stackoverflow.com/questions/2536307/decorators-in-the-python-standard-lib-deprecated-specifically
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.simplefilter('always', DeprecationWarning) #turn off filter
+        warnings.warn("Call to deprecated function {}.".format(func.__name__), category=DeprecationWarning, stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning) #reset filter
+        return func(*args, **kwargs)
+
+    return new_func
 
 
 # ====================== VERSION 0.0.1 ====================== #
@@ -95,7 +110,7 @@ def purge_logs0_0_1(exp_name, comp_name=None):
             os.remove(fp)
 
 
-# ---------------------- from database.py ---------------------- #
+# ---------------------- from storage.py ---------------------- #
 
 def _get_db_folder0_0_1():
     try:
@@ -193,4 +208,4 @@ def build_result_cube0_0_1(exp_name):
     for d in result.values():
         parameterss.append(d[__PARAMETERS__])
         resultss.append(d[__RESULTS__])
-    return Result(parameterss, resultss, exp_name)
+    return Datacube(parameterss, resultss, exp_name)

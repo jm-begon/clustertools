@@ -11,7 +11,7 @@ from functools import partial
 
 from clusterlib.scheduler import submit
 
-from database import get_storage
+from storage import get_storage
 
 
 def parse_args(description="Cluster job launcher.", args=None, namespace=None):
@@ -68,7 +68,7 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
     args = parser.parse_args(args=args, namespace=namespace)
     exp_name = args.name
     script = args.script
-    log_folder = get_storage(exp_name).get_log_folder()
+    log_folder = get_storage(exp_name)._get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder, backend=args.backend,
@@ -112,7 +112,7 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
     db = args.database
     custopt = args.custopt
     exp_name += db
-    log_folder = get_storage(exp_name).get_log_folder()
+    log_folder = get_storage(exp_name)._get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder,

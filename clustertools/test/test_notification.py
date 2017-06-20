@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
 
 from nose.tools import assert_in
 from nose.tools import assert_equal
@@ -11,9 +8,14 @@ from nose.tools import with_setup
 
 from clustertools.notification import *
 from clustertools.experiment import Experiment
-from clustertools.database import get_storage
+from clustertools.storage import get_storage
 
-__EXP_NAME__ = "ClustertoolsNoseTest"
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
+
+__EXP_NAME__ = "ClustertoolsUnitTest"
+
 
 def purge():
     storage = get_storage(__EXP_NAME__)
@@ -47,11 +49,11 @@ def test_notif_update():
 
     histo = Historic(__EXP_NAME__, None)
 
-    #assert_in(pending, histo.pending_jobs().keys())
+    # assert_in(pending, histo.pending_jobs().keys())
 
     assert_in(completed, histo.done_jobs().keys())
     assert_in(launchable, histo.launchable_jobs().keys())
-    #assert_in(pending, histo.pending_jobs().keys())
+    # assert_in(pending, histo.pending_jobs().keys())
     assert_in(launchable1, histo.launchable_jobs().keys())
     assert_in(launchable2, histo.launchable_jobs().keys())
     assert_in(aborted, histo.aborted_jobs().keys())
@@ -60,7 +62,7 @@ def test_notif_update():
     # Running has been set to launchable
     assert_in(running, histo.launchable_jobs().keys())
 
-    #assert_equal(histo.is_launchable(pending), False)
+    # assert_equal(histo.is_launchable(pending), False)
     assert_equal(histo.is_launchable(completed), False)
     assert_equal(histo.is_launchable(aborted), False)
 

@@ -20,12 +20,13 @@ import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 
-from .database import get_storage, load_notifications
+from .storage import get_storage, load_notifications
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
+# States
 __RUNNING__ = "RUNNING"
 __COMPLETED__ = "COMPLETED"
 __ABORTED__ = "ABORTED"
@@ -40,6 +41,16 @@ __DATE__ = "date"
 __LASTSAVE__ = "last save"
 __DURATION__ = "duration"
 __EXCEPT__ = "exception"
+
+
+class ComputationMonitor(object):
+
+    def __init__(self, exp_name, comp_name, storage=get_storage):
+        self.exp_name = exp_name
+        self.comp_name = comp_name
+        # self.storage = storage(exp_name)
+
+
 
 
 # ======================= STATUS UPDATE ======================= #

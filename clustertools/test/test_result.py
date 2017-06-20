@@ -12,7 +12,7 @@ from nose.tools import assert_raises
 from nose.tools import assert_true
 
 
-from clustertools import Result, Hasher
+from clustertools import Datacube, Hasher
 
 def basic():
     """
@@ -201,7 +201,7 @@ def build_cube(exp_name, res):
     for d in res.values():
         parameterss.append(d["Parameters"])
         resultss.append(d["Results"])
-    return Result(parameterss, resultss, exp_name)
+    return Datacube(parameterss, resultss, exp_name)
 
 
 def test_info():

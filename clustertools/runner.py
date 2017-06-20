@@ -15,7 +15,7 @@ from clusterlib.scheduler import submit
 
 from .notification import (pending_job_update, aborted_job_update,
                            yield_not_done_computation)
-from .database import get_storage
+from .storage import get_storage
 from .util import encode_kwargs
 
 

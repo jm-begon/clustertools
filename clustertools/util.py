@@ -7,17 +7,15 @@ Module :mod:`util` is a set of misc. functions
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-import os
-import sys
-import shutil
-import logging
+
 import json
-import collections
-import glob
 from inspect import getargspec
 from copy import copy
 from hashlib import sha256
-from datetime import datetime
+import warnings
+import functools
+
+
 
 
 

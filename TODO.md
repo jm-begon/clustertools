@@ -4,10 +4,15 @@ TODOs
 - [x] Partial saving + partial status
 - [x] Remote survey
 - [x] Add after in Experiment
-- [ ] Sync
+- [x] Sync
 - [ ] Partial reloading
 - [ ] Remote launching
 - [x] Refactoring
+- [ ] Refactoring 2
+- [ ] Result class for Computation (cf. Refactoring 2)
+- [ ] Delayed launcher and 1 file per experiment
+- [ ] Roll up (aggregation over one dimension)
+- [ ] Drill down/up (hierarchical scaling: aggregating and changing the dimension name, scale, values, etc.)
 - [ ] Automatic resource management & job relaunch
 
 Result class
@@ -29,3 +34,8 @@ Storage is responsible for storing notifications and results from computations.
 
 Quid of the experiment DB ?
 
+Refactoring 2
+-------------
+ - [ ] Restult -> Datacube
+ - [ ] notification module -> status module
+ - [ ] Historic -> Monitor

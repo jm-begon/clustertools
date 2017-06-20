@@ -47,7 +47,7 @@ if __name__ == '__main__':
           license='BSD3',
           classifiers=CLASSIFIERS,
           platforms='any',
-          install_requires=['clusterlib',],
+          install_requires=['clusterlib', 'nose'],
           packages=['clustertools', 'clustertools.test'],
           scripts=['bin/ct_count', 'bin/ct_sync', 'bin/ct_001to002',
                    'bin/ct_remote'])

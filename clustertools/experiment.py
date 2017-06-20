@@ -12,35 +12,59 @@ Experiment names should always elligible file names.
 from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping, defaultdict
+from functools import reduce
 
-from clusterlib.scheduler import submit
-
-from .database import get_storage, load_results
-from .notification import (pending_job_update, running_job_update,
+from .storage import get_storage, load_results
+from .notification import (running_job_update,
                            completed_job_update, aborted_job_update,
-                           partial_job_update, critical_job_update, Historic)
+                           partial_job_update, critical_job_update)
 from .util import reorder, hashlist
+
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
-__EXP_NAME__ = "Experiment"
-__PARAMETERS__ = "Parameters"
-__RESULTS__ = "Results"
+class Result(dict):
+    """
+    ``Result``
+    ==========
+    A result is a place holder for pairs metric=value
+    """
+    def __init__(self, *metric_names, **kwargs):
+        kwargs.update({k:None for k in metric_names})
+        super(Result, self).__init__(kwargs)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __dir__(self):
+        return self.keys()
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setstate__(self, state):
+        # cf. https://github.com/scikit-learn/scikit-learn/issues/6196.
+        pass
+
+    def __repr__(self):
+        kwargs = ", ".join(["{k}={v}".format(k=k, v=v) for k, v in self.items()])
+        return "{cls}({kwargs})".format(cls=self.__class__.__name__,
+                                        kwargs=kwargs)
 
 
 class Computation(object):
 
-    def __init__(self, exp_name, comp_name, overwrite=True):
+    def __init__(self, exp_name, comp_name, context="n/a"):
         self.exp_name = exp_name
         self.comp_name = comp_name
-        self.overwrite = overwrite
+        self.context = context
         self.storage = get_storage(self.exp_name)
-
-    def _save(self, result):
-        self.storage.save_result(self.comp_name, result, self.overwrite)
 
     def run(self, **parameters):
         pass
@@ -48,19 +72,15 @@ class Computation(object):
     def __call__(self, **parameters):
         start = running_job_update(self.exp_name, self.comp_name)
         try:
-            result = {
-                self.comp_name: {
-                    __EXP_NAME__: self.exp_name,
-                    __PARAMETERS__: parameters,
-                    __RESULTS__: self.run(**parameters)
-                }
-            }
+            result = self.run(**parameters)
             critical_job_update(self.exp_name, self.comp_name, start)
-            self._save(result)
+            self.storage.save_result(self.comp_name, parameters, result,
+                                     self.context)
             completed_job_update(self.exp_name, self.comp_name, start)
         except Exception as excep:
             aborted_job_update(self.exp_name, self.comp_name, start, excep)
             raise
+
 
 class PartialComputation(Computation):
     """
@@ -70,15 +90,9 @@ class PartialComputation(Computation):
         start = running_job_update(self.exp_name, self.comp_name)
         try:
             for partial_result in self.run(**parameters):
-                result = {
-                    self.comp_name: {
-                        __EXP_NAME__: self.exp_name,
-                        __PARAMETERS__: parameters,
-                        __RESULTS__: partial_result
-                    }
-                }
                 critical_job_update(self.exp_name, self.comp_name, start)
-                self._save(result)
+                self.storage.save_result(self.comp_name, parameters,
+                                         partial_result, self.context)
                 partial_job_update(self.exp_name, self.comp_name, start)
             completed_job_update(self.exp_name, self.comp_name, start)
         except Exception as excep:
@@ -87,15 +101,17 @@ class PartialComputation(Computation):
 
     def load_partial(self):
         """return a dict"""
-        return self.storage.load_result(self.comp_name)
+        return Result(self.storage.load_result(self.comp_name))
 
 
 class Experiment(object):
     """
+    computation_factory: ternary callable (str, str,
     param_seq : list of dict
     """
-    def __init__(self, name, params=None, param_seq=None):
+    def __init__(self, name, computation_factory, params=None, param_seq=None):
         self.name = name
+        self.computation_factory = computation_factory
         if not params:
             self.params = {}
         else:
@@ -241,6 +257,8 @@ class Experiment(object):
 
 
 
+
+
 def _sort_back(dictionary):
     tmp = [(v, k) for k,v in dictionary.iteritems()]
     tmp.sort()
@@ -291,7 +309,6 @@ class Hasher(object):
                                                            repr(domain),
                                                            repr(metadata))
 
-
     def add_metadata(self, **kwargs):
         for k, v in kwargs.iteritems():
             self.strides[k] = 0
@@ -333,14 +350,11 @@ class Hasher(object):
 
         return res
 
-
-
     def __call__(self, metric, params):
         return self.hash(metric, params)
 
 
-
-class Result(Mapping):
+class Datacube(Mapping):
     """
     parameterss : iterable of mappings param_name -> value
     resultss : iterable of mappings metric_name -> value
@@ -367,13 +381,11 @@ class Result(Mapping):
         The shape of the result cube. The N-1 first axis are linked to the
         parameters and the last one to the metrics
     """
-
-
-    def __init__(self, parameterss, resultss, exp_name=""):
+    def __init__(self, parameters_ls, results_ls, exp_name=""):
         param_tmp = {}
         # Build back the parameters domain
-        for parameters in parameterss:
-            for k, v in parameters.iteritems():
+        for parameters in parameters_ls:
+            for k, v in parameters.items():
                 _set = param_tmp.get(k)
                 if _set is None:
                     _set = set()
@@ -383,7 +395,7 @@ class Result(Mapping):
         metadata = {}
         parameter_list = []
         domain = {}
-        for k, v in param_tmp.iteritems():
+        for k, v in param_tmp.items():
             ls = [vi for vi in v]
             if len(ls) > 1:
                 ls.sort()
@@ -395,12 +407,11 @@ class Result(Mapping):
 
         # Build back the metric list
         _set = set()
-        for res in resultss:
+        for res in results_ls:
             _set.update(res.keys())
         metrics = list(_set)
         metrics.sort()
         metrics = [str(m) for m in metrics]
-
 
         # Allocate the data vector
         shape = []
@@ -413,7 +424,7 @@ class Result(Mapping):
 
         # Fill the data vector
         hasher = Hasher(metrics, domain, metadata)
-        for params, _metrics in zip(parameterss, resultss):
+        for params, _metrics in zip(parameters_ls, results_ls):
             for metric_name, val in _metrics.iteritems():
                 params_ = {k:str(v) for k,v in params.iteritems()}
                 index = hasher(str(metric_name), params_)
@@ -432,7 +443,7 @@ class Result(Mapping):
         self.shape = tuple(shape)
 
     def compute_data_hash(self):
-        self.datahash = hashlist(data)
+        self.datahash = hashlist(self.data)
         return self.datahash
 
     def size(self):
@@ -445,7 +456,6 @@ class Result(Mapping):
     def add_metadata(self, **kwargs):
         self.metadata.update(kwargs)
         self.hash.add_metadata(**kwargs)
-
 
     def _get_index_by_name(self, n_dim, value):
         lku = self.metrics
@@ -467,7 +477,6 @@ class Result(Mapping):
                 raise ValueError()
             except ValueError:
                 raise KeyError("Name '%s' unknown for dimension %d" % (value, n_dim))
-
 
     def __getitem__(self, index):
         """
@@ -659,8 +668,6 @@ class Result(Mapping):
 
         return self[tuple(slices)]
 
-
-
     def __getslice__(self, start, stop) :
         """This solves a subtle bug, where __getitem__ is not called, and all
         the dimensional checking not done, when a slice of only the first
@@ -716,15 +723,16 @@ class Result(Mapping):
                         new_values = tuple([dim_value] + list(values))
                         yield new_values, dbi
 
-
-
     def iteritems(self):
+        return self.items()
+
+    def items(self):
         """
         Yields pairs (params, metrics) in the order of this `Result`
         """
         p_gen = product(*[self.domain[p] for p in self.parameters])
         for params in p_gen:
-            p_dict = {k:v for k,v in zip(self.parameters, params)}
+            p_dict = {k: v for k, v in zip(self.parameters, params)}
             p_dict.update(self.metadata)
             idx = [self.hash(m, p_dict) for m in self.metrics]
             data = tuple(self.data[x] for x in idx)
@@ -742,7 +750,6 @@ class Result(Mapping):
                 p_dict = {k:v for v,k in zip(params, self.parameters)}
                 idom.append(p_dict)
         return idom
-
 
     def out_of_domain(self):
         ood = []
@@ -774,7 +781,6 @@ class Result(Mapping):
             all_there[param] = [v for v in domls if v not in sets[param]]
         return some_missings, all_there
 
-
     def diagnose(self):
         ood = self.out_of_domain()
         some_missings, all_there = self._some_miss_vs_all_there(ood)
@@ -796,36 +802,20 @@ class Result(Mapping):
                 max_key = k
         return cube(**{max_key:all_there[max_key]})
 
-
     def minimal_hypercube(self, metric=None):
         cube = self if metric is None else self(metric=metric)
         _, all_there = cube._some_miss_vs_all_there()
         slicing = {k:v for k,v in all_there.iteritems() if len(v) > 0}
         return cube(**slicing)
 
-
     def __str__(self):
-        try:
-            val = "Values:\n"+str(self.numpify())
-        except:
-            val = "Hash of data: \t"+self.datahash
-        return """Results of '%s':
-=====================
-Metadata: \t%s
-Parameters: \t%s
-Domain: \t%s
-Metrics: \t%s
-Shape: \t%s
-%s""" % (self.name, str(self.metadata), str(self.parameters), str(self.domain),
-         str(self.metrics), str(self.shape), val)
+        return repr(self)
 
     def __repr__(self):
         return "%s(name='%s', metadata=%s, parameters=%s, domain=%s," \
                " metrics=%s, data='%s')" % (self.__class__.__name__, self.name, \
                str(self.metadata), str(self.parameters), str(self.domain),
                str(self.metrics), self.datahash)
-
-
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -839,25 +829,9 @@ Shape: \t%s
         same = same and (self.data == other.data)
         return same
 
-
     def __ne__(self, other):
         return not self.__eq__(other)
 
-
-
-
-def build_result_cube(exp_name, *exp_names):
-    exps = [exp_name]
-    if len(exp_names) > 0:
-        exps = exps + list(exp_names)
-    parameterss = []
-    resultss = []
-    for exp in exps:
-        result = load_results(exp)
-        for d in result.values():
-            parameterss.append(d[__PARAMETERS__])
-            resultss.append(d[__RESULTS__])
-    return Result(parameterss, resultss, exp_name)
 
 
 
