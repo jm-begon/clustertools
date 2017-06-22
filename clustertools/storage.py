@@ -18,9 +18,7 @@ except ImportError:
     import pickle
 
 
-from .deprecated import deprecated
 from .config import get_ct_folder
-from clustertools import Datacube
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -38,9 +36,10 @@ class Architecture(object):
     ``Architecture``
     ================
     An ``Architecture`` is responsible for the organization of the experiments
-    and logs. In clustertools is located in a folder named 'clustertools_data'
-    (aka ct_folder) in the user home directory. The ct_folder
-    is structured as followed:
+    and logs on the file system.
+    In clustertools is located in a folder named 'clustertools_data' (aka
+    ct_folder) in the user home directory. The ct_folder is structured as
+    followed:
         clustertools_data
         |- logs
         |- exp_XXX
@@ -52,15 +51,17 @@ class Architecture(object):
     where logs is a folder containing the main logs (not the ones corresponding to
     the experiments). exp_XXX is the folder related to experiment 'XXX'.
     """
+    def __init__(self, ct_folder=None):
+        if ct_folder is None:
+            ct_folder = get_ct_folder()
+        self.ct_folder = ct_folder
 
     def get_basedir(self, exp_name):
-        ct_folder = get_ct_folder()
-        return os.path.join(ct_folder, "exp_%s"%exp_name)
-
+        return os.path.join(self.ct_folder, "exp_%s"%exp_name)
 
     def load_experiment_names(self):
         res = []
-        for path in glob.glob(os.path.join(get_ct_folder(), "exp_*")):
+        for path in glob.glob(os.path.join(self.ct_folder, "exp_*")):
             if not os.path.isdir(path):
                 continue
             exp_name = os.path.basename(path)[4:]  # remove 'exp_'
@@ -68,7 +69,7 @@ class Architecture(object):
         return res
 
     def get_meta_log_file(self):
-        log_folder = os.path.join(get_ct_folder(), "logs")
+        log_folder = os.path.join(self.ct_folder, "logs")
         if not os.path.exists(log_folder):
             os.makedirs(log_folder)
         fname = "clustertools_%s.log" % (datetime.now().strftime("%B%Y"))
@@ -133,7 +134,7 @@ class Storage(object):
 
     @abstractmethod
     def _save_result(self, comp_name, dictionary):
-        """Save the given dictionnary as proxy for the result"""
+        """Save the given dictionary as proxy for the result"""
         pass
 
     def load_result(self, comp_name):
@@ -147,10 +148,22 @@ class Storage(object):
         """load the proxy result"""
         pass
 
-    def build_datacube(self, **default_meta):
+    def load_params_and_results(self, **default_meta):
         """
         default_meta: mapping str -> str
-            The (potientially) missing metadata
+            The (potentially) missing metadata
+
+        Return
+        ------
+        (parameters_ls, results_ls)
+        parameters_ls: list of dicts (size: nb of computations)
+            parameters_ls[i] is the dictionary of parameters of the ith
+            computation. The dictionary is a mapping str (name of the
+            parameters) -> value of the parameter
+        result_ls: list of dicts (size: nb of computations)
+            result_ls[i] is the dictionary of metrics of the ith
+            computation. The dictionary is a mapping str (name of the
+            metric) -> value of the metric
         """
         parameters_ls = []
         results_ls = []
@@ -159,19 +172,19 @@ class Storage(object):
             results_ls.append(comp[__RESULTS__])
             p = comp[__PARAMETERS__]
             for k,v in default_meta.items():
-                if not k in p:
+                if k not in p:
                     p[k] = v
             parameters_ls.append(p)
-        return Datacube(parameters_ls, results_ls, self.exp_name)
+        return parameters_ls, results_ls
 
     # |---------------------------- Logs ---------------------------------> #
 
-    def _get_log_folder(self):
+    def get_log_folder(self):
         return os.path.join(self.folder, "logs")
 
     def get_log_file(self, comp_name):
         """Return the most recent (ctime) matching file"""
-        folder = self._get_log_folder()
+        folder = self.get_log_folder()
         prefix = os.path.join(folder, comp_name)
         try:
             return max(glob.iglob("%s.*"%prefix), key=os.path.getctime)
@@ -180,7 +193,7 @@ class Storage(object):
 
     def purge_logs(self, comp_name=None):
         if comp_name is None:
-            shutil.rmtree(self._get_log_folder())
+            shutil.rmtree(self.get_log_folder())
         else:
             fp = self.get_log_file(comp_name)
             if fp is not None:
@@ -202,9 +215,6 @@ class Storage(object):
                     buffer_.append(line)
             for line in buffer_:
                 out.write(line)
-
-
-
 
 
 class PickleStorage(Storage):
@@ -237,7 +247,7 @@ class PickleStorage(Storage):
         return rtn
 
     def __init__(self, experiment_name, architecture=Architecture()):
-        super(Storage, self).__init__(experiment_name, architecture)
+        super(PickleStorage, self).__init__(experiment_name, architecture)
 
     def init(self):
         self.makedirs()
@@ -254,10 +264,9 @@ class PickleStorage(Storage):
 
     def makedirs(self):
         for folder in [self._get_notif_db(), self._get_result_db(),
-                       self._get_log_folder(), self._get_tmp_folder()]:
+                       self.get_log_folder(), self._get_tmp_folder()]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
-        return self
 
     # |--------------------------- Notifications ----------------------------> #
 
@@ -309,19 +318,4 @@ class PickleStorage(Storage):
         if os.path.exists(fpath):
             return self._load(fpath)
         return {}
-
-
-@deprecated
-def build_result_cube(exp_name):
-    return build_datacube(exp_name)
-
-
-def build_datacube(exp_name, **default_meta):
-    """
-    default_meta: mapping str -> str
-        The (potientially) missing metadata
-    """
-    return PickleStorage(exp_name).build_datacube(**default_meta)
-
-
 

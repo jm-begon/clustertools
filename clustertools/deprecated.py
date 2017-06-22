@@ -3,21 +3,21 @@
 :mod:`deprecated` contains broken dependency functions for older version
 """
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
-
 import os
 import sys
 import glob
 import shutil
 import logging
+import functools
 import collections
 from datetime import datetime
 
 
 from clusterlib.storage import sqlite3_dumps, sqlite3_loads
-from .experiment import Datacube
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
 
 __CT_FOLDER__ = "clustertools_data"
 __LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
@@ -199,13 +199,4 @@ def erase_experiment0_0_1(exp_name):
     except Exception, reason:
         logger.warn("Trouble erasing entry in experiment database: %s"%reason, exc_info=True)
 
-# ---------------------- from experiment.py ---------------------- #
 
-def build_result_cube0_0_1(exp_name):
-    result = load_results0_0_1(exp_name)
-    parameterss = []
-    resultss = []
-    for d in result.values():
-        parameterss.append(d[__PARAMETERS__])
-        resultss.append(d[__RESULTS__])
-    return Datacube(parameterss, resultss, exp_name)

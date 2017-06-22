@@ -8,17 +8,17 @@ from nose.tools import with_setup
 
 from clustertools.notification import *
 from clustertools.experiment import Experiment
-from clustertools.storage import get_storage
+from clustertools.storage import PickleStorage
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
-__EXP_NAME__ = "ClustertoolsUnitTest"
+__EXP_NAME__ = "ClustertoolsTest"
 
 
 def purge():
-    storage = get_storage(__EXP_NAME__)
+    storage = PickleStorage(__EXP_NAME__)
     try:
         storage.delete()
     except OSError:

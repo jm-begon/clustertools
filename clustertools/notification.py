@@ -20,7 +20,7 @@ import logging
 
 from clusterlib.scheduler import queued_or_running_jobs
 
-from .storage import get_storage, load_notifications
+from .storage import PickleStorage
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -45,10 +45,10 @@ __EXCEPT__ = "exception"
 
 class ComputationMonitor(object):
 
-    def __init__(self, exp_name, comp_name, storage=get_storage):
+    def __init__(self, exp_name, comp_name, storage_factory=PickleStorage):
         self.exp_name = exp_name
         self.comp_name = comp_name
-        # self.storage = storage(exp_name)
+        self.storage = storage_factory(experiment_name=exp_name)
 
 
 
@@ -208,16 +208,17 @@ class Historic(object):
     job_dict : mapping {comp_name -> mapping}
     state_dict: mapping {state -> job_dict}
     """
-    def __init__(self, exp_name, user=os.environ["USER"]):
+    def __init__(self, exp_name, user=os.environ["USER"],
+                 storage_factory=PickleStorage):
         self.exp_name = exp_name
         self.job_dict = {}
         self.state_dict = {}
         self.user = user
-        self.storage = get_storage(self.exp_name)
+        self.storage = storage_factory(experiment_name=self.exp_name)
         self.refresh()
 
     def refresh(self):
-        job_dict = load_notifications(self.exp_name)
+        job_dict = self.storage.load_notifications()
 
         # Updating the false running jobs
         queued = frozenset(queued_or_running_jobs(self.user))
@@ -326,7 +327,7 @@ class Historic(object):
             launchable_jobs_update(self.exp_name, self.job_dict.keys())
 
     def print_log(self, comp_name, last_lines=None):
-        get_storage(self.exp_name).print_log(comp_name, last_lines=last_lines)
+        self.storage.print_log(comp_name, last_lines=last_lines)
 
 
 

@@ -3,10 +3,8 @@
 """
 """
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
-import sys, os
+import sys
+import os
 import subprocess
 from subprocess import CalledProcessError
 import logging
@@ -15,12 +13,17 @@ from clusterlib.scheduler import submit
 
 from .notification import (pending_job_update, aborted_job_update,
                            yield_not_done_computation)
-from .storage import get_storage
+from .storage import PickleStorage
 from .util import encode_kwargs
+
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
 
 
 def picklify(cpe):
     return PickableCalledProcessError(cpe.cmd, cpe.returncode, cpe.output)
+
 
 class PickableCalledProcessError(CalledProcessError):
     def __init__(self, cmd="", returncode=0, output=""):
@@ -30,13 +33,13 @@ class PickableCalledProcessError(CalledProcessError):
 def run_experiment(experiment, script_path, build_script=submit,
                    force=False, user=os.environ["USER"],
                    serialize=encode_kwargs, capacity=sys.maxsize,
-                   start=0):
+                   start=0, storage_factory=PickleStorage):
 
     exp_name = experiment.name
     logger = logging.getLogger("clustertools")
     logger.info("Launching experiment '%s' with script '%s'" %(experiment, script_path))
 
-    get_storage(exp_name).init()
+    storage_factory(experiment_name=exp_name).init()
 
     i = 0
     for j, (job_name, param) in enumerate(yield_not_done_computation(experiment, user)):
@@ -62,7 +65,6 @@ def run_experiment(experiment, script_path, build_script=submit,
             if not force:
                 break
         i += 1
-
 
     logger.info("Experiment '%s': %d/%d computation(s)" % (exp_name, i, len(experiment)))
 

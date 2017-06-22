@@ -14,11 +14,12 @@ from copy import copy, deepcopy
 from collections import Mapping, defaultdict
 from functools import reduce
 
-from .storage import get_storage, load_results
+from .storage import PickleStorage
 from .notification import (running_job_update,
                            completed_job_update, aborted_job_update,
                            partial_job_update, critical_job_update)
 from .util import reorder, hashlist
+from .deprecated import deprecated
 
 
 
@@ -59,12 +60,31 @@ class Result(dict):
 
 
 class Computation(object):
+    """
+    ``Computataion``
+    ================
+    A ``Computation`` is any computation that must be run as part of an
+    experiment on a given set of parameters
 
-    def __init__(self, exp_name, comp_name, context="n/a"):
+    Constructor parameters
+    ----------------------
+    exp_name: str
+        The name of the experiment
+    comp_name: str
+        The name of the computation
+    context: str (optional)
+        Context information (can be the time/memory requirements, for instance)
+    storage_factory: callable str -> cls:`Storage`
+        A factory which takes as input the experiment name and returns
+        a cls:`Storage` instance
+    """
+
+    def __init__(self, exp_name, comp_name, context="n/a",
+                 storage_factory=PickleStorage):
         self.exp_name = exp_name
         self.comp_name = comp_name
         self.context = context
-        self.storage = get_storage(self.exp_name)
+        self.storage = storage_factory(experiment_name=self.exp_name)
 
     def run(self, **parameters):
         pass
@@ -833,5 +853,18 @@ class Datacube(Mapping):
         return not self.__eq__(other)
 
 
+@deprecated
+def build_result_cube(exp_name):
+    return build_datacube(exp_name)
+
+
+def build_datacube(exp_name, **default_meta):
+    """
+    default_meta: mapping str -> str
+        The (potientially) missing metadata
+    """
+    storage =  PickleStorage(exp_name)
+    parameters_ls, results_ls = storage.load_params_and_results(**default_meta)
+    return Datacube(parameters_ls, results_ls, exp_name)
 
 

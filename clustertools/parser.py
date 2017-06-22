@@ -11,10 +11,11 @@ from functools import partial
 
 from clusterlib.scheduler import submit
 
-from storage import get_storage
+from storage import PickleStorage
 
 
-def parse_args(description="Cluster job launcher.", args=None, namespace=None):
+def parse_args(description="Cluster job launcher.", args=None, namespace=None,
+               storage_factory=PickleStorage):
     """
     Parse the command line arguments with :mod:`argparse`
 
@@ -68,14 +69,15 @@ def parse_args(description="Cluster job launcher.", args=None, namespace=None):
     args = parser.parse_args(args=args, namespace=namespace)
     exp_name = args.name
     script = args.script
-    log_folder = get_storage(exp_name)._get_log_folder()
+    log_folder = storage_factory(experiment_name=exp_name).get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder, backend=args.backend,
                              shell_script=args.shell)
     return exp_name, script, script_builder, {"capacity":args.capacity, "start":args.start}
 
-def parse_params(exp_name, description="Cluster job launcher.", args=None, namespace=None):
+def parse_params(exp_name, description="Cluster job launcher.", args=None,
+                 namespace=None, storage_factory=PickleStorage):
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("database", help="The database on which to run")
     parser.add_argument("custopt", nargs="*",
@@ -112,7 +114,7 @@ def parse_params(exp_name, description="Cluster job launcher.", args=None, names
     db = args.database
     custopt = args.custopt
     exp_name += db
-    log_folder = get_storage(exp_name)._get_log_folder()
+    log_folder = storage_factory(experiment_name=exp_name).get_log_folder()
     script_builder = partial(submit, time=args.time, memory=args.memory,
                              email=args.email, email_options=args.emailopt,
                              log_directory=log_folder,

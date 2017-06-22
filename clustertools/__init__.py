@@ -36,9 +36,9 @@ By default, logging is disabled
 
 
 from .notification import Historic
-from .storage import Architecture, build_result_cube
+from .storage import Architecture
 from .experiment import (Computation, PartialComputation, Experiment, Hasher,
-                         Datacube)
+                         Datacube, build_result_cube, build_datacube)
 from .parser import parse_args, parse_params
 from .runner import run_experiment
 from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
