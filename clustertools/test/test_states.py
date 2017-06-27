@@ -6,7 +6,7 @@ from nose.tools import assert_equal
 from nose.tools import with_setup
 
 
-from clustertools.notification import *
+from clustertools.state import *
 from clustertools.experiment import Experiment
 from clustertools.storage import PickleStorage
 
@@ -47,7 +47,7 @@ def test_notif_update():
     aborted_job_update(__EXP_NAME__, aborted, start, aborted_except)
     partial_job_update(__EXP_NAME__, partial)
 
-    histo = Historic(__EXP_NAME__, None)
+    histo = Monitor(__EXP_NAME__, None)
 
     # assert_in(pending, histo.pending_jobs().keys())
 
@@ -85,7 +85,7 @@ def test_yield_not_done_computation():
     completed_job_update(__EXP_NAME__, comp_name(ls[0]), now)
     completed_job_update(__EXP_NAME__, comp_name(ls[-1]), now)
 
-    historic = Historic(exp.name)
+    historic = Monitor(exp.name)
     print historic.job_dict
 
     remains = list(yield_not_done_computation(exp))

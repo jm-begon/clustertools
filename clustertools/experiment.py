@@ -15,9 +15,9 @@ from collections import Mapping, defaultdict
 from functools import reduce
 
 from .storage import PickleStorage
-from .notification import (running_job_update,
-                           completed_job_update, aborted_job_update,
-                           partial_job_update, critical_job_update)
+from .state import (running_job_update,
+                    completed_job_update, aborted_job_update,
+                    partial_job_update, critical_job_update)
 from .util import reorder, hashlist
 from .deprecated import deprecated
 

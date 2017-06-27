@@ -13,7 +13,7 @@ import subprocess, os
 import socket
 import sys
 from collections import defaultdict
-from clustertools import Historic, load_experiment_names
+from clustertools import Monitor, load_experiment_names
 
 __LH__ = "localhost"
 __WC__ = "*"
@@ -63,9 +63,9 @@ host are sent as once. By default, all the local experiment are listed
                 if exp_name == __WC__:
                     print(hostname, ":")
                     for name in load_experiment_names():
-                        print("\t", name, Historic(name).count_by_state())
+                        print("\t", name, Monitor(name).count_by_state())
                 else:
-                    print(hostname,":", exp_name, Historic(exp_name).count_by_state())
+                    print(hostname,":", exp_name, Monitor(exp_name).count_by_state())
             del sorted_queries[__LH__]
 
         # Remote queries

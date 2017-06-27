@@ -35,7 +35,7 @@ By default, logging is disabled
 """
 
 
-from .notification import Historic
+from .state import Monitor
 from .storage import Architecture
 from .experiment import (Computation, PartialComputation, Experiment, Hasher,
                          Datacube, build_result_cube, build_datacube)
@@ -52,7 +52,7 @@ __version__ = '0.1.0'
 __date__ = "08 Oct. 2015"
 
 
-__all__ = [ "Historic", "Computation",
+__all__ = ["Monitor", "Computation",
             "PartialComputation", "Experiment", "build_result_cube", "Hasher",
             "Datacube", "run_experiment", "relaunch_experiment",
             "parse_args", "parse_params", "call_with", "encode_kwargs",

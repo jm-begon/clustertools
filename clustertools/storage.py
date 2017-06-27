@@ -118,6 +118,15 @@ class Storage(object):
     def delete(self):
         self.architecture.erase_experiment(self.exp_name)
 
+    # |--------------------------- Notifications ----------------------------> #
+    @abstractmethod
+    def update_state(self, comp_name, state):
+        pass
+
+    @abstractmethod
+    def load_notifications(self):
+        pass
+
     # |---------------------------- Result ---------------------------------> #
 
     def save_result(self, comp_name, parameters, result, context="n/a"):
@@ -270,18 +279,14 @@ class PickleStorage(Storage):
 
     # |--------------------------- Notifications ----------------------------> #
 
-    def update_notification(self, comp_name, dictionary):
+    def update_state(self, comp_name, state):
         fpath = os.path.join(self._get_notif_db(), "%s.pkl" % comp_name)
-        self._save(dictionary, fpath)
-
-    def update_notifications(self, comp_names, dictionaries):
-        for comp_name, dic in zip(comp_names, dictionaries):
-            self.update_notification(comp_name, dic)
+        self._save(state, fpath)
 
     def load_notifications(self):
-        res = {}
+        res = []
         for fpath in glob.glob(os.path.join(self._get_notif_db(), "*.pkl")):
-            res.update(self._load(fpath))
+            res.append(self._load(fpath))
         return res
 
     # |---------------------------- Results -----------------------------> #

@@ -10,16 +10,16 @@ import argparse
 import subprocess, os
 import socket
 from collections import defaultdict
-from clustertools import Historic, load_experiment_names
+from clustertools import Monitor, load_experiment_names
 
 __LH__ = "localhost"
 
 
 def reset(exp_name, hostname):
     try:
-        histo = Historic(exp_name)
+        histo = Monitor(exp_name)
         print(hostname,":", exp_name, histo.count_by_state(), end=" ")
-        histo.reset()
+        histo.to_launchables()
         histo.refresh()
         print(histo.count_by_state)
     except:
@@ -27,7 +27,7 @@ def reset(exp_name, hostname):
 
 def aborted2launchable(exp_name, hostname):
     try:
-        histo = Historic(exp_name)
+        histo = Monitor(exp_name)
         print(hostname,":", exp_name, histo.count_by_state(), end=" ")
         histo.aborted_to_launchable()
         histo.refresh()

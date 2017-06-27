@@ -11,8 +11,8 @@ import logging
 
 from clusterlib.scheduler import submit
 
-from .notification import (pending_job_update, aborted_job_update,
-                           yield_not_done_computation)
+from .state import (pending_job_update, aborted_job_update,
+                    yield_not_done_computation)
 from .storage import PickleStorage
 from .util import encode_kwargs
 

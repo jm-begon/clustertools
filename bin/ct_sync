@@ -7,7 +7,7 @@ __copyright__ = "3-clause BSD License"
 import argparse
 import subprocess
 import socket
-from clustertools import Historic, load_experiment_names, get_ct_folder
+from clustertools import Monitor, load_experiment_names, get_ct_folder
 
 __LH__ = "localhost"
 
