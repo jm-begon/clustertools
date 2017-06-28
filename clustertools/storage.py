@@ -78,7 +78,9 @@ class Architecture(object):
     def erase_experiment(self, exp_name):
         logger = logging.getLogger("clustertools")
         try:
-            shutil.rmtree(self.get_basedir(exp_name))
+            path = self.get_basedir(exp_name)
+            if os.path.exists(path):
+                shutil.rmtree(path)
         except OSError as error:
             logger.warn("Trouble erasing the databases: %s" % error.message,
                         exc_info=True)
@@ -118,9 +120,12 @@ class Storage(object):
     def delete(self):
         self.architecture.erase_experiment(self.exp_name)
 
+    def init(self):
+        return self
+
     # |--------------------------- Notifications ----------------------------> #
     @abstractmethod
-    def update_state(self, comp_name, state):
+    def update_state(self, state):
         pass
 
     @abstractmethod
@@ -130,7 +135,7 @@ class Storage(object):
     # |---------------------------- Result ---------------------------------> #
 
     def save_result(self, comp_name, parameters, result, context="n/a"):
-        # Create the R-dict
+        # Create the R-dict (legacy format)
         dictionary = {
             comp_name: {
                 __EXP_NAME__: self.exp_name,
@@ -177,7 +182,7 @@ class Storage(object):
         parameters_ls = []
         results_ls = []
         for fpath in glob.glob(os.path.join(self._get_result_db(), "*.pkl")):
-            comp = self._load(fpath).values()
+            comp = self._load(fpath).values()[0]
             results_ls.append(comp[__RESULTS__])
             p = comp[__PARAMETERS__]
             for k,v in default_meta.items():
@@ -279,9 +284,10 @@ class PickleStorage(Storage):
 
     # |--------------------------- Notifications ----------------------------> #
 
-    def update_state(self, comp_name, state):
-        fpath = os.path.join(self._get_notif_db(), "%s.pkl" % comp_name)
+    def update_state(self, state):
+        fpath = os.path.join(self._get_notif_db(), "%s.pkl" % state.comp_name)
         self._save(state, fpath)
+        return state
 
     def load_notifications(self):
         res = []

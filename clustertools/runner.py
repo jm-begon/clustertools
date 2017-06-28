@@ -11,8 +11,7 @@ import logging
 
 from clusterlib.scheduler import submit
 
-from .state import (pending_job_update, aborted_job_update,
-                    yield_not_done_computation)
+from .state import PendingState, AbortedState, yield_not_done_computation
 from .storage import PickleStorage
 from .util import encode_kwargs
 
@@ -39,29 +38,30 @@ def run_experiment(experiment, script_path, build_script=submit,
     logger = logging.getLogger("clustertools")
     logger.info("Launching experiment '%s' with script '%s'" %(experiment, script_path))
 
-    storage_factory(experiment_name=exp_name).init()
+    storage = storage_factory(experiment_name=exp_name).init()
 
     i = 0
-    for j, (job_name, param) in enumerate(yield_not_done_computation(experiment, user)):
+    for j, (comp_name, param) in enumerate(yield_not_done_computation(experiment, user)):
         if j < start:
             continue
         if i >= capacity:
             break
         job_command = '%s %s "%s" "%s" "%s"' % (sys.executable, script_path,
-                                               exp_name, job_name,
+                                               exp_name, comp_name,
                                                serialize(param))
 
-        script = build_script(job_command, job_name=job_name)
+        script = build_script(job_command, job_name=comp_name)
         logger.debug("Script:\n%s" % script)
 
-        start_date = pending_job_update(exp_name, job_name)
+        state = storage.update_state(PendingState(exp_name, comp_name))
+
         try:
             output = subprocess.check_output(script, shell=True)
             logger.debug("Output:\n%s" % output)
         except CalledProcessError as exception:
-            aborted_job_update(exp_name, job_name, start_date, picklify(exception))
-            logger.error("Error launching job '%s': %s" % (job_name,
-                exception.message), exc_info=True)
+            storage.update_state(state.abort(exception))
+            logger.error("Error launching job '%s': %s" % (comp_name,
+                         exception.message), exc_info=True)
             if not force:
                 break
         i += 1

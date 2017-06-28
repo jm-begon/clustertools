@@ -9,15 +9,14 @@ Restriction
 Experiment names should always elligible file names.
 """
 
+from abc import ABCMeta, abstractmethod
 from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping, defaultdict
 from functools import reduce
 
 from .storage import PickleStorage
-from .state import (running_job_update,
-                    completed_job_update, aborted_job_update,
-                    partial_job_update, critical_job_update)
+from .state import RunningState
 from .util import reorder, hashlist
 from .deprecated import deprecated
 
@@ -78,6 +77,7 @@ class Computation(object):
         A factory which takes as input the experiment name and returns
         a cls:`Storage` instance
     """
+    __metaclass__ = ABCMeta
 
     def __init__(self, exp_name, comp_name, context="n/a",
                  storage_factory=PickleStorage):
@@ -86,19 +86,22 @@ class Computation(object):
         self.context = context
         self.storage = storage_factory(experiment_name=self.exp_name)
 
+    @abstractmethod
     def run(self, **parameters):
         pass
 
     def __call__(self, **parameters):
-        start = running_job_update(self.exp_name, self.comp_name)
+        state = RunningState(self.exp_name, self.comp_name)
+        self.storage.update_state(state)
         try:
             result = self.run(**parameters)
-            critical_job_update(self.exp_name, self.comp_name, start)
+            state = self.storage.update_state(state.to_critical())
             self.storage.save_result(self.comp_name, parameters, result,
                                      self.context)
-            completed_job_update(self.exp_name, self.comp_name, start)
-        except Exception as excep:
-            aborted_job_update(self.exp_name, self.comp_name, start, excep)
+
+            state = self.storage.update_state(state.to_completed())
+        except Exception as exception:
+            self.storage.update_state(state.abort(exception))
             raise
 
 
@@ -106,22 +109,20 @@ class PartialComputation(Computation):
     """
     Expect the run method to be a generator
     """
+    __metaclass__ = ABCMeta
+
     def __call__(self, **parameters):
-        start = running_job_update(self.exp_name, self.comp_name)
+        state = RunningState(self.exp_name, self.comp_name)
         try:
             for partial_result in self.run(**parameters):
-                critical_job_update(self.exp_name, self.comp_name, start)
+                state = self.storage.update_state(state.to_critical())
                 self.storage.save_result(self.comp_name, parameters,
                                          partial_result, self.context)
-                partial_job_update(self.exp_name, self.comp_name, start)
-            completed_job_update(self.exp_name, self.comp_name, start)
-        except Exception as excep:
-            aborted_job_update(self.exp_name, self.comp_name, start, excep)
+                state = self.storage.update_state(state.to_partial())
+            state = self.storage.update_state(state.to_completed())
+        except Exception as exception:
+            self.storage.update_state(state.abort(exception))
             raise
-
-    def load_partial(self):
-        """return a dict"""
-        return Result(self.storage.load_result(self.comp_name))
 
 
 class Experiment(object):
