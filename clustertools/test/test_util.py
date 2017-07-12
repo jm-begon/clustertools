@@ -7,12 +7,12 @@ __copyright__ = "3-clause BSD License"
 from nose.tools import assert_in, assert_equal, assert_not_equal
 
 
-from clustertools import Experiment
+from clustertools import ParameterSet
 from clustertools.util import experiment_diff, reorder
 
 
 def test_exp_diff():
-    exp = Experiment("TestExpDiff")
+    exp = ParameterSet("TestExpDiff")
 
     exp.add_params(p1=1, p2=[2, 3], p3="param")
     exp.add_params(p1=4, p2=5)

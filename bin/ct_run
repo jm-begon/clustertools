@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
+
+def load_and_run(fpath):
+    with open(fpath, "rb") as hdl:
+        lazy_computation = pickle.load(hdl)
+    try:
+        os.remove(fpath)
+    except IOError:
+        pass
+    lazy_computation()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run the lazy computation "
+                                                 "given as a path to the pickle "
+                                                 "computation")
+    parser.add_argument("path", help="The path to the pickled lazy computation")
+

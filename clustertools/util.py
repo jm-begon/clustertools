@@ -65,6 +65,7 @@ def kw_intersect(function, dictionary, *args, **kwargs):
                 sub_dict[key] = kwargs[key]
     return sub_dict
 
+
 def call_with(function, dictionary, *args, **kwargs):
     """
     Call the given function with the given dictionary with the additional
@@ -85,16 +86,20 @@ def call_with(function, dictionary, *args, **kwargs):
     """
     return function(*args, **kw_intersect(function, dictionary, *args, **kwargs))
 
+
 def encode_kwargs(dictionary):
     s = json.dumps(dictionary)
     s = s.replace("'", "\\'")
     return s.replace('"', '\\"')
 
+
 def decode_kwargs(string):
     return json.loads(string)
 
+
 def bash_submit(job_command, job_name, shell_script="#!/bin/bash"):
     return (u"echo '%s\n%s' | bash" % (shell_script, job_command))
+
 
 def false_submit(job_command, job_name, shell_script="#!/bin/bash"):
     return (u"echo '%s'" % job_name)

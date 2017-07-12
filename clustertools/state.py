@@ -249,7 +249,7 @@ class Monitor(object):
         self.refresh()
 
     def refresh(self):
-        states = self.storage.load_notifications()
+        states = self.storage.load_states()
         queued = frozenset(queued_or_running_jobs(self.user))
         self.states = []
         for state in states:
@@ -287,6 +287,11 @@ class Monitor(object):
 
     def critical_computations(self):
         return self.computation_names(CriticalState)
+
+    def unlaunchable_computations(self):
+        launchables = self.launchable_computations()
+        return self._filter(predicate=lambda s: s.comp_name not in launchables,
+                            extract=lambda i, s: i)
 
     def partition_by_state(self):
         by_state = defaultdict(list)
@@ -328,14 +333,3 @@ class Monitor(object):
             self.storage.update_state()
             # In case of error, do not update locally
             self.states[index] = new_state
-
-
-def yield_not_done_computation(experiment, user=None):
-    # TODO refactor this
-    monitor = Monitor(experiment.name, user)
-    monitor.refresh()
-    launchable_set = monitor.launchable_computations()
-    for comp_name, param in experiment:
-        if comp_name in launchable_set:
-            yield comp_name, param
-

@@ -37,10 +37,10 @@ By default, logging is disabled
 
 from .state import Monitor
 from .storage import Architecture
-from .experiment import (Computation, PartialComputation, Experiment, Hasher,
-                         Datacube, build_result_cube, build_datacube)
+from .experiment import Computation, PartialComputation, ParameterSet, \
+    ConstrainedParameterSet, Result, Experiment
+from .datacube import Datacube, Hasher, build_result_cube, build_datacube
 from .parser import parse_args, parse_params
-from .runner import run_experiment
 from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
                    false_submit, experiment_diff, reorder)
 from .config import get_ct_folder
@@ -53,7 +53,7 @@ __date__ = "08 Oct. 2015"
 
 
 __all__ = ["Monitor", "Computation",
-            "PartialComputation", "Experiment", "build_result_cube", "Hasher",
+            "PartialComputation", "ParameterSet", "build_result_cube", "Hasher",
             "Datacube", "run_experiment", "relaunch_experiment",
             "parse_args", "parse_params", "call_with", "encode_kwargs",
             "decode_kwargs", "bash_submit", "false_submit", "experiment_diff",

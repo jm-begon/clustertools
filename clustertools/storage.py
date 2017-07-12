@@ -56,6 +56,10 @@ class Architecture(object):
             ct_folder = get_ct_folder()
         self.ct_folder = ct_folder
 
+    def __repr__(self):
+        return "{cls}(ct_folder={folder})".format(cls=self.__class__.__name__,
+                                                  folder=self.ct_folder)
+
     def get_basedir(self, exp_name):
         return os.path.join(self.ct_folder, "exp_%s"%exp_name)
 
@@ -95,15 +99,22 @@ class Storage(object):
     A ``Storage`` objects manages two databases:
     - "notifications" which contains the states of the computations
     - "results" which contains the results of the computations
-    And the logging folder
+    and two folders:
     - "logs" which contains the logs of each computations
+    - "computations" which contains the serialized lazy computations
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, experiment_name, architecture):
+    def __init__(self, experiment_name, architecture=Architecture()):
         self._exp_name = experiment_name
         self._architecture = architecture
         self._folder = architecture.get_basedir(experiment_name)
+
+    def __repr__(self):
+        return "{cls}(experiment_name={exp_name}, architecture={architecture})"\
+               "".format(cls=self.__class__.__name__,
+                         exp_name=self._exp_name,
+                         architecture=self._architecture)
 
     @property
     def exp_name(self):
@@ -121,15 +132,31 @@ class Storage(object):
         self.architecture.erase_experiment(self.exp_name)
 
     def init(self):
+        for folder in self.get_log_folder(), self.get_serialization_folder():
+            if not os.path.exists(folder):
+                os.makedirs(folder)
         return self
+
+    # |--------------------------- Serialization ----------------------------> #
+    def get_serialization_folder(self):
+        return os.path.join(self.folder, "computations")
+
+    def serialize(self, computation):
+        fpath = os.path.join(self.get_serialization_folder(),
+                             computation.comp_name+".pkl")
+        with open(fpath, "wb") as hdl:
+            pickle.dump(computation, hdl, -1)
+        return fpath
 
     # |--------------------------- Notifications ----------------------------> #
     @abstractmethod
     def update_state(self, state):
+        """Save the given state as current state and returns it"""
         pass
 
     @abstractmethod
-    def load_notifications(self):
+    def load_states(self):
+        """Return a list of state corresponding to self.exp_name"""
         pass
 
     # |---------------------------- Result ---------------------------------> #
@@ -144,7 +171,7 @@ class Storage(object):
                 __RESULTS__: dict(result)
             }
         }
-        return self._save_result(comp_name, dictionary)
+        self._save_result(comp_name, dictionary)
 
     @abstractmethod
     def _save_result(self, comp_name, dictionary):
@@ -159,7 +186,7 @@ class Storage(object):
 
     @abstractmethod
     def _load_result(self, comp_name):
-        """load the proxy result"""
+        """load and return the proxy result"""
         pass
 
     def load_params_and_results(self, **default_meta):
@@ -196,12 +223,16 @@ class Storage(object):
     def get_log_folder(self):
         return os.path.join(self.folder, "logs")
 
-    def get_log_file(self, comp_name):
-        """Return the most recent (ctime) matching file"""
+    def get_log_prefix(self, comp_name, *suffix):
         folder = self.get_log_folder()
-        prefix = os.path.join(folder, comp_name)
+        prefix = os.path.join(folder, comp_name, *suffix)
+        return prefix
+
+    def get_last_log_file(self, comp_name):
+        """Return the most recent (ctime) matching file"""
         try:
-            return max(glob.iglob("%s.*"%prefix), key=os.path.getctime)
+            return max(glob.iglob("%s.*" % self.get_log_prefix(comp_name)),
+                       key=os.path.getctime)
         except ValueError:
             return None
 
@@ -209,15 +240,16 @@ class Storage(object):
         if comp_name is None:
             shutil.rmtree(self.get_log_folder())
         else:
-            fp = self.get_log_file(comp_name)
+            fp = self.get_last_log_file(comp_name)
             if fp is not None:
                 os.remove(fp)
 
     def print_log(self, comp_name, last_lines=None, out=sys.stdout):
-        f = self.get_log_file(comp_name)
+        f = self.get_last_log_file(comp_name)
         if f is None:
             logger = logging.getLogger("clustertools.storage.print_log_file")
-            logger.warn("File '{}' does not exists ({}).".format())
+            logger.warn("File '{file}' does not exists ({comp_name})."
+                        "".format(file=f, comp_name=comp_name))
             return
         if last_lines is None:
             with open(f) as fhd:
@@ -256,7 +288,7 @@ class PickleStorage(Storage):
             logger.error("End of file encountered in '%s'" % fpath)
             return {}
         except:
-            logging.exception("Error while loading file '%s'" %fpath)
+            logging.exception("Error while loading file '%s'" % fpath)
             return {}
         return rtn
 
@@ -264,7 +296,11 @@ class PickleStorage(Storage):
         super(PickleStorage, self).__init__(experiment_name, architecture)
 
     def init(self):
-        self.makedirs()
+        super(PickleStorage, self).init()
+        for folder in self._get_notif_db(), self._get_result_db(), \
+                self._get_tmp_folder():
+            if not os.path.exists(folder):
+                os.makedirs(folder)
         return self
 
     def _get_notif_db(self):
@@ -276,12 +312,6 @@ class PickleStorage(Storage):
     def _get_tmp_folder(self):
         return os.path.join(self.folder, "temp")
 
-    def makedirs(self):
-        for folder in [self._get_notif_db(), self._get_result_db(),
-                       self.get_log_folder(), self._get_tmp_folder()]:
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-
     # |--------------------------- Notifications ----------------------------> #
 
     def update_state(self, state):
@@ -289,7 +319,7 @@ class PickleStorage(Storage):
         self._save(state, fpath)
         return state
 
-    def load_notifications(self):
+    def load_states(self):
         res = []
         for fpath in glob.glob(os.path.join(self._get_notif_db(), "*.pkl")):
             res.append(self._load(fpath))

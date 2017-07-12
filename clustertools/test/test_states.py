@@ -10,27 +10,14 @@ from nose.tools import assert_true, assert_false
 from clustertools.state import *
 from clustertools.storage import PickleStorage
 
+from .util_test import pickle_prep, pickle_purge, __EXP_NAME__
+
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
-__EXP_NAME__ = "ClustertoolsTest"
-
-
-def purge():
-    storage = PickleStorage(__EXP_NAME__)
-    try:
-        storage.delete()
-    except OSError:
-        pass
-    return storage
-
-
-def prep():
-    storage = purge()
-    storage.init()
-
 # ------------------------------------------------------------------------ STATE
+
 
 def test_reset_state():
     for state_cls in PendingState, RunningState, CompletedState, \
@@ -86,7 +73,7 @@ def test_partial_computation_state_routine():
 
 # ---------------------------------------------------------------------- MONITOR
 
-@with_setup(prep, purge)
+@with_setup(pickle_prep, pickle_purge)
 def test_monitor_refresh():
     pending = PendingState(__EXP_NAME__, "test_pending")
     running = RunningState(__EXP_NAME__, "test_running")
@@ -127,7 +114,7 @@ def test_monitor_refresh():
     assert_equal(len(monitor.count_by_state()), 4)
 
 
-@with_setup(prep, purge)
+@with_setup(pickle_prep, pickle_purge)
 def test_monitor_incomplete_to_launchable():
     incomplete = IncompleteState(__EXP_NAME__, "incomplete")
     partial = PartialState(__EXP_NAME__, "test_partial")
@@ -161,7 +148,7 @@ def test_monitor_incomplete_to_launchable():
     assert_in(aborted.comp_name, monitor.aborted_computations())
 
 
-@with_setup(prep, purge)
+@with_setup(pickle_prep, pickle_purge)
 def test_monitor_aborted_to_launchable():
     incomplete = IncompleteState(__EXP_NAME__, "incomplete")
     completed = CompletedState(__EXP_NAME__, "completed")
@@ -178,33 +165,4 @@ def test_monitor_aborted_to_launchable():
     assert_in(aborted.comp_name, monitor.launchable_computations())
     for state in incomplete, completed:
         assert_not_in(state.comp_name, monitor.launchable_computations())
-
-
-
-
-# ------------------------------------------------------------------------ YIELD
-
-@with_setup(prep, purge)
-def test_yield_not_done_computation():
-    # exp = Experiment(__EXP_NAME__)
-    # exp.add_params(p1=1, p2=[2, 3], p3="param")
-    # exp.add_params(p1=4, p2=5)
-    #
-    # ls = list(exp)
-    # comp_name = lambda t:t[0]
-    # now = launchable_jobs_update(__EXP_NAME__, [comp_name(t) for t in ls])
-    #
-    # completed_job_update(__EXP_NAME__, comp_name(ls[0]), now)
-    # completed_job_update(__EXP_NAME__, comp_name(ls[-1]), now)
-    #
-    # historic = Monitor(exp.name)
-    # print historic.job_dict
-    #
-    # remains = list(yield_not_done_computation(exp))
-    # print remains
-    # assert_equal(len(remains), len(ls)-2)
-    # for t in ls[1:-1]:
-    #     assert_in(t, remains)
-    pass
-
 

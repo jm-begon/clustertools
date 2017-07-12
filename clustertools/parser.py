@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
-
-
 import argparse
 import sys
 from functools import partial
@@ -12,6 +7,9 @@ from functools import partial
 from clusterlib.scheduler import submit
 
 from storage import PickleStorage
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
 
 
 def parse_args(description="Cluster job launcher.", args=None, namespace=None,

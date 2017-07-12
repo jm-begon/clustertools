@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
+from __future__ import print_function
 
 import argparse
 import subprocess
-import socket
-from clustertools import Monitor, load_experiment_names, get_ct_folder
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
 
 __LH__ = "localhost"
 
 # TODO do something more portable
 __CT_FOLDER__ = "~/clustertools_data/"
-
 
 
 if __name__ == '__main__':
@@ -49,20 +48,23 @@ machine 'deathstar' where your id is 'vador'. Use a dot '.' for localhost."""
 
     if len(source_info) == len(dest_info):
         if len(source_info) == 1:
-            raise ValueError("""
-Either the source or the destination must specify an experiment.""")
+            raise ValueError("Either the source or the destination must "
+                             "specify an experiment.")
         elif len(source_info) == 2:
-            raise ValueError("""Only one of the source or the destination can
-specify an experiment.""")
+            raise ValueError("Only one of the source or the destination "
+                             "can specify an experiment.")
 
     source = source_info[0].strip()
     destination = dest_info[0].strip()
+    experiment = None
     if source == destination:
         raise ValueError("Source and destination must be different.")
     if len(source_info) == 2:
         experiment = source_info[1].strip()
     if len(dest_info) == 2:
         experiment = dest_info[1].strip()
+    if experiment is None:
+        raise ValueError("The experiment is not specified.")
 
     if source == ".":
         source = __CT_FOLDER__
@@ -73,6 +75,7 @@ specify an experiment.""")
     else:
         destination += ":" + __CT_FOLDER__
 
+    # TODO: do something more portable
     source += "exp_" + experiment + "/"
     destination += "exp_" + experiment
 
@@ -85,7 +88,7 @@ specify an experiment.""")
                                                   dest=destination)
 
     if args.test:
-        print cmd
+        print(cmd)
     else:
         subprocess.call(cmd, shell=True)
 
