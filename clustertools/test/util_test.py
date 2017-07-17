@@ -35,11 +35,15 @@ class IntrospectStorage(Storage):
     def load_states(self):
         return [states[-1] for states in self.state_history.values()]
 
-    def _save_result(self, comp_name, dictionary):
-        self.result_history[comp_name].append(dictionary)
+    def _save_r_dict(self, comp_name, r_dict):
+        self.result_history[comp_name].append(r_dict)
 
-    def _load_result(self, comp_name):
+    def _load_r_dict(self, comp_name):
         return self.result_history[comp_name][-1]
+
+    def _load_r_dicts(self):
+        return {comp_name: history[-1] for comp_name, history
+                in self.result_history.items()}
 
 
 def purge(exp_name=__EXP_NAME__, storage_factory=IntrospectStorage):

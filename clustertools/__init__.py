@@ -33,16 +33,16 @@ This library uses logging for
     - Warning in :func:`experiment.run_experiment` ('clustertools')
 By default, logging is disabled
 """
+import logging
 
-
-from .state import Monitor
+# Clustertools visibility
 from .storage import Architecture
+from .state import Monitor
 from .experiment import Computation, PartialComputation, ParameterSet, \
     ConstrainedParameterSet, Result, Experiment
-from .datacube import Datacube, Hasher, build_result_cube, build_datacube
-from .parser import parse_args, parse_params
-from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
-                   false_submit, experiment_diff, reorder)
+from .datacube import Datacube, build_result_cube, build_datacube
+from .parser import BaseParser, ClusterParser
+from .util import call_with
 from .config import get_ct_folder
 
 
@@ -52,15 +52,12 @@ __version__ = '0.1.0'
 __date__ = "08 Oct. 2015"
 
 
-__all__ = ["Monitor", "Computation",
-            "PartialComputation", "ParameterSet", "build_result_cube", "Hasher",
-            "Datacube", "run_experiment", "relaunch_experiment",
-            "parse_args", "parse_params", "call_with", "encode_kwargs",
-            "decode_kwargs", "bash_submit", "false_submit", "experiment_diff",
-            "set_stdout_logging", "reorder", "get_ct_folder"]
+__all__ = ["Monitor", "Computation", "PartialComputation", "ParameterSet",
+           "ConstrainedParameterSet", "Result", "Experiment", "Datacube",
+           "build_result_cube", "build_datacube", "BaseParser", "ClusterParser",
+           "call_with", "set_stdout_logging"]
 
 
-import logging
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
 
 

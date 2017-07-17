@@ -50,7 +50,7 @@ class Result(dict):
         pass
 
     def __repr__(self):
-        kwargs = ", ".join(["{k}={v}".format(k=k, v=v) for k, v in self.items()])
+        kwargs = ", ".join(["{k}={v}".format(k=k, v=v) for k,v in self.items()])
         return "{cls}({kwargs})".format(cls=self.__class__.__name__,
                                         kwargs=kwargs)
 
@@ -89,8 +89,8 @@ class Computation(object):
                "context={context}, " \
                "storage_factory={storage_factory}).lazyfiy(**{parameters})" \
                "".format(cls=self.__class__.__name__,
-                         exp_name=self.exp_name,
-                         comp_name=self.comp_name,
+                         exp_name=repr(self.exp_name),
+                         comp_name=repr(self.comp_name),
                          context=repr(self.context),
                          storage_factory=self.storage.__class__.__name__,
                          parameters=repr(self.parameters))
@@ -119,9 +119,6 @@ class Computation(object):
     def lazyfy(self, **parameters):
         self.parameters = parameters
         return self
-
-    def serialize(self):
-        return self.storage.serialize(self)
 
 
 class PartialComputation(Computation):
@@ -450,4 +447,7 @@ class Experiment(object):
     def __iter__(self):
         for x in self.yield_computations():
             yield x
+
+    def __len__(self):
+        return len(self.parameter_set)
 

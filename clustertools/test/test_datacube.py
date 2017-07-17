@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
 
 from nose.tools import assert_dict_equal
 from nose.tools import assert_equal
@@ -11,8 +8,12 @@ from nose.tools import assert_in
 from nose.tools import assert_raises
 from nose.tools import assert_true
 
+from clustertools.datacube import Datacube, Hasher
 
-from clustertools import Datacube, Hasher
+
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
+
 
 def basic():
     """

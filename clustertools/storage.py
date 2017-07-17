@@ -37,8 +37,8 @@ class Architecture(object):
     ================
     An ``Architecture`` is responsible for the organization of the experiments
     and logs on the file system.
-    In clustertools is located in a folder named 'clustertools_data' (aka
-    ct_folder) in the user home directory. The ct_folder is structured as
+    By default, clustertools is located in a folder named 'clustertools_data'
+    (aka ct_folder) in the user home directory. The ct_folder is structured as
     followed:
         clustertools_data
         |- logs
@@ -48,8 +48,8 @@ class Architecture(object):
         |   |- $notifs$
         |- exp_YYY
             |...
-    where logs is a folder containing the main logs (not the ones corresponding to
-    the experiments). exp_XXX is the folder related to experiment 'XXX'.
+    where `logs` is a folder containing the main logs (not the ones corresponding
+    to the experiments).  exp_XXX is the folder related to experiment 'XXX'.
     """
     def __init__(self, ct_folder=None):
         if ct_folder is None:
@@ -58,7 +58,7 @@ class Architecture(object):
 
     def __repr__(self):
         return "{cls}(ct_folder={folder})".format(cls=self.__class__.__name__,
-                                                  folder=self.ct_folder)
+                                                  folder=repr(self.ct_folder))
 
     def get_basedir(self, exp_name):
         return os.path.join(self.ct_folder, "exp_%s"%exp_name)
@@ -90,7 +90,7 @@ class Architecture(object):
                         exc_info=True)
 
 
-# ======================= STORAGE MANAGER ======================= #
+# ============================== STORAGE MANAGER ============================= #
 
 class Storage(object):
     """
@@ -101,7 +101,7 @@ class Storage(object):
     - "results" which contains the results of the computations
     and two folders:
     - "logs" which contains the logs of each computations
-    - "computations" which contains the serialized lazy computations
+    - "mess" which can be used to store other things
     """
     __metaclass__ = ABCMeta
 
@@ -113,8 +113,8 @@ class Storage(object):
     def __repr__(self):
         return "{cls}(experiment_name={exp_name}, architecture={architecture})"\
                "".format(cls=self.__class__.__name__,
-                         exp_name=self._exp_name,
-                         architecture=self._architecture)
+                         exp_name=repr(self._exp_name),
+                         architecture=repr(self._architecture))
 
     @property
     def exp_name(self):
@@ -132,21 +132,20 @@ class Storage(object):
         self.architecture.erase_experiment(self.exp_name)
 
     def init(self):
-        for folder in self.get_log_folder(), self.get_serialization_folder():
+        for folder in self.get_log_folder(), \
+                      self.get_messy_path():
             if not os.path.exists(folder):
                 os.makedirs(folder)
         return self
 
-    # |--------------------------- Serialization ----------------------------> #
-    def get_serialization_folder(self):
-        return os.path.join(self.folder, "computations")
+    # |-------------------------------- Mess --------------------------------> #
 
-    def serialize(self, computation):
-        fpath = os.path.join(self.get_serialization_folder(),
-                             computation.comp_name+".pkl")
-        with open(fpath, "wb") as hdl:
-            pickle.dump(computation, hdl, -1)
-        return fpath
+    def get_messy_path(self, fname=None):
+        if fname is None:
+            return os.path.join(self.folder, "mess")
+        else:
+            return os.path.join(self.folder, "mess", fname)
+    # TODO: decouple and re-use computation comp_name
 
     # |--------------------------- Notifications ----------------------------> #
     @abstractmethod
@@ -160,10 +159,14 @@ class Storage(object):
         pass
 
     # |---------------------------- Result ---------------------------------> #
-
+    # Results are saved as R-dict, a dictionary where the key correspond to
+    # a computation name and the value is another dictionary (the result proxy)
+    # whose key-value mapping represent information regarding the results
+    # (namely, the experience name, the parameters of the computation, the
+    # context and the actual results)
     def save_result(self, comp_name, parameters, result, context="n/a"):
         # Create the R-dict (legacy format)
-        dictionary = {
+        r_dict = {
             comp_name: {
                 __EXP_NAME__: self.exp_name,
                 __PARAMETERS__: parameters,
@@ -171,22 +174,31 @@ class Storage(object):
                 __RESULTS__: dict(result)
             }
         }
-        self._save_result(comp_name, dictionary)
+        self._save_r_dict(comp_name, r_dict)
 
     @abstractmethod
-    def _save_result(self, comp_name, dictionary):
-        """Save the given dictionary as proxy for the result"""
+    def _save_r_dict(self, comp_name, r_dict):
+        """Save the given r_dict singleton corresponding to the given
+        computation"""
         pass
 
     def load_result(self, comp_name):
-        res = self._load_result(comp_name)
-        if len(res) == 0:
+        res = self._load_r_dict(comp_name)
+        try:
+            if len(res) == 0:
+                return {}
+        except:
             return {}
         return res[comp_name][__RESULTS__]
 
     @abstractmethod
-    def _load_result(self, comp_name):
-        """load and return the proxy result"""
+    def _load_r_dict(self, comp_name):
+        """load and return the r_dict singleton of the given computation"""
+        pass
+
+    @abstractmethod
+    def _load_r_dicts(self):
+        """load and return the r_dict of all the computations"""
         pass
 
     def load_params_and_results(self, **default_meta):
@@ -208,11 +220,10 @@ class Storage(object):
         """
         parameters_ls = []
         results_ls = []
-        for fpath in glob.glob(os.path.join(self._get_result_db(), "*.pkl")):
-            comp = self._load(fpath).values()[0]
-            results_ls.append(comp[__RESULTS__])
-            p = comp[__PARAMETERS__]
-            for k,v in default_meta.items():
+        for result_proxy in self._load_r_dicts().values():
+            results_ls.append(result_proxy[__RESULTS__])
+            p = result_proxy[__PARAMETERS__]
+            for k, v in default_meta.items():
                 if k not in p:
                     p[k] = v
             parameters_ls.append(p)
@@ -223,9 +234,9 @@ class Storage(object):
     def get_log_folder(self):
         return os.path.join(self.folder, "logs")
 
-    def get_log_prefix(self, comp_name, *suffix):
+    def get_log_prefix(self, comp_name, suffix=""):
         folder = self.get_log_folder()
-        prefix = os.path.join(folder, comp_name, *suffix)
+        prefix = os.path.join(folder, comp_name+suffix)
         return prefix
 
     def get_last_log_file(self, comp_name):
@@ -263,6 +274,7 @@ class Storage(object):
                 out.write(line)
 
 
+# ============================== PICKLE MANAGER ============================== #
 class PickleStorage(Storage):
     """Databases are folders. Each record is an individual pickle file.
     Implements a backup mechanism for results to prevent long writes from
@@ -291,9 +303,6 @@ class PickleStorage(Storage):
             logging.exception("Error while loading file '%s'" % fpath)
             return {}
         return rtn
-
-    def __init__(self, experiment_name, architecture=Architecture()):
-        super(PickleStorage, self).__init__(experiment_name, architecture)
 
     def init(self):
         super(PickleStorage, self).init()
@@ -336,13 +345,13 @@ class PickleStorage(Storage):
     def _result_path(self, comp_name):
         return os.path.join(self._get_result_db(), "%s.pkl" % comp_name)
 
-    def _save_result(self, comp_name, dictionary):
+    def _save_r_dict(self, comp_name, r_dict):
         # Build paths
         tmp_path = self._tmp_path(comp_name)
         bc_path = self._bc_path(comp_name)
         fpath = self._result_path(comp_name)
         # Write to disk in temp
-        self._save(dictionary, tmp_path)
+        self._save(r_dict, tmp_path)
         # Back up old results
         if os.path.exists(fpath):
             shutil.move(fpath, bc_path)
@@ -354,9 +363,16 @@ class PickleStorage(Storage):
         fpath = self._result_path(comp_name)
         shutil.move(bc_path, fpath)
 
-    def _load_result(self, comp_name):
+    def _load_r_dict(self, comp_name):
         fpath = self._result_path(comp_name)
         if os.path.exists(fpath):
             return self._load(fpath)
         return {}
+
+    def _load_r_dicts(self):
+        """load and return all the proxy results"""
+        r_dict = {}
+        for fpath in glob.glob(os.path.join(self._get_result_db(), "*.pkl")):
+            r_dict.update(self._load(fpath))
+        return r_dict
 

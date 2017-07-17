@@ -37,7 +37,7 @@ __PARTIAL__ = "PARTIAL"
 __INCOMPLETE__ = "INCOMPLETE"
 __CRITICAL__ = "CRITIC"
 
-__STATE__= "STATE"
+__STATE__ = "STATE"
 __DATE__ = "date"
 __LASTSAVE__ = "last save"
 __DURATION__ = "duration"
@@ -330,6 +330,6 @@ class Monitor(object):
         for index in indices:
             state = self.states[index]
             new_state = AbortedState.from_(state, exception)
-            self.storage.update_state()
+            self.storage.update_state(new_state)
             # In case of error, do not update locally
             self.states[index] = new_state

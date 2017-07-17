@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from functools import reduce
+from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping
-from .util import reorder, hashlist
-from .deprecated import deprecated
+from .util import reorder, hashlist, deprecated
 
+from .storage import PickleStorage
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -590,12 +591,12 @@ def build_result_cube(exp_name):
     return build_datacube(exp_name)
 
 
-def build_datacube(exp_name, **default_meta):
+def build_datacube(exp_name, storage_factory=PickleStorage, **default_meta):
     """
     default_meta: mapping str -> str
         The (potientially) missing metadata
     """
-    storage =  PickleStorage(exp_name)
+    storage = storage_factory(experiment_name=exp_name)
     parameters_ls, results_ls = storage.load_params_and_results(**default_meta)
     return Datacube(parameters_ls, results_ls, exp_name)
 

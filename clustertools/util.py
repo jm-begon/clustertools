@@ -4,11 +4,6 @@
 Module :mod:`util` is a set of misc. functions
 """
 
-__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
-__copyright__ = "3-clause BSD License"
-
-
-import json
 from inspect import getargspec
 from copy import copy
 from hashlib import sha256
@@ -16,13 +11,8 @@ import warnings
 import functools
 
 
-
-
-
-__CT_FOLDER__ = "clustertools_data"
-__LOG_ENV__ = "CLUSTERTOOLS_LOGS_FOLDER"
-__METALOG__ = "clustertools.log"
-
+__author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
+__copyright__ = "3-clause BSD License"
 
 
 def kw_intersect(function, dictionary, *args, **kwargs):
@@ -45,6 +35,7 @@ def kw_intersect(function, dictionary, *args, **kwargs):
         The intersection between the function's parameters and the given
         dictionary
     """
+    # TODO getargspec deprecated in Python
     try:
         prototype = getargspec(function)
     except TypeError:
@@ -84,47 +75,10 @@ def call_with(function, dictionary, *args, **kwargs):
     ------
     The result of the function with the given sefely inputs
     """
-    return function(*args, **kw_intersect(function, dictionary, *args, **kwargs))
-
-
-def encode_kwargs(dictionary):
-    s = json.dumps(dictionary)
-    s = s.replace("'", "\\'")
-    return s.replace('"', '\\"')
-
-
-def decode_kwargs(string):
-    return json.loads(string)
-
-
-def bash_submit(job_command, job_name, shell_script="#!/bin/bash"):
-    return (u"echo '%s\n%s' | bash" % (shell_script, job_command))
-
-
-def false_submit(job_command, job_name, shell_script="#!/bin/bash"):
-    return (u"echo '%s'" % job_name)
-
-
-def experiment_diff(experiment, computations={}, scheduled=[]):
-    """
-    computations: in-able of comp_name
-    scheduled: in-able of comp_name
-    """
-    res = []
-    for label, params in experiment:
-        if label not in computations and label not in scheduled:
-            res.append((label, params))
-    return res
-
-def running_job_diff(exp_name, user=None):
-    histo = Historic(exp_name)
-    r_notif = set(histo.running_jobs().keys())
-    r_backend = {j for j in queued_or_running_jobs(user)
-                    if j.find(exp_name) >= 0}
-    notif_only = r_notif.difference(r_backend)
-    backend_only = r_backend.difference(notif_only)
-    both = r_notif.intersection(r_backend)
-    return {"Notif-only":notif_only, "Backend-only":backend_only, "Both":both}
+    return function(*args, **kw_intersect(function,
+                                          dictionary,
+                                          *args,
+                                          **kwargs))
 
 
 def reorder(ls, indices, in_place=False):
@@ -146,3 +100,20 @@ def reorder(ls, indices, in_place=False):
 
 def hashlist(ls):
     return sha256(str(ls)).digest()
+
+
+# from http://stackoverflow.com/questions/2536307/decorators-in-the-python-standard-lib-deprecated-specifically
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+                      category=DeprecationWarning, stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)  # reset filter
+        return func(*args, **kwargs)
+
+    return new_func

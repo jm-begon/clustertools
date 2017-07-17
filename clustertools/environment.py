@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import subprocess
 import logging
 from time import time as epoch
 from abc import ABCMeta, abstractmethod
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from clusterlib.scheduler import submit
 
@@ -15,7 +20,54 @@ __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
-__RUN_SCRIPT__ = "ct_run"
+class Serializer(object):
+
+    def __repr__(self):
+        return "{cls}()".format(cls=self.__class__.__name__)
+
+    def serialize(self, lazy_computation):
+        """Return a unserializable string"""
+        return pickle.dumps(lazy_computation, -1)
+
+    def deserialize(self, serlialized):
+        """Return the object represented by the serialized string"""
+        return pickle.loads(serlialized)
+
+    def serialize_and_script(self, lazy_computation):
+        """Return a script to run the lazy_computation"""
+        serialized = self.serialize(lazy_computation)
+        return [sys.executable, '-c', 'from {mod} import {cls};'
+                '{repr}({serialized})'
+                ''.format(mod=__name__,
+                          cls=self.__class__.__name__,
+                          repr=repr(self),
+                          serialized=repr(serialized))]
+
+    def deserialize_and_run(self, serialized):
+        lazy_computation = self.deserialize(serialized)
+        lazy_computation()
+
+    def __call__(self, serialized):
+        self.deserialize_and_run(serialized)
+
+
+class FileSerializer(Serializer):
+
+    def serialize(self, lazy_computation):
+        fname = "{}-{}.pkl".format(lazy_computation.comp_name, str(epoch()))
+        fpath = lazy_computation.storage.get_messy_path(fname)
+        with open(fpath, "wb") as hdl:
+            pickle.dump(lazy_computation, hdl, -1)
+        return fpath
+
+    def deserialize(self, serlialized):
+        with open(serlialized, "rb") as hdl:
+            lazy_computation = pickle.load(hdl)
+        try:
+            os.remove(serlialized)
+        except IOError:
+            pass
+        return lazy_computation
 
 
 class Session(object):
@@ -50,6 +102,7 @@ class Session(object):
                          "".format(exp_name=self.storage.exp_name,
                                    cls=repr(self.environment)))
         self.opened = True
+        return self
 
     def run(self, lazy_computation):
         if not self.is_open():
@@ -75,7 +128,7 @@ class Session(object):
                          "computation(s)".format(exp_name=self.storage.exp_name,
                                                  n_launch=str(self.n_launch),
                                                  exp_len=str(self.exp_len)))
-        self.closed = False
+        self.opened = False
 
 
 class Environment(object):
@@ -119,34 +172,38 @@ class InSituEnvironment(Environment):
 
 
 class BashEnvironment(Environment):
-    def __init__(self, fail_fast=True, script=__RUN_SCRIPT__):
+    # For debugging purpose
+
+    def __init__(self, serializer=Serializer(), fail_fast=True):
         super(BashEnvironment, self).__init__(fail_fast)
-        self.script = script
+        # Since Serializer is totally stateless, it can be shared among
+        # several instances
+        self.serializer = serializer
 
     def __repr__(self):
-        return "{cls}(fail_fast={fail_fast}, script={script})" \
+        return "{cls}(serializer={serializer}, fail_fast={fail_fast})" \
                "".format(cls=self.__class__.__name__,
-                         fail_fast=str(self.fail_fast),
-                         script=self.script)
+                         fail_fast=repr(self.fail_fast),
+                         serializer=repr(self.serializer))
 
     def issue(self, lazy_computation):
-        fpath = lazy_computation.serialize()
-        job_command = "{python} {script_path} {serial_path}" \
-                      "".format(python=sys.executable,
-                                script_path=self.script,
-                                serial_path=fpath).split(" ")
-        log_file = lazy_computation.storage.get_log_prefix(epoch())
+        job_command = self.serializer.serialize_and_script(lazy_computation)
 
-        subprocess.check_call(job_command, stdout=log_file, stderr=log_file)
+        storage = lazy_computation.storage
+        log_file = storage.get_log_prefix(lazy_computation.comp_name,
+                                          "-{}".format(str(epoch())))
+
+        with open(log_file, "w") as log_hdl:
+            subprocess.check_call(job_command, stdout=log_hdl, stderr=log_hdl)
 
 
 class ClusterlibEnvironment(Environment):
 
-    def __init__(self, time="1:00:00", memory=4000, partition=None,
-                 n_proc=None, shell_script="#!/bin/bash", fail_fast=True,
-                 script=__RUN_SCRIPT__, other_args=None):
+    def __init__(self, serializer=Serializer(), time="1:00:00", memory=4000,
+                 partition=None, n_proc=None, shell_script="#!/bin/bash",
+                 fail_fast=True, other_args=None):
         super(ClusterlibEnvironment, self).__init__(fail_fast)
-        self.script = script
+        self.serializer = serializer
         self.time = time
         self.memory = memory
         self.shell_script = shell_script
@@ -157,25 +214,23 @@ class ClusterlibEnvironment(Environment):
         self.other_args = other_args
 
     def __repr__(self):
-        return "{cls}(time={time}, memory={memory}, partition={partition}, " \
-               "n_proc={n_proc}, shell_script={shell}, fail_fast={fail_fast}, " \
-               "script={script}, other_args={other})" \
+        return "{cls}(serializer={serializer}, time={time}, memory={memory}, " \
+               "partition={partition}, n_proc={n_proc}, shell_script={shell}, "\
+               "fail_fast={fail_fast}, other_args={other})" \
                "".format(cls=self.__class__.__name__,
-                         time=self.time,
-                         memory=self.memory,
-                         partition=self.partition,
-                         n_proc=str(self.n_proc),
-                         fail_fast=str(self.fail_fast),
-                         script=self.script,
-                         other=self.other_args)
+                         serializer=repr(self.serializer),
+                         time=repr(self.time),
+                         memory=repr(self.memory),
+                         partition=repr(self.partition),
+                         n_proc=repr(self.n_proc),
+                         fail_fast=repr(self.fail_fast),
+                         shell=self.shell_script,
+                         other=repr(self.other_args))
 
     def issue(self, lazy_computation):
-        fpath = lazy_computation.serialize()
         log_folder = lazy_computation.storage.get_log_folder()
-        raw_cmd = "{python} {script_path} {serial_path}" \
-                  "".format(python=sys.executable,
-                            script_path=self.script,
-                            serial_path=fpath).split(" ")
+        ls_cmd = self.serializer.serialize_and_script(lazy_computation)
+        raw_cmd = " ".join(ls_cmd)
         command = submit(job_command=raw_cmd,
                          job_name=lazy_computation.comp_name,
                          time=self.time,
@@ -191,4 +246,3 @@ class ClusterlibEnvironment(Environment):
         final_command = " ".join([command, " ".join(["--{}={}".format(k, v)
                                   for k, v in additional_flags.items()])])
         subprocess.check_output(final_command)
-
