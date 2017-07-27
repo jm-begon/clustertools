@@ -35,8 +35,6 @@ CLASSIFIERS = [
 ]
 
 if __name__ == '__main__':
-    from clustertools.config import dump_config
-    dump_config()
     setup(name=NAME,
           version=VERSION,
           author=AUTHOR,
@@ -47,7 +45,7 @@ if __name__ == '__main__':
           license='BSD3',
           classifiers=CLASSIFIERS,
           platforms='any',
-          install_requires=['clusterlib', 'nose', 'six'],
+          install_requires=['clusterlib', 'nose', 'six', 'dill'],
           packages=['clustertools', 'clustertools.test'],
           scripts=['bin/ct_count', 'bin/ct_sync',
                    'bin/ct_remote'])

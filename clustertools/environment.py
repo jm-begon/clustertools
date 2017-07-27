@@ -6,10 +6,7 @@ import subprocess
 import logging
 from time import time as epoch
 from abc import ABCMeta, abstractmethod
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import dill
 
 from clusterlib.scheduler import submit
 
@@ -27,16 +24,17 @@ class Serializer(object):
 
     def serialize(self, lazy_computation):
         """Return a unserializable string"""
-        return pickle.dumps(lazy_computation, -1)
+        return dill.dumps(lazy_computation, -1)
 
     def deserialize(self, serlialized):
         """Return the object represented by the serialized string"""
-        return pickle.loads(serlialized)
+        return dill.loads(serlialized)
 
     def serialize_and_script(self, lazy_computation):
         """Return a script to run the lazy_computation"""
         serialized = self.serialize(lazy_computation)
-        return [sys.executable, '-c', 'from {mod} import {cls};'
+        return [sys.executable, '-c',
+                'from {mod} import {cls};'
                 '{repr}({serialized})'
                 ''.format(mod=__name__,
                           cls=self.__class__.__name__,
@@ -57,12 +55,12 @@ class FileSerializer(Serializer):
         fname = "{}-{}.pkl".format(lazy_computation.comp_name, str(epoch()))
         fpath = lazy_computation.storage.get_messy_path(fname)
         with open(fpath, "wb") as hdl:
-            pickle.dump(lazy_computation, hdl, -1)
+            dill.dump(lazy_computation, hdl, -1)
         return fpath
 
     def deserialize(self, serlialized):
         with open(serlialized, "rb") as hdl:
-            lazy_computation = pickle.load(hdl)
+            lazy_computation = dill.load(hdl)
         try:
             os.remove(serlialized)
         except IOError:
@@ -186,8 +184,11 @@ class BashEnvironment(Environment):
                          fail_fast=repr(self.fail_fast),
                          serializer=repr(self.serializer))
 
+    def make_script(self, lazy_computation):
+        return self.serializer.serialize_and_script(lazy_computation)
+
     def issue(self, lazy_computation):
-        job_command = self.serializer.serialize_and_script(lazy_computation)
+        job_command = self.make_script(lazy_computation)
 
         storage = lazy_computation.storage
         log_file = storage.get_log_prefix(lazy_computation.comp_name,
@@ -227,7 +228,7 @@ class ClusterlibEnvironment(Environment):
                          shell=self.shell_script,
                          other=repr(self.other_args))
 
-    def issue(self, lazy_computation):
+    def make_script(self, lazy_computation):
         log_folder = lazy_computation.storage.get_log_folder()
         ls_cmd = self.serializer.serialize_and_script(lazy_computation)
         raw_cmd = " ".join(ls_cmd)
@@ -244,5 +245,10 @@ class ClusterlibEnvironment(Environment):
             additional_flags["ntasks"] = self.n_proc
 
         final_command = " ".join([command, " ".join(["--{}={}".format(k, v)
-                                  for k, v in additional_flags.items()])])
+                                                     for k, v in
+                                                     additional_flags.items()])])
+        return final_command
+
+    def issue(self, lazy_computation):
+        final_command = self.make_script(lazy_computation)
         subprocess.check_output(final_command)

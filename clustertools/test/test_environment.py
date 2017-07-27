@@ -42,6 +42,24 @@ def test_session():
     assert_raises(ValueError, partial(session.run, TestComputation()))
 
 
+# ------------------------------------------------- Environment generated script
+@with_setup(prep, purge)
+def script_evaluation(environment):
+    print(repr(environment))  # In case of error, prints the type of environment
+    lazy_computation = TestComputation().lazyfy(x1=1, x2=2)
+    script = environment.make_script(lazy_computation)
+    # TODO check script
+
+
+def test_bash_script():
+    script_evaluation(BashEnvironment())
+
+
+@skip_if_no_backend
+def test_cluster_script():
+    script_evaluation(ClusterlibEnvironment())
+
+
 # ---------------------------------------------- Environment: integrated testing
 # TODO how to test the logging is working correctly ?
 
