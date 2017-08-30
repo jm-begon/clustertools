@@ -4,7 +4,7 @@ import argparse
 import sys
 from functools import partial
 
-from .environment import ClusterlibEnvironment, BashEnvironment, Serializer
+from .environment import SlurmEnvironment, BashEnvironment, Serializer
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -91,17 +91,13 @@ class ClusterParser(BaseParser):
 
     def get_parser(self):
         parser = super(ClusterParser, self).get_parser()
-        parser.add_argument("--backend", "-b", default="auto",
-                            help="""{'auto', 'slurm', 'sge'}
-                Backend where the job will be submitted. If 'auto', try detect
-                the backend to use based on the commands available in the PATH
-                variable looking first for 'slurm' and then for 'sge' if slurm
-                is not found. """)
         parser.add_argument("--time", "-t", default="24:00:00",
                             type=time_string,
-                            help='Maximum time; format "HH:MM:SS"')
+                            help='Maximum time; format "HH:MM:SS" '
+                                 '(defaul: 24:00:00)')
         parser.add_argument("--memory", "-m", default=4000, type=positive_int,
-                            help="Maximum virtual memory in mega-bytes")
+                            help="Maximum virtual memory in mega-bytes "
+                                 "(defaul: 4000)")
         parser.add_argument("--shell", default="#!/bin/bash",
                             help='The shell in which to launch the jobs')
         parser.add_argument("--partition", "-p", default=None,
@@ -117,13 +113,13 @@ class ClusterParser(BaseParser):
     def parse(self, args=None, namespace=None):
         parser = self.get_parser()
         args = parser.parse_args(args=args, namespace=namespace)
-        environment = ClusterlibEnvironment(self.serializer_factory(),
-                                            args.time,
-                                            args.memory,
-                                            args.partition,
-                                            args.n_proc,
-                                            args.shell,
-                                            args.no_fail_fast)
+        environment = SlurmEnvironment(self.serializer_factory(),
+                                       args.time,
+                                       args.memory,
+                                       args.partition,
+                                       args.n_proc,
+                                       args.shell,
+                                       args.no_fail_fast)
         environment.run = partial(environment.run, start=args.start,
                                   capacity=args.capacity)
         return environment, args.custom_option

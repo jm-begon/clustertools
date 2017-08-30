@@ -81,6 +81,10 @@ def call_with(function, dictionary, *args, **kwargs):
                                           **kwargs))
 
 
+def escape(s):
+    return s.replace("'", "\\\'").replace('"', '\\\"').replace(" ", "\\ ")
+
+
 def reorder(ls, indices, in_place=False):
     if in_place:
         tmps = [ls[i] for i in indices]

@@ -6,11 +6,11 @@ import subprocess
 import logging
 from time import time as epoch
 from abc import ABCMeta, abstractmethod
+
 import dill
 
-from clusterlib.scheduler import submit
-
 from .state import PendingState, AbortedState
+from .util import escape
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -184,11 +184,8 @@ class BashEnvironment(Environment):
                          fail_fast=repr(self.fail_fast),
                          serializer=repr(self.serializer))
 
-    def make_script(self, lazy_computation):
-        return self.serializer.serialize_and_script(lazy_computation)
-
     def issue(self, lazy_computation):
-        job_command = self.make_script(lazy_computation)
+        job_command = self.serializer.serialize_and_script(lazy_computation)
 
         storage = lazy_computation.storage
         log_file = storage.get_log_prefix(lazy_computation.comp_name,
@@ -198,12 +195,12 @@ class BashEnvironment(Environment):
             subprocess.check_call(job_command, stdout=log_hdl, stderr=log_hdl)
 
 
-class ClusterlibEnvironment(Environment):
+class SlurmEnvironment(Environment):
 
     def __init__(self, serializer=Serializer(), time="1:00:00", memory=4000,
                  partition=None, n_proc=None, shell_script="#!/bin/bash",
                  fail_fast=True, other_args=None):
-        super(ClusterlibEnvironment, self).__init__(fail_fast)
+        super(SlurmEnvironment, self).__init__(fail_fast)
         self.serializer = serializer
         self.time = time
         self.memory = memory
@@ -228,27 +225,33 @@ class ClusterlibEnvironment(Environment):
                          shell=self.shell_script,
                          other=repr(self.other_args))
 
-    def make_script(self, lazy_computation):
-        log_folder = lazy_computation.storage.get_log_folder()
-        ls_cmd = self.serializer.serialize_and_script(lazy_computation)
-        raw_cmd = " ".join(ls_cmd)
-        command = submit(job_command=raw_cmd,
-                         job_name=lazy_computation.comp_name,
-                         time=self.time,
-                         memory=self.memory,
-                         log_directory=log_folder,
-                         shell_script=self.shell_script)
-        additional_flags = {k: v for k, v in self.other_args.items()}
-        if self.partition is not None:
-            additional_flags["partition"] = self.partition
-        if self.n_proc is not None:
-            additional_flags["ntasks"] = self.n_proc
-
-        final_command = " ".join([command, " ".join(["--{}={}".format(k, v)
-                                                     for k, v in
-                                                     additional_flags.items()])])
-        return final_command
-
     def issue(self, lazy_computation):
-        final_command = self.make_script(lazy_computation)
-        subprocess.check_output(final_command)
+        # Making Slurm command
+        comp_name = lazy_computation.comp_name
+        log_folder = lazy_computation.storage.get_log_folder()
+        log_prefix = os.path.join(log_folder, comp_name)
+
+        slurm_cmd = ["sbatch", "--job-name={}".format(comp_name),
+                     "--time={}".format(self.time),
+                     "--mem={}".format(self.memory),
+                     "-o {}.%%j.txt".format(log_prefix)]
+
+        if self.partition is not None:
+            slurm_cmd.append("--partition={}".format(self.partition))
+
+        if self.n_proc is not None:
+            slurm_cmd.append("--ntasks={}".format(self.n_proc))
+
+        for flag, value in self.other_args.items():
+            slurm_cmd.append("--{}={}".format(flag, value))
+
+        # Making computation command
+        cmd_as_tuple = self.serializer.serialize_and_script(lazy_computation)
+        str_cmd = " ".join([escape(s) for s in cmd_as_tuple])
+        whole_cmd = "{shell}\n{cmd}".format(shell=self.shell_script,
+                                            cmd=str_cmd)
+
+        # Running everything
+        backend = subprocess.Popen(slurm_cmd, stdin=subprocess.PIPE)
+        backend.communicate(whole_cmd)
+

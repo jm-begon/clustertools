@@ -7,7 +7,7 @@ from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
 
 from clustertools import ParameterSet, Experiment
 from clustertools.environment import InSituEnvironment, \
-    BashEnvironment, ClusterlibEnvironment, Serializer, FileSerializer
+    BashEnvironment, SlurmEnvironment, Serializer, FileSerializer
 from clustertools.storage import PickleStorage
 
 from clusterlib._testing import skip_if_no_backend
@@ -47,8 +47,7 @@ def test_session():
 def script_evaluation(environment):
     print(repr(environment))  # In case of error, prints the type of environment
     lazy_computation = TestComputation().lazyfy(x1=1, x2=2)
-    script = environment.make_script(lazy_computation)
-    # TODO check script
+    # TODO check computation
 
 
 def test_bash_script():
@@ -57,7 +56,7 @@ def test_bash_script():
 
 @skip_if_no_backend
 def test_cluster_script():
-    script_evaluation(ClusterlibEnvironment())
+    script_evaluation(SlurmEnvironment())
 
 
 # ---------------------------------------------- Environment: integrated testing
@@ -89,7 +88,7 @@ def test_bash_environment():
 
 @skip_if_no_backend
 def test_clusterlib_environment():
-    environment = ClusterlibEnvironment(time="0:20:00", memory="1000")
+    environment = SlurmEnvironment(time="0:20:00", memory="1000")
     environment_integration(environment)
     # TODO how to test the code is run by slurm/sge ?
 
