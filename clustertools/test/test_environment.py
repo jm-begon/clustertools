@@ -87,7 +87,7 @@ def test_bash_environment():
 
 
 @skip_if_no_backend
-def test_clusterlib_environment():
+def test_slurm_environment():
     environment = SlurmEnvironment(time="0:20:00", memory="1000")
     environment_integration(environment)
     # TODO how to test the code is run by slurm/sge ?

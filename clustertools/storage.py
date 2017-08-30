@@ -297,10 +297,10 @@ class PickleStorage(Storage):
             rtn = cls._raw_load(fpath)
         except EOFError:
             logger = logging.getLogger("clustertools.storage")
-            logger.error("End of file encountered in '%s'" % fpath)
+            logger.error("End of file encountered in '{}'".format(fpath))
             return {}
         except:
-            logging.exception("Error while loading file '%s'" % fpath)
+            logging.exception("Error while loading file '{}'".format(fpath))
             return {}
         return rtn
 
@@ -331,7 +331,13 @@ class PickleStorage(Storage):
     def load_states(self):
         res = []
         for fpath in glob.glob(os.path.join(self._get_notif_db(), "*.pkl")):
-            res.append(self._load(fpath))
+            loaded = self._load(fpath)
+            try:
+                if len(loaded) > 0:
+                    res.append(loaded)
+            except:
+                pass
+            res.append(loaded)
         return res
 
     # |---------------------------- Results -----------------------------> #
