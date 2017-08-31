@@ -252,6 +252,10 @@ class SlurmEnvironment(Environment):
                                             cmd=str_cmd)
 
         # Running everything
-        backend = subprocess.Popen(slurm_cmd, stdin=subprocess.PIPE)
-        backend.communicate(whole_cmd)
+        backend = subprocess.Popen(slurm_cmd, stdin=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        _, stderr = backend.communicate(whole_cmd)
+        if len(stderr) > 0:
+            logger = logging.getLogger("clustertools")
+            logger.error(stderr)
 

@@ -82,7 +82,8 @@ def call_with(function, dictionary, *args, **kwargs):
 
 
 def escape(s):
-    return s.replace("'", "\\\'").replace('"', '\\\"').replace(" ", "\\ ")
+    return s.replace("'", "\\\'").replace('"', '\\\"').replace(" ", "\\ ")\
+        .replace("(", "\\(").replace(")", "\\)")
 
 
 def reorder(ls, indices, in_place=False):

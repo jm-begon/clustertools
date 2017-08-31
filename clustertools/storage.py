@@ -299,8 +299,9 @@ class PickleStorage(Storage):
             logger = logging.getLogger("clustertools.storage")
             logger.error("End of file encountered in '{}'".format(fpath))
             return {}
-        except:
-            logging.exception("Error while loading file '{}'".format(fpath))
+        except Exception as exception:
+            logging.exception("Error while loading file '{}'. Reason: {}"
+                              .format(fpath, repr(exception)))
             return {}
         return rtn
 

@@ -30,5 +30,5 @@ def test_escape():
     assert_equal(escape(s1), expected1)
 
     s2 = 'print "hello"'
-    expected2 = 'print\\ \\"hello\\"'
+    expected2 = 'print\\(\\"hello\\"\\)'
     assert_equal(escape(s2), expected2)
