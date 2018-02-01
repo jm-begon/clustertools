@@ -48,5 +48,5 @@ if __name__ == '__main__':
           install_requires=['clusterlib', 'nose', 'six', 'dill'],
           packages=['clustertools', 'clustertools.test'],
           scripts=['bin/ct_count', 'bin/ct_sync',
-                   'bin/ct_remote'])
+                   'bin/ct_remote', 'bin/ct_display'])
 
