@@ -6,11 +6,12 @@ import subprocess
 import logging
 from time import time as epoch
 from abc import ABCMeta, abstractmethod
+from shlex import quote as escape
 
 import dill
 
 from .state import PendingState, AbortedState
-from .util import escape
+
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -234,7 +235,8 @@ class SlurmEnvironment(Environment):
         slurm_cmd = ["sbatch", "--job-name={}".format(comp_name),
                      "--time={}".format(self.time),
                      "--mem={}".format(self.memory),
-                     "-o {}.%%j.txt".format(log_prefix)]
+                     "--output={}.%j.txt".format(log_prefix),
+                     ]
 
         if self.partition is not None:
             slurm_cmd.append("--partition={}".format(self.partition))
@@ -251,11 +253,25 @@ class SlurmEnvironment(Environment):
         whole_cmd = "{shell}\n{cmd}".format(shell=self.shell_script,
                                             cmd=str_cmd)
 
+        logger = logging.getLogger("clustertools")
+        logger.debug(slurm_cmd)
+        logger.debug(whole_cmd)
+
         # Running everything
-        backend = subprocess.Popen(slurm_cmd, stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        _, stderr = backend.communicate(whole_cmd)
-        if len(stderr) > 0:
-            logger = logging.getLogger("clustertools")
-            logger.error(stderr)
+        # Slurm commands are launched through shell.
+        # 1. We can either dump a bash program and then create a subprocess
+        #    to launch it
+        # 2. Or we can pipe directly both part. This is the option we take
+        #    here.
+        with subprocess.Popen(slurm_cmd, stdin=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              stdout=subprocess.PIPE) as process:
+            stdout, stderr = process.communicate(whole_cmd.encode("utf-8"))
+            logger.debug(stdout.decode("utf-8"))
+
+            stderr = stderr.decode("utf-8")
+            if len(stderr) > 0:
+                logger.error(stderr)
+            if process.returncode != 0:
+                logger.error("Return code:", process.returncode)
 
