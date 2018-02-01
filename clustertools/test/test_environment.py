@@ -81,7 +81,7 @@ def environment_integration(environment):
 
 
 def test_bash_environment():
-    for serializer in  FileSerializer(), Serializer():
+    for serializer in FileSerializer(), Serializer():
         environment = BashEnvironment(serializer)
         environment_integration(environment)
 
