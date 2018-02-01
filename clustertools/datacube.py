@@ -173,13 +173,13 @@ class Datacube(Mapping):
             shape.append(len(v))
         shape.append(len(metrics))
         length = reduce(lambda x,y:x*y, shape, 1)
-        data = [None for _ in xrange(length)]
+        data = [None for _ in range(length)]
 
         # Fill the data vector
         hasher = Hasher(metrics, domain, metadata)
         for params, _metrics in zip(parameters_ls, results_ls):
-            for metric_name, val in _metrics.iteritems():
-                params_ = {k:str(v) for k,v in params.iteritems()}
+            for metric_name, val in _metrics.items():
+                params_ = {k:str(v) for k,v in params.items()}
                 index = hasher(str(metric_name), params_)
                 data[index] = val
         datahash = "n/a"
@@ -267,7 +267,7 @@ class Datacube(Mapping):
                 length = len(fixed)
                 return_scalar = False
 
-            elif isinstance(slice_, (int, long)):
+            elif isinstance(slice_, int):
                 # Int(/long) --> Build the appropriate slice
                 # Wrapping
                 if slice_ < 0:
@@ -275,16 +275,16 @@ class Datacube(Mapping):
                 if slice_ < 0:
                     raise IndexError("Index out of range from dim. %d" % i)
                 fixed.append(slice(slice_, slice_+1, 1))
-            elif isinstance(slice_, basestring):
+            elif isinstance(slice_, str):
                 # String --> Get the appropriate int
                 idx = self._get_index_by_name(i, slice_)
                 fixed.append(slice(idx, idx+1, 1))
             elif isinstance(slice_, slice):
                 # Slice --> Lookup in case of strings
                 start, stop = slice_.start, slice_.stop
-                if isinstance(start, basestring):
+                if isinstance(start, str):
                     start = self._get_index_by_name(i, start)
-                if isinstance(stop, basestring):
+                if isinstance(stop, str):
                     stop = self._get_index_by_name(i, stop) + 1
                 fixed.append(slice(start, stop, slice_.step))
                 return_scalar = False
@@ -293,7 +293,7 @@ class Datacube(Mapping):
                     # List of str/int --> Lookup strings
                     slice2 = []
                     for idx in slice_:
-                        if isinstance(idx, basestring):
+                        if isinstance(idx, str):
                             slice2.append(self._get_index_by_name(i, idx))
                         else:
                             # Wrapping
@@ -335,7 +335,7 @@ class Datacube(Mapping):
         if return_scalar:
             metric = self.metrics[m_slice.start]
             # We need to include the metadata for the hasher
-            params = {k:v for k,v in self.metadata.iteritems()}
+            params = {k:v for k,v in self.metadata.items()}
             for i, slc in enumerate(p_slices):
                 p_name = self.parameters[i]
                 vals = self.domain[p_name]
@@ -447,7 +447,7 @@ class Datacube(Mapping):
     def reorder_parameters(self, *args):
         order = []
         for x in args:
-            if isinstance(x, (int, long)):
+            if isinstance(x, int):
                 order.append(x)
             else:
                 # lookup

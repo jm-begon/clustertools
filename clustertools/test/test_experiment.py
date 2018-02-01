@@ -161,7 +161,7 @@ def test_correct_computation():
 
     assert_equal(len(intro_storage.result_history), 1)  # Only one computation
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = intro_storage.state_history.values()[0]
+    states = list(intro_storage.state_history.values())[0]
     # If correct, state should have followed the sequence:
     # Running, Critical, Completed
     assert_equal(len(states), 3)
@@ -179,7 +179,7 @@ def test_error_computation():
     assert_raises(TypeError, computation)  # 5*None
     assert_equal(len(intro_storage.result_history), 0)  # Computation not saved
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = intro_storage.state_history.values()[0]
+    states = list(intro_storage.state_history.values())[0]
     # If correct (i.e. error occurs), state should have evolved as:
     # Running, Aborted
     assert_equal(len(states), 2)
@@ -199,7 +199,7 @@ def test_correct_partial_computation():
 
     assert_equal(len(intro_storage.result_history), 1)  # Only one computation
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = intro_storage.state_history.values()[0]
+    states = list(intro_storage.state_history.values())[0]
     # If correct, state should have evolved as:
     # Running, (Critical, Partial) x3, Completed
     assert_equal(len(states), 8)
@@ -222,7 +222,7 @@ def test_error_partial_computation():
     # |-> State
     assert_equal(len(intro_storage.result_history), 1)  # Only one computation
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = intro_storage.state_history.values()[0]
+    states = list(intro_storage.state_history.values())[0]
     # If correct, state should have evolved as:
     # Running, (Critical, Partial) x3, Aborted
     assert_equal(len(states), 8)
