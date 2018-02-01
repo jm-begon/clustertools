@@ -81,6 +81,11 @@ class State(object):
                other.exp_name == self.exp_name and \
                other.comp_name == self.comp_name
 
+    def __hash__(self):
+        # This is technically not consistent with equality since we are looking
+        # for the exact class
+        return hash(repr(self))
+
     @abstractmethod
     def get_name(self):
         pass
