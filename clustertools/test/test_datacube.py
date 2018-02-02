@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-from nose.tools import assert_dict_equal
-from nose.tools import assert_equal
-from nose.tools import assert_not_equal
-from nose.tools import assert_in
-from nose.tools import assert_raises
-from nose.tools import assert_true
+from nose.tools import assert_dict_equal, assert_not_in, assert_equal, \
+    assert_not_equal, assert_in, assert_true, assert_raises
 
 from clustertools.datacube import Datacube, Hasher
 
@@ -30,23 +26,23 @@ def basic():
            f1             f2
     /!\ tranposed
     """
-    res = {u'Computation-basic-0': {'Experiment': 'basic',
-            'Parameters': {u'w': 5, u'x': 1, u'z': 4},
+    res = {'Computation-basic-0': {'Experiment': 'basic',
+            'Parameters': {'w': 5, 'x': 1, 'z': 4},
             'Results': {'f1': 2, 'f2': 9}},
-            u'Computation-basic-1': {'Experiment': 'basic',
-            'Parameters': {u'w': 6, u'x': 1, u'z': 4},
+            'Computation-basic-1': {'Experiment': 'basic',
+            'Parameters': {'w': 6, 'x': 1, 'z': 4},
             'Results': {'f1': 2, 'f2': 10}},
-            u'Computation-basic-2': {'Experiment': 'basic',
-            'Parameters': {u'w': 5, u'x': 2, u'z': 4},
+            'Computation-basic-2': {'Experiment': 'basic',
+            'Parameters': {'w': 5, 'x': 2, 'z': 4},
             'Results': {'f1': 4, 'f2': 9}},
-            u'Computation-basic-3': {'Experiment': 'basic',
-            'Parameters': {u'w': 6, u'x': 2, u'z': 4},
+            'Computation-basic-3': {'Experiment': 'basic',
+            'Parameters': {'w': 6, 'x': 2, 'z': 4},
             'Results': {'f1': 4, 'f2': 10}},
-            u'Computation-basic-4': {'Experiment': 'basic',
-            'Parameters': {u'w': 5, u'x': 3, u'z': 4},
+            'Computation-basic-4': {'Experiment': 'basic',
+            'Parameters': {'w': 5, 'x': 3, 'z': 4},
             'Results': {'f1': 6, 'f2': 9}},
-            u'Computation-basic-5': {'Experiment': 'basic',
-            'Parameters': {u'w': 6, u'x': 3, u'z': 4},
+            'Computation-basic-5': {'Experiment': 'basic',
+            'Parameters': {'w': 6, 'x': 3, 'z': 4},
             'Results': {'f1': 6, 'f2': 10}}}
 
     # Notice the ordering
@@ -75,23 +71,23 @@ def alldiff():
            f1             f2
     /!\ tranposed
     """
-    res = {u'Computation-alldiff-0': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 1, u'z': 4},
+    res = {'Computation-alldiff-0': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 1, 'z': 4},
             'Results': {'f1': 15, 'f2': 51}},
-            u'Computation-alldiff-1': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 1, u'z': 4},
+            'Computation-alldiff-1': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 1, 'z': 4},
             'Results': {'f1': 16, 'f2': 61}},
-            u'Computation-alldiff-2': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 2, u'z': 4},
+            'Computation-alldiff-2': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 2, 'z': 4},
             'Results': {'f1': 25, 'f2': 52}},
-            u'Computation-alldiff-3': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 2, u'z': 4},
+            'Computation-alldiff-3': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 2, 'z': 4},
             'Results': {'f1': 26, 'f2': 62}},
-            u'Computation-alldiff-4': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 3, u'z': 4},
+            'Computation-alldiff-4': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 3, 'z': 4},
             'Results': {'f1': 35, 'f2': 53}},
-            u'Computation-alldiff-5': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 3, u'z': 4},
+            'Computation-alldiff-5': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 3, 'z': 4},
             'Results': {'f1': 36, 'f2': 63}}}
 
     # Notice the ordering
@@ -120,23 +116,23 @@ def some_ood():
            f1             f2
     /!\ tranposed
     """
-    res = {u'Computation-alldiff-0': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 1, u'z': 4},
+    res = {'Computation-alldiff-0': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 1, 'z': 4},
             'Results': {'f1': 15, 'f2': 51}},
-            u'Computation-alldiff-1': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 1, u'z': 4},
+            'Computation-alldiff-1': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 1, 'z': 4},
             'Results': {'f1': 16, 'f2': 61}},
-            u'Computation-alldiff-2': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 2, u'z': 4},
+            'Computation-alldiff-2': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 2, 'z': 4},
             'Results': {'f1': None, 'f2': None}},
-            u'Computation-alldiff-3': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 2, u'z': 4},
+            'Computation-alldiff-3': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 2, 'z': 4},
             'Results': {'f1': 26, 'f2': 62}},
-            u'Computation-alldiff-4': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 5, u'x': 3, u'z': 4},
+            'Computation-alldiff-4': {'Experiment': 'alldiff',
+            'Parameters': {'w': 5, 'x': 3, 'z': 4},
             'Results': {'f1': 35, 'f2': 53}},
-            u'Computation-alldiff-5': {'Experiment': 'alldiff',
-            'Parameters': {u'w': 6, u'x': 3, u'z': 4},
+            'Computation-alldiff-5': {'Experiment': 'alldiff',
+            'Parameters': {'w': 6, 'x': 3, 'z': 4},
             'Results': {'f1': 36, 'f2': 63}}}
 
     # Notice the ordering
@@ -165,23 +161,23 @@ def some_meta():
            f1             f2
     /!\ tranposed
     """
-    res = {u'Computation-somemeta-0': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 5, u'x': 1, u'z': 4, 'y':7},
+    res = {'Computation-somemeta-0': {'Experiment': 'somemeta',
+            'Parameters': {'w': 5, 'x': 1, 'z': 4, 'y':7},
             'Results': {'f1': 15, 'f2': 51}},
-            u'Computation-somemeta-1': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 6, u'x': 1, u'z': 4, 'y':7},
+            'Computation-somemeta-1': {'Experiment': 'somemeta',
+            'Parameters': {'w': 6, 'x': 1, 'z': 4, 'y':7},
             'Results': {'f1': 16, 'f2': 61}},
-            u'Computation-somemeta-2': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 5, u'x': 2, u'z': 4, 'y':7},
+            'Computation-somemeta-2': {'Experiment': 'somemeta',
+            'Parameters': {'w': 5, 'x': 2, 'z': 4, 'y':7},
             'Results': {'f1': 25, 'f2': 52}},
-            u'Computation-somemeta-3': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 6, u'x': 2, u'z': 4, 'y':7},
+            'Computation-somemeta-3': {'Experiment': 'somemeta',
+            'Parameters': {'w': 6, 'x': 2, 'z': 4, 'y':7},
             'Results': {'f1': 26, 'f2': 62}},
-            u'Computation-somemeta-4': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 5, u'x': 3, u'z': 4, 'y':7},
+            'Computation-somemeta-4': {'Experiment': 'somemeta',
+            'Parameters': {'w': 5, 'x': 3, 'z': 4, 'y':7},
             'Results': {'f1': 35, 'f2': 53}},
-            u'Computation-somemeta-5': {'Experiment': 'somemeta',
-            'Parameters': {u'w': 6, u'x': 3, u'z': 4, 'y':7},
+            'Computation-somemeta-5': {'Experiment': 'somemeta',
+            'Parameters': {'w': 6, 'x': 3, 'z': 4, 'y':7},
             'Results': {'f1': 36, 'f2': 63}}}
 
     # Notice the ordering
@@ -193,7 +189,6 @@ def some_meta():
     metrics.sort()
     exp_name = "somemeta"
     return exp_name, metadata, parameters, domain, metrics, res
-
 
 
 def build_cube(exp_name, res):
@@ -220,15 +215,20 @@ def test_info():
 
 def test_hasher():
     metrics = ["m1", "m2"]
-    domain = {"v1":[0, 1, 2], "v2":[0, 1]}
+    domain = {"v1": [0, 1, 2], "v2": [0, 1]}
     ls = []
     for m in metrics:
         for vv2 in domain["v2"]:
             for vv1 in domain["v1"]:
-                ls.append((m, {"v1":vv1, "v2":vv2}))
+                ls.append((m, {"v1": vv1, "v2": vv2}))
     hasher = Hasher(metrics, domain)
-    for index, (metric, params) in enumerate(ls):
-        assert_equal(index, hasher.hash(metric, params))
+    seen = set()
+    for metric, params in ls:
+        index = hasher.hash(metric, params)
+        assert_not_in(index, seen)
+        seen.add(index)
+    assert_equal(0, min(seen))
+    assert_equal(len(ls)-1, max(seen))
 
 
 def test_result_data():
@@ -237,6 +237,7 @@ def test_result_data():
     assert_equal(len(cube.data), len(d)*len(metrics))
     for x in cube.data:
         assert_not_equal(x, None)
+
 
 def test_call():
     name, metadata, params, dom, metrics, d = basic()
