@@ -8,7 +8,7 @@ multiplication and addition of several numbers. More specifically, we will
 compute x*y and z+w for x in [1, 2, 3], y = 2, z = 4, w in [5, 6].
 
 The computation will be done in bash directly. If you want to run the
-same piece of code on a Slurm/SGE cluster, see file `basic_cluster.py`
+same piece of code on a Slurm cluster, see file `basic_cluster.py`
 """
 
 
