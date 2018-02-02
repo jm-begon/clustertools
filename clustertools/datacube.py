@@ -312,7 +312,6 @@ class Datacube(Mapping):
             index += (slice(None),) * (dims-len(index))
             return_scalar = False
 
-
         # ====== Building the return ======
         # +-> Checking if the slice is whole
         same_obj = True
@@ -385,7 +384,6 @@ class Datacube(Mapping):
         clone.shape = tuple(shape)
         return clone
 
-
     def __iter__(self):
         if len(self.parameters) == 0:
             for m in range(len(self.metrics)):
@@ -432,17 +430,21 @@ class Datacube(Mapping):
         """
         return self.__getitem__(slice(start, stop))
 
-    def numpify(self, squeeze=False):
+    def numpyfy(self, squeeze=True):
         import numpy as np
         if len(self.parameters) == 0:
             # Only metrics, everything is in metadata
             return np.array([self.data[self.hash(m, self.metadata)]
-                    for m in self.metrics])
+                             for m in self.metrics])
 
-        arr = np.array([arr.numpify() for arr in self])
+        arr = np.array([arr.numpyfy() for arr in self])
         if squeeze and arr.shape[-1] == 1:
             arr = arr.squeeze()
         return arr
+
+    @deprecated
+    def numpify(self, squeeze=False):
+        return self.numpyfy(squeeze)
 
     def reorder_parameters(self, *args):
         order = []
@@ -476,6 +478,7 @@ class Datacube(Mapping):
                         new_values = tuple([dim_value] + list(values))
                         yield new_values, dbi
 
+    @deprecated
     def iteritems(self):
         return self.items()
 
@@ -493,7 +496,7 @@ class Datacube(Mapping):
 
     def in_domain(self):
         idom = []
-        for params, metrics in self.iteritems():
+        for params, metrics in self.items():
             append = True
             for i, metric in enumerate(metrics):
                 if metric is None:
@@ -506,7 +509,7 @@ class Datacube(Mapping):
 
     def out_of_domain(self):
         ood = []
-        for params, metrics in self.iteritems():
+        for params, metrics in self.items():
             for i, metric in enumerate(metrics):
                 if metric is None:
                     p_dict = {k:v for v,k in zip(params, self.parameters)}
@@ -529,7 +532,7 @@ class Datacube(Mapping):
         some_missings = {}
         all_there = {}
         # Same order as in domain
-        for param, domls in self.domain.iteritems():
+        for param, domls in self.domain.items():
             some_missings[param] = [v for v in domls if v in sets[param]]
             all_there[param] = [v for v in domls if v not in sets[param]]
         return some_missings, all_there
@@ -539,7 +542,7 @@ class Datacube(Mapping):
         some_missings, all_there = self._some_miss_vs_all_there(ood)
 
         diagnosis = {
-            "Missing ratio":self._missing_ratio(ood),
+            "Missing ratio": self._missing_ratio(ood),
             "At least one missing": some_missings,
             "All there": all_there
         }
@@ -549,7 +552,7 @@ class Datacube(Mapping):
         cube = self if metric is None else self(metric=metric)
         _, all_there = cube._some_miss_vs_all_there()
         max_key, max_len = None, -1
-        for k,v in all_there.iteritems():
+        for k,v in all_there.items():
             if len(v) > max_len:
                 max_len = len(v)
                 max_key = k
@@ -558,7 +561,7 @@ class Datacube(Mapping):
     def minimal_hypercube(self, metric=None):
         cube = self if metric is None else self(metric=metric)
         _, all_there = cube._some_miss_vs_all_there()
-        slicing = {k:v for k,v in all_there.iteritems() if len(v) > 0}
+        slicing = {k:v for k,v in all_there.items() if len(v) > 0}
         return cube(**slicing)
 
     def __str__(self):
