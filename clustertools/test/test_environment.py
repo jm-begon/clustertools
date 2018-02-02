@@ -70,7 +70,11 @@ def environment_integration(environment):
     experiment = Experiment(__EXP_NAME__, parameter_set,
                             TestComputation,
                             PickleStorage)
-    environment.run(experiment, start=2, capacity=5)
+    try:
+        error_code = environment.run(experiment, start=2, capacity=5)
+        assert_equal(error_code, 0)
+    except:
+        assert_true(False, "An exception was raised by the environment")
     storage = experiment.storage
     parameters_ls, result_ls = storage.load_params_and_results()
 

@@ -12,8 +12,6 @@ import dill
 
 from .state import PendingState, AbortedState
 
-
-
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
@@ -104,6 +102,18 @@ class Session(object):
         return self
 
     def run(self, lazy_computation):
+        """
+
+        Parameters
+        ----------
+        lazy_computation
+
+        Returns
+        -------
+        success: bool
+            Whether launching the `lazy_computation` was (apparently) a
+            success
+        """
         if not self.is_open():
             raise ValueError("The session has not been opened.")
         try:
@@ -121,6 +131,9 @@ class Session(object):
                                           repr(exception)))
             if self.fail_fast:
                 raise
+            return False
+
+        return True
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.logger.info("Experiment '{exp_name}': {n_launch}/{exp_len} "
@@ -136,6 +149,14 @@ class Environment(object):
     =============
     The `Environment` controls how the computations of a given experiment
     must be run. It is a stateless component
+
+    The `Environment` runs a experiment. To do so, it creates a `Session`.
+    The `Session` is the stateful component which is responsible for:
+     - counting the number of expirement run
+     - logging everything
+     - enforcing the capacity constraint
+    A `Session` should not be created directly.
+    Finally, the `Session` issues the computation through the `Environment`.
     """
     __metaclass__ = ABCMeta
 
@@ -148,17 +169,45 @@ class Environment(object):
                          fail_fast=str(self.fail_fast))
 
     def run(self, experiment, start=0, capacity=None):
+        """
 
+        Parameters
+        ----------
+        experiment
+        start
+        capacity
+
+        Returns
+        -------
+        error_count: int >= 0
+            The number of computations that could not be launched
+        """
+        error_count = 0
         with self.create_session(experiment) as session:
             for lazy_comp in experiment.yield_computations(repr(self),
                                                            start,
                                                            capacity):
                 # a lazy_comp (lazy_computation) is a callable which runs
                 # the computation
-                session.run(lazy_comp)
+                if not session.run(lazy_comp):
+                    error_count += 1
+        return error_count
 
     @abstractmethod
     def issue(self, lazy_computation):
+        """
+        Actually launch the `lazy_computation`
+
+        Parameters
+        ----------
+        lazy_computation: lazyfied `Computation`
+            The computation to launch
+
+        Exception
+        ---------
+        Will throw an exception if an error occurred during the launching. If
+        no exception is raised, the launching is (apparently) fine
+        """
         pass
 
     def create_session(self, experiment):
@@ -193,6 +242,7 @@ class BashEnvironment(Environment):
                                           "-{}".format(str(epoch())))
 
         with open(log_file, "w") as log_hdl:
+            # check_call will raise an exception if the return code is not 0
             subprocess.check_call(job_command, stdout=log_hdl, stderr=log_hdl)
 
 
@@ -267,11 +317,16 @@ class SlurmEnvironment(Environment):
                               stderr=subprocess.PIPE,
                               stdout=subprocess.PIPE) as process:
             stdout, stderr = process.communicate(whole_cmd.encode("utf-8"))
-            logger.debug(stdout.decode("utf-8"))
-
+            stdout = stdout.decode("utf-8")
             stderr = stderr.decode("utf-8")
+            logger.debug(stdout)
+
             if len(stderr) > 0:
                 logger.error(stderr)
             if process.returncode != 0:
                 logger.error("Return code:", process.returncode)
+                raise subprocess.CalledProcessError(process.returncode,
+                                                    cmd=slurm_cmd,
+                                                    stdout=stdout,
+                                                    stderr=stderr)
 
