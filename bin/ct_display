@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+import dill
+import argparse
+import os
+import glob
+
+
+def read_print(fpath):
+    with open(fpath, "rb") as handle:
+        try:
+            raw = pickle.load(handle)
+        except:
+            raw = dill.load(handle)
+        print(repr(raw))
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Display the content of a "
+                                                 "pickle file")
+    parser.add_argument("file", help="The pkl file to display")
+
+    args = parser.parse_args()
+    if os.path.isdir(args.file):
+        files = glob.glob(os.path.join(args.file, "*.pkl"))
+        for file in files:
+            read_print(file)
+            print()
+        print(len(files), "files read.")
+    else:
+        read_print(args.file)
+
+

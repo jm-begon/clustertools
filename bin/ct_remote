@@ -2,32 +2,33 @@
 
 from __future__ import print_function
 
+import argparse
+import subprocess
+import socket
+from collections import defaultdict
+from clustertools import Monitor
+
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-import time, datetime
-import argparse
-import subprocess, os
-import socket
-from collections import defaultdict
-from clustertools import Historic, load_experiment_names
 
 __LH__ = "localhost"
 
 
 def reset(exp_name, hostname):
     try:
-        histo = Historic(exp_name)
+        histo = Monitor(exp_name)
         print(hostname,":", exp_name, histo.count_by_state(), end=" ")
-        histo.reset()
+        histo.to_launchables()
         histo.refresh()
         print(histo.count_by_state)
     except:
         print("No such experiment")
 
+
 def aborted2launchable(exp_name, hostname):
     try:
-        histo = Historic(exp_name)
+        histo = Monitor(exp_name)
         print(hostname,":", exp_name, histo.count_by_state(), end=" ")
         histo.aborted_to_launchable()
         histo.refresh()
@@ -36,23 +37,19 @@ def aborted2launchable(exp_name, hostname):
         print("No such experiment")
 
 
-
-
 if __name__ == "__main__":
     description = "Clustertools task monitoring script"
     doc = """The experiment(s) to process.
 Use ssh-like syntax: 'luke@skywalker:exp_about_the_force'. The first part can
 be omitted for local processing."""
 
-
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("queries", help=doc, nargs="*")
     action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument("--reset", "-r"  action='store_true', default=False,
+    action.add_argument("--reset", "-r",  action='store_true', default=False,
                         help="Reset the given experiments")
     parser.add_argument("--abr2lnch", "-a", action='store_true', default=False,
-                        help="Reset the aborted jobs to lauchable state")
-
+                        help="Reset the aborted jobs to launchable state")
 
     # =========== Preprocessing ============= #
 
@@ -69,7 +66,6 @@ be omitted for local processing."""
             exp_name = query
         sorted_queries[host] = exp_name
 
-
     # =========== Main ============= #
     if __LH__ in sorted_queries:
         try:
@@ -77,9 +73,9 @@ be omitted for local processing."""
         except:
             hostname = "Unkown host"
         for exp_name in sorted_queries[__LH__]:
-            if parser.reset:
+            if args.reset:
                 reset(exp_name, hostname)
-            elif parser.abr2lnch:
+            elif args.abr2lnch:
                 aborted2launchable(exp_name, hostname)
         del sorted_queries[__LH__]
 

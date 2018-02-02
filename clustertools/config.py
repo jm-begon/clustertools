@@ -4,14 +4,14 @@
 Module :mod:`config` contains the configurable features
 """
 
+import os
+
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
-import os
-import yaml
-
 
 __CT_FOLDER__ = "clustertools_data"
+<<<<<<< HEAD
 __CONF_NAME__ = "config.yaml"
 
 
@@ -55,6 +55,14 @@ def dump_config(conf=_get_default_config(), fname=__CONF_NAME__, erase=False):
 
 def get_storage_type():
     return get_config()["Storage"]["default"]
+=======
+__CT_ENV__ = "CT_FOLDER"
+>>>>>>> v0.0.3
 
 
+def get_ct_folder():
+    folder = os.environ.get(__CT_ENV__)
+    if folder is None:
+        folder = os.path.join(os.path.expanduser("~"), __CT_FOLDER__)
+    return folder
 

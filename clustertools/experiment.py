@@ -9,10 +9,12 @@ Restriction
 Experiment names should always elligible file names.
 """
 
-from itertools import product
-from copy import copy, deepcopy
-from collections import Mapping, defaultdict
+import sys
+from abc import ABCMeta, abstractmethod
+from itertools import product as cartesian_product
+from collections import defaultdict
 
+<<<<<<< HEAD
 from functools import reduce
 from six import string_types
 from clusterlib.scheduler import submit
@@ -22,85 +24,181 @@ from .notification import (pending_job_update, running_job_update,
                            completed_job_update, aborted_job_update,
                            partial_job_update, critical_job_update, Historic)
 from .util import reorder, hashlist
+=======
+from .storage import PickleStorage
+from .state import RunningState, Monitor
+>>>>>>> v0.0.3
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 
-__EXP_NAME__ = "Experiment"
-__PARAMETERS__ = "Parameters"
-__RESULTS__ = "Results"
+class Result(dict):
+    """
+    ``Result``
+    ==========
+    A result is a place holder for pairs metric=value
+    """
+    def __init__(self, *metric_names, **kwargs):
+        kwargs.update({k: None for k in metric_names})
+        super(Result, self).__init__(kwargs)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __dir__(self):
+        return self.keys()
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setstate__(self, state):
+        # cf. https://github.com/scikit-learn/scikit-learn/issues/6196.
+        pass
+
+    def __repr__(self):
+        kwargs = ", ".join(["{k}={v}".format(k=k, v=v) for k,v in self.items()])
+        return "{cls}({kwargs})".format(cls=self.__class__.__name__,
+                                        kwargs=kwargs)
 
 
 class Computation(object):
+    """
+    `Computation`
+    =============
+    A ``Computation`` is any computation that must be run as part of an
+    experiment on a given set of parameters
 
-    def __init__(self, exp_name, comp_name, overwrite=True):
+    Constructor parameters
+    ----------------------
+    exp_name: str
+        The name of the experiment
+    comp_name: str
+        The name of the computation
+    context: str (optional)
+        Context information (can be the time/memory requirements, for instance)
+    storage_factory: callable str -> cls:`Storage`
+        A factory which takes as input the experiment name and returns
+        a cls:`Storage` instance
+    """
+    __metaclass__ = ABCMeta
+
+    def __init__(self, exp_name, comp_name, context="n/a",
+                 storage_factory=PickleStorage):
         self.exp_name = exp_name
         self.comp_name = comp_name
-        self.overwrite = overwrite
-        self.storage = get_storage(self.exp_name)
+        self.context = context
+        self.storage = storage_factory(experiment_name=self.exp_name)
+        self.parameters = {}
 
-    def _save(self, result):
-        self.storage.save_result(self.comp_name, result, self.overwrite)
+    def __repr__(self):
+        return "{cls}(exp_name={exp_name}, comp_name={comp_name}, " \
+               "context={context}, " \
+               "storage_factory={storage_factory}).lazyfiy(**{parameters})" \
+               "".format(cls=self.__class__.__name__,
+                         exp_name=repr(self.exp_name),
+                         comp_name=repr(self.comp_name),
+                         context=repr(self.context),
+                         storage_factory=self.storage.__class__.__name__,
+                         parameters=repr(self.parameters))
 
+    @abstractmethod
     def run(self, **parameters):
         pass
 
     def __call__(self, **parameters):
-        start = running_job_update(self.exp_name, self.comp_name)
+        actual_parameters = {k: v for k, v in self.parameters.items()}
+        actual_parameters.update(parameters)
+        state = RunningState(self.exp_name, self.comp_name)
+        self.storage.update_state(state)
         try:
-            result = {
-                self.comp_name: {
-                    __EXP_NAME__: self.exp_name,
-                    __PARAMETERS__: parameters,
-                    __RESULTS__: self.run(**parameters)
-                }
-            }
-            critical_job_update(self.exp_name, self.comp_name, start)
-            self._save(result)
-            completed_job_update(self.exp_name, self.comp_name, start)
-        except Exception as excep:
-            aborted_job_update(self.exp_name, self.comp_name, start, excep)
+            result = self.run(**actual_parameters)
+            state = self.storage.update_state(state.to_critical())
+            self.storage.save_result(self.comp_name, actual_parameters, result,
+                                     self.context)
+
+            state = self.storage.update_state(state.to_completed())
+        except Exception as exception:
+            self.storage.update_state(state.abort(exception))
             raise
+        return result
+
+    def lazyfy(self, **parameters):
+        self.parameters = parameters
+        return self
+
 
 class PartialComputation(Computation):
     """
     Expect the run method to be a generator
     """
+    __metaclass__ = ABCMeta
+
     def __call__(self, **parameters):
-        start = running_job_update(self.exp_name, self.comp_name)
+        actual_parameters = {k: v for k, v in self.parameters.items()}
+        actual_parameters.update(parameters)
+        state = RunningState(self.exp_name, self.comp_name)
+        self.storage.update_state(state)
+        partial_result = Result()
         try:
-            for partial_result in self.run(**parameters):
-                result = {
-                    self.comp_name: {
-                        __EXP_NAME__: self.exp_name,
-                        __PARAMETERS__: parameters,
-                        __RESULTS__: partial_result
-                    }
-                }
-                critical_job_update(self.exp_name, self.comp_name, start)
-                self._save(result)
-                partial_job_update(self.exp_name, self.comp_name, start)
-            completed_job_update(self.exp_name, self.comp_name, start)
-        except Exception as excep:
-            aborted_job_update(self.exp_name, self.comp_name, start, excep)
+            for partial_result in self.run(**actual_parameters):
+                state = self.storage.update_state(state.to_critical())
+                self.storage.save_result(self.comp_name, actual_parameters,
+                                         partial_result, self.context)
+                state = self.storage.update_state(state.to_partial())
+            state = self.storage.update_state(state.to_completed())
+        except Exception as exception:
+            self.storage.update_state(state.abort(exception))
             raise
-
-    def load_partial(self):
-        """return a dict"""
-        return self.storage.load_result(self.comp_name)
+        return partial_result
 
 
-class Experiment(object):
+class ParameterSet(object):
     """
-    param_seq : list of dict
+    `ParameterSet`
+    ==============
+    A `ParameterSet` is a structure yielding parameter tuples. A parameter tuple
+    `pt` is an ordered list of values such that `pt[i]` is an admissible value
+    for parameter `i`. For the sake of ambiguity, a parameter
+    tuple can be referred to as a multidimensional parameter, which can be
+    abbreviated to "parameter" (dropping the plural to raise the confusion
+    with single-dimension parameters).
+
+    A parameter is either a metadata, if it can only take one value, or a
+    variable, if it can take several values. The set of values a parameter can
+    take is referred as its domain.
+
+    To entertain confusion further, "parameter" can refer to the name
+    of the parameter, the value it takes, both or to the mapping between
+    the name and the domain. Enjoy!
+
+    Parameter tuples are generated as the cartesian product of the parameters
+    domain, ordered following the lexicographic order of the parameter names
+    and according the separator: all the tuples of the domains defined before
+    the separator must be yielded before enlarging the domains with was comes
+    after the separator.
+
+    The separator allows for two use cases:
+      1. Force an ordering on the computations (do more important stuff first)
+      2. Make more computation after the first round
+
+
+    Constructor parameters
+    ----------------------
+    param_map_seq: sequence of mapping str -> set, or None (default: None)
+        Each mapping defines one or several bindings of the type "parameter name
+        (i.e. the string)-domain (i.e. the set)". The sequence represents
+        partial domains isolated by separators.
     """
-    def __init__(self, name, params=None, param_seq=None):
-        self.name = name
-        if not params:
-            self.params = {}
+    def __init__(self, param_map_seq=None):
+        if param_map_seq:
+            self.param_map_seq = list(param_map_seq)
         else:
+<<<<<<< HEAD
             self.params = params
         if param_seq:
             self.param_seq = [copy(self.params)] + list(param_seq)
@@ -208,15 +306,24 @@ class Experiment(object):
 
     def __getitem__(self, sel):
         return self.get_params_for(sel)
+=======
+            self.param_map_seq = [defaultdict(set)]
+        self.parameter_names = set()
+        for partial_domain in self.param_map_seq:
+            self.parameter_names.update(partial_domain.keys())
+        # If Hashability is a problem, we cound allow for the choice of the
+        # defaultdict type (for list, for instance). It would not garantee
+        # against colliding domain values, however
+>>>>>>> v0.0.3
 
     def __repr__(self):
-        return "%s(name='%s', param_seq=%s)" % (self.__class__.__name__,
-                                                self.name,
-                                                repr(self.param_seq))
+        return "%s(param_map_seq=%s)" % (self.__class__.__name__,
+                                         repr(self.param_map_seq))
 
     def __str__(self):
         return repr(self)
 
+<<<<<<< HEAD
     def get_metadata(self):
         d = {}
         for k, v in self.params.items():
@@ -298,14 +405,25 @@ class Hasher(object):
         for k, v in kwargs.items():
             self.strides[k] = 0
             self.dom_inv[k] = {v:0}
+=======
+    def __len__(self):
+        domains = defaultdict(set)
+        for param_map in self.param_map_seq:
+            for name, param_domain in param_map.items():
+                domains[name].update(param_domain)
+        nb = 1
+        for val in domains.values():
+            nb *= len(val)
+        return nb
+>>>>>>> v0.0.3
 
-    def hash(self, metric, params):
+    def add_single_values(self, **kwargs):
         """
-        metric: str
-            A metric name
-        params: mapping str -> value
-            A mapping from parameter names to values of their domain
+        kwargs: mapping str -> object
+            A mapping where each key is a parameter name and the object is
+            domain element.
         """
+<<<<<<< HEAD
         if len(params) != len(self.strides):
             raise IndexError("Expecting %d parameters/metadata, got %d" % (len(self.strides), len(params)))
         index = self.metric_inv[metric] * self.metric_stride
@@ -470,26 +588,31 @@ class Result(Mapping):
             except ValueError:
                 raise KeyError("Name '%s' unknown for dimension %d" % (value, n_dim))
 
+=======
+        parameter_mapping = self.param_map_seq[-1]
 
-    def __getitem__(self, index):
-        """
-        Index: singleton, cf self[index, ...]
-        Index: tuple -> for each elem
-            elem: int (= index of param value or metric)
-                Select only that value/metric
-            elem: str
-                Same as int but will perform a lookup to get the index
-            elem: slice of int
-                Slice along those values/metrics
-            elem: slice of str
-                Same as slice of int but will perform a lookup to get the indices
-            elem: iterable of int
-                Will select only those values/metrics
-            elem: iterable of str
-                Same as iterable of int but will perform a lookup to get the indices
-        If all indices are ints, return the value and not a view of the Result
+        for param_name, param_singleton in kwargs.items():
+            if param_name not in self.parameter_names:
+                if len(self.param_map_seq) != 1:  # separator free
+                    # A parameter cannot be added afterward
+                    raise ValueError("New parameter (i.e. '%s') cannot be "
+                                     "added after the first separator."
+                                     % str(param_name))
+                self.parameter_names.add(param_name)
+            parameter_mapping[param_name].add(param_singleton)
+        return self
+>>>>>>> v0.0.3
 
+    def add_parameters(self, **kwargs):
         """
+
+        kwargs: mapping str -> object
+            A mapping where each key is a parameter name and the object is
+            either a single domain element or a sequence of domain elements.
+            If the domain elements are sequences, use `add_single_values`
+            instead.
+        """
+<<<<<<< HEAD
         # ====== Building the list of slices/list (Adapted from NumPy) ======
         # At the end, fixed will be a list of either slice or list of ints
         if not isinstance(index, tuple): index = (index,)
@@ -606,120 +729,149 @@ class Result(Mapping):
                 clone.metadata[param_name] = newvals[0]
                 clone.parameters = [x for x in clone.parameters if x != param_name]
                 del clone.domain[param_name]
+=======
+        for param_name, param_val in kwargs.items():
+            values = []
+            if isinstance(param_val, str):
+                values.append(param_val)
             else:
-                # Must update the domain
-                clone.domain[param_name] = newvals
-                shape.append(len(newvals))
+                try:
+                    # Duck typing: is param_val a sequence?
+                    values.extend(param_val)
+                except TypeError:
+                    # Was not a sequence
+                    values.append(param_val)
+            for val in values:
+                self.add_single_values(**{param_name: val})
+        return self
 
-        # +---> Processing the metrics
-        if isinstance(m_slice, slice):
-            # In case of slice
-            newmetrics = self.metrics[m_slice]
-        else:
-            # In case of list
-            newmetrics = list(reorder(self.metrics, m_slice, in_place=False))
-        if len(newmetrics) == 0:
-            pass   # ??
-        clone.metrics = newmetrics
-        shape.append(len(newmetrics))
-        clone.shape = tuple(shape)
-        return clone
+    def add_separator(self, **kwargs):
+        """
+        kwargs: mapping str -> object
+            A mapping where each key is a parameter name and the object is
+            domain element. This mapping represent the default value that he
+            absence of parameter represented before this separator.
+        """
+        # Note: since we allow for only a singleton for unknown parameters,
+        # it will not generate more parameter tuples until that parameter is
+        # enlarged. Neither will the order be changed, only the tuple size
+        for param_name in kwargs.keys():
+            if param_name in self.parameter_names:
+                raise ValueError("Parameter '%s' already exists." % param_name)
+>>>>>>> v0.0.3
+            else:
+                self.parameter_names.add(param_name)
 
+        parameter_mapping = self.param_map_seq[0]
+        for param_name, param_singleton in kwargs.items():
+            parameter_mapping[param_name].add(param_singleton)
+
+        self.param_map_seq.append(defaultdict(set))
+        return self
+
+    def _iter(self):
+        # Note: using list and sorting is necessary for reproducibility reasons
+        parameter_names = list(self.parameter_names)
+        parameter_names.sort()
+        domains = []  # list (over the ordered name) of lists (domain values)
+        param_map = self.param_map_seq[0]
+        for name in parameter_names:
+            ls = list(param_map[name])
+            ls.sort()
+            domains.append(ls)
+
+        for param_tuple in cartesian_product(*domains):
+            yield 0, {k: t for k, t in zip(parameter_names, param_tuple)}
+
+        # Invariant: domain is up to date regarding self.param_map_seq[:i]
+        # and all the tuples of the domain have been yielded
+        for j, param_map in enumerate(self.param_map_seq[1:], 1):
+            # Invariant: domain is up to date regarding self.param_map_seq[:i]
+            # AND parameter_names[:j] ...
+            for i, name in enumerate(parameter_names):
+                if name in param_map:
+                    # Generate the tuples with the new values of the parameter
+                    new_values = [x for x in param_map[name]
+                                  if x not in domains[i]]
+                    # Domains are expected to be small so this should not be
+                    # too heavy, even though it is inefficient
+
+                    new_values.sort()
+                    dom_tmp = domains[i]  # Store to restore
+                    domains[i] = new_values
+                    for param_tuple in cartesian_product(*domains):
+                        yield j, {k: t for k, t in
+                                  zip(parameter_names, param_tuple)}
+                    # Restore the full domain
+                    dom_tmp.extend(new_values)
+                    domains[i] = dom_tmp
 
     def __iter__(self):
-        if len(self.parameters) == 0:
-            for m in range(len(self.metrics)):
-                # If there are only metrics, yield their values not
-                # a Result view
-                yield self[m]
-        else:
-            for v in range(len(self.domain[self.parameters[0]])):
-                yield self[v, ...]
+        for j, param_dict in self._iter():
+            yield param_dict
 
-    def __len__(self):
-        return self.shape[0]
-
-    def __call__(self, metric=None, **kwargs):
-        if len(kwargs) == 0 and metric is None:
-            return self
-
-        # Computing the slices
-        slices = []
-        for p in self.parameters:
-            v = kwargs.get(p)
-            if v is None:
-                v = slice(None)
-            slices.append(v)
-
-        for k in kwargs.keys():
-            if k not in self.parameters:
-                raise IndexError("Parameter '%s' does not exist"%str(k))
-
-        if metric is None:
-            metric = slice(None)
-        slices.append(metric)
-
-        return self[tuple(slices)]
-
-
-
-    def __getslice__(self, start, stop) :
-        """This solves a subtle bug, where __getitem__ is not called, and all
-        the dimensional checking not done, when a slice of only the first
-        dimension is taken, e.g. a[1:3]. From the Python docs:
-       Deprecated since version 2.0: Support slice objects as parameters
-       to the __getitem__() method. (However, built-in types in CPython
-       currently still implement __getslice__(). Therefore, you have to
-       override it in derived classes when implementing slicing.)
+    def get_indices_with(self, **kwargs):
         """
-        return self.__getitem__(slice(start, stop))
+        Yields indices of parameter tuples containing the parameter-values given
 
-    def numpify(self, squeeze=False):
-        import numpy as np
-        if len(self.parameters) == 0:
-            # Only metrics, everything is in metadata
-            return np.array([self.data[self.hash(m, self.metadata)]
-                    for m in self.metrics])
+        kwargs: mapping str -> set
+            A mapping where each key is a parameter name and the set is the
+            domain of the parameter
+        """
+        parameter_names = kwargs.keys()
+        for index, param_dict in enumerate(self):
+            yield_it = True
+            for name in parameter_names:
+                if param_dict[name] not in kwargs[name]:
+                    yield_it = False
+                    break
+            if yield_it:
+                yield index
 
-        arr = np.array([arr.numpify() for arr in self])
-        if squeeze and arr.shape[-1] == 1:
-            arr = arr.squeeze()
-        return arr
+    def __getitem__(self, index):
+        for i, param_dict in enumerate(self):
+            if i == index:
+                return param_dict
 
-    def reorder_parameters(self, *args):
-        order = []
-        for x in args:
-            if isinstance(x, (int, long)):
-                order.append(x)
-            else:
-                # lookup
-                order.append(self.parameters.index(x))
-        diff = [i for i in range(len(self.parameters)) if i not in order]
-        order.extend(diff)
-        tmps = [self.parameters[i] for i in order]
-        for i, param in enumerate(tmps):
-            self.parameters[i] = param
-
-    def iter_dimensions(self, *dimensions):
-        if len(dimensions) == 0:
-            yield (), self
-        else:
-            dim = dimensions[0]
-            if dim in self.metadata:
-                for values, dbi in self.iter_dimensions(*dimensions[1:]):
-                    new_values = tuple([self.metadata[dim]] + list(values))
-                    yield new_values, dbi
-            else:
-                for dim_value in self.domain[dim]:
-                    # Slicing is fast, no need to cache intermediate result
-                    res_tmp = self(**{dim:dim_value})
-                    for values, dbi in res_tmp.iter_dimensions(*dimensions[1:]):
-
-                        new_values = tuple([dim_value] + list(values))
-                        yield new_values, dbi
+        raise KeyError("Index %d out of range" % index)
 
 
+class ConstrainedParameterSet(ParameterSet):
+    def __init__(self, param_map_seq=None, filters_seq=None):
+        super(ConstrainedParameterSet, self).__init__(param_map_seq)
+        if filters_seq is None:
+            filters_seq = [{}]
+        self.filters_seq = filters_seq
+        if len(self.filters_seq) != len(self.param_map_seq):
+            raise AttributeError("'param_map_seq' and 'filters_seq' must have "
+                                 "the same length")
 
+    def __repr__(self):
+        return "{cls}(param_map_seq={pms}, filters_seq={fs})" \
+               "".format(cls=self.__class__.__name__,
+                         pms=repr(self.param_map_seq),
+                         fs=repr(self.filters_seq))
+
+    def add_separator(self, **kwargs):
+        super(ConstrainedParameterSet, self).add_separator()
+        # Keep all the filters
+        self.filters_seq.append({k: v for k, v in self.filters_seq[-1].items()})
+
+    def add_constraints(self, **kwargs):
+        """
+        Add the constraints. Constraints apply from this stage on, they are not
+        retroactive with respect to separators.
+
+        kwargs: mapping str -> callable(**kwargs)
+            a named predicate. It takes as input a detupled param tuple
+        """
+        self.filters_seq[-1].update(kwargs)
+
+    def delete_constraints(self, *args):
+        for constraint_name in args:
+            del self.filters_seq[-1][constraint_name]
+
+<<<<<<< HEAD
     def iteritems(self):
         """
         Yields pairs (params, metrics) in the order of this `Result`
@@ -804,62 +956,77 @@ class Result(Mapping):
         _, all_there = cube._some_miss_vs_all_there()
         slicing = {k:v for k,v in all_there.items() if len(v) > 0}
         return cube(**slicing)
+=======
+    def _iter(self):
+        for j, tuple_dict in super(ConstrainedParameterSet, self)._iter():
+            yield_it = True
+            for constraint in self.filters_seq[j].values():
+                if not constraint(**tuple_dict):
+                    yield_it = False
+                    break
+            if yield_it:
+                yield j, tuple_dict
+>>>>>>> v0.0.3
+
+    def __len__(self):
+        n = 0
+        for _ in self:
+            n += 1
+        return n
 
 
-    def __str__(self):
-        try:
-            val = "Values:\n"+str(self.numpify())
-        except:
-            val = "Hash of data: \t"+self.datahash
-        return """Results of '%s':
-=====================
-Metadata: \t%s
-Parameters: \t%s
-Domain: \t%s
-Metrics: \t%s
-Shape: \t%s
-%s""" % (self.name, str(self.metadata), str(self.parameters), str(self.domain),
-         str(self.metrics), str(self.shape), val)
+class Experiment(object):
 
-    def __repr__(self):
-        return "%s(name='%s', metadata=%s, parameters=%s, domain=%s," \
-               " metrics=%s, data='%s')" % (self.__class__.__name__, self.name, \
-               str(self.metadata), str(self.parameters), str(self.domain),
-               str(self.metrics), self.datahash)
+    @classmethod
+    def name_computation(cls, exp_name, index):
+        return "Computation-{}-{:d}".format(exp_name, index)
 
+    def __init__(self, exp_name, parameter_set, computation_factory,
+                 storage_factory=PickleStorage, user=None):
+        self.exp_name = exp_name
+        self.parameter_set = parameter_set
+        self.comp_factory = computation_factory
+        self.storage_factory = storage_factory
+        self.monitor = Monitor(exp_name, user, storage_factory)
 
+    @property
+    def storage(self):
+        return self.monitor.storage
 
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return False
-        same = True
-        same = same and (self.name == other.name)
-        same = same and (self.metadata == other.metadata)
-        same = same and (self.parameters == other.parameters)
-        same = same and (self.domain == other.domain)
-        same = same and (self.metrics == other.metrics)
-        same = same and (self.data == other.data)
-        return same
+    def yield_computations(self, context="n/a", start=0, capacity=None):
+        if capacity is None:
+            capacity = sys.maxsize
 
+        self.monitor.refresh()
+        storage = self.monitor.storage
+        storage.init()
+        unlaunchable = self.monitor.unlaunchable_computations()
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        storage_factory = self.storage_factory
 
+        i = 0
+        for j, param_dict in enumerate(self.parameter_set):
+            if j < start:
+                continue
+            if i >= capacity:
+                break
+            label = Experiment.name_computation(self.exp_name, j)
+            if label in unlaunchable:
+                continue
 
+            computation = self.comp_factory(exp_name=self.exp_name,
+                                            comp_name=label,
+                                            context=context,
+                                            storage_factory=storage_factory)
 
+            yield computation.lazyfy(**param_dict)
 
-def build_result_cube(exp_name, *exp_names):
-    exps = [exp_name]
-    if len(exp_names) > 0:
-        exps = exps + list(exp_names)
-    parameterss = []
-    resultss = []
-    for exp in exps:
-        result = load_results(exp)
-        for d in result.values():
-            parameterss.append(d[__PARAMETERS__])
-            resultss.append(d[__RESULTS__])
-    return Result(parameterss, resultss, exp_name)
+            i += 1
 
+    def __iter__(self):
+        for x in self.yield_computations():
+            yield x
 
+    def __len__(self):
+        return len(self.parameter_set)
 

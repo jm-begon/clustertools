@@ -25,18 +25,13 @@ CLASSIFIERS = [
     'Intended Audience :: Education',
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.3',
-    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
     'Topic :: Scientific/Engineering',
     'Topic :: Utilities',
     'Topic :: Software Development :: Libraries',
 ]
 
 if __name__ == '__main__':
-    from clustertools.config import dump_config
-    dump_config()
     setup(name=NAME,
           version=VERSION,
           author=AUTHOR,
@@ -47,8 +42,8 @@ if __name__ == '__main__':
           license='BSD3',
           classifiers=CLASSIFIERS,
           platforms='any',
-          install_requires=['clusterlib',],
+          install_requires=['clusterlib', 'nose', 'dill'],
           packages=['clustertools', 'clustertools.test'],
-          scripts=['bin/ct_count', 'bin/ct_sync', 'bin/ct_001to002',
-                   'bin/ct_remote'])
+          scripts=['bin/ct_count', 'bin/ct_sync',
+                   'bin/ct_remote', 'bin/ct_display'])
 

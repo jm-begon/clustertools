@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 ============
 clustertools
@@ -34,37 +33,36 @@ This library uses logging for
     - Warning in :func:`experiment.run_experiment` ('clustertools')
 By default, logging is disabled
 """
+import logging
+
+# Clustertools visibility
+from .storage import Architecture
+from .state import Monitor
+from .experiment import Computation, PartialComputation, ParameterSet, \
+    ConstrainedParameterSet, Result, Experiment
+from .environment import Serializer, FileSerializer
+from .datacube import Datacube, build_result_cube, build_datacube
+from .parser import BaseParser, ClusterParser
+from .util import call_with
+from .config import get_ct_folder
+
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-__version__ = '0.0.2'
+__version__ = '0.1.0'
 __date__ = "08 Oct. 2015"
 
 
-from .database import load_experiment_names, get_meta_log_file
-from .notification import Historic
-from .experiment import (Computation, PartialComputation, Experiment, Hasher,
-                         Result,build_result_cube)
-from .parser import parse_args, parse_params
-from .runner import run_experiment
-from .util import (call_with, encode_kwargs, decode_kwargs, bash_submit,
-                   false_submit, experiment_diff, reorder)
-from .config import get_ct_folder
-
-__all__ = ["load_experiment_names", "Historic", "Computation",
-           "PartialComputation", "Experiment", "build_result_cube", "Hasher",
-           "Result", "run_experiment", "relaunch_experiment",
-           "parse_args", "parse_params", "call_with", "encode_kwargs",
-           "decode_kwargs", "bash_submit", "false_submit", "experiment_diff",
-           "set_stdout_logging", "reorder", "get_ct_folder"]
+__all__ = ["Monitor", "Computation", "PartialComputation", "ParameterSet",
+           "ConstrainedParameterSet", "Result", "Experiment", "Serializer",
+           "FileSerializer" "Datacube", "build_result_cube", "build_datacube",
+           "BaseParser", "ClusterParser", "call_with", "set_stdout_logging"]
 
 
-
-
-import logging
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
 
-def set_stdout_logging():
+
+def set_stdout_logging(architecture=Architecture()):
     """
     Sets stdout as default logging facility
     """
@@ -72,7 +70,7 @@ def set_stdout_logging():
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
 
-    fh = logging.FileHandler(get_meta_log_file())
+    fh = logging.FileHandler(architecture.get_meta_log_file())
     fh.setLevel(logging.INFO)
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - "

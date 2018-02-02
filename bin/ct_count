@@ -2,18 +2,20 @@
 
 from __future__ import print_function
 
+import time
+import datetime
+import argparse
+import subprocess
+import os
+import socket
+import sys
+from collections import defaultdict
+from clustertools import Monitor, Architecture
+
 #TODO regular expression style
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-
-import time, datetime
-import argparse
-import subprocess, os
-import socket
-import sys
-from collections import defaultdict
-from clustertools import Historic, load_experiment_names
 
 __LH__ = "localhost"
 __WC__ = "*"
@@ -27,11 +29,12 @@ experiment. Several queries are separated by a space. Queries for a remote
 host are sent as once. By default, all the local experiment are listed
 """ % __WC__
 
-
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("queries", help=doc, nargs="*")
     parser.add_argument("-l", "--loop", default=-1, type=int,
-                        help="Number of minute to wait between two refreshment. Set to negative (default) for no refreshment.")
+                        help="Number of minute to wait between two "
+                             "refreshment. Set to negative (default) for no "
+                             "refreshment.")
 
     # =========== Preprocessing ============= #
 
@@ -57,15 +60,16 @@ host are sent as once. By default, all the local experiment are listed
         try:
             hostname = socket.gethostname()
         except:
-            hostname = "Unkown host"
+            hostname = "Unknown host"
         if __LH__ in sorted_queries:
             for exp_name in sorted_queries[__LH__]:
                 if exp_name == __WC__:
                     print(hostname, ":")
-                    for name in load_experiment_names():
-                        print("\t", name, Historic(name).count_by_state())
+                    for name in Architecture().load_experiment_names():
+                        print("\t", name, Monitor(name).count_by_state())
                 else:
-                    print(hostname,":", exp_name, Historic(exp_name).count_by_state())
+                    print(hostname, ":", exp_name,
+                          Monitor(exp_name).count_by_state())
             del sorted_queries[__LH__]
 
         # Remote queries
