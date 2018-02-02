@@ -259,8 +259,8 @@ class Storage(object):
         f = self.get_last_log_file(comp_name)
         if f is None:
             logger = logging.getLogger("clustertools.storage.print_log_file")
-            logger.warn("File '{file}' does not exists ({comp_name})."
-                        "".format(file=f, comp_name=comp_name))
+            logger.warning("File '{file}' does not exists ({comp_name})."
+                           "".format(file=f, comp_name=comp_name))
             return
         if last_lines is None:
             with open(f) as fhd:
