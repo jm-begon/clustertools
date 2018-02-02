@@ -25,12 +25,12 @@ class Hasher(object):
         return [x for _, x in tmp]
 
     def __init__(self, metrics, domain, metadata=None):
-        self.metric_inv = {p:i for i, p in enumerate(metrics)}
+        self.metric_inv = {p: i for i, p in enumerate(metrics)}
         self.dom_inv = {}
         last_stride = 1
         self.strides = {}
         for name, vals in domain.items():
-            inv = {p:i for i, p in enumerate(vals)}
+            inv = {p: i for i, p in enumerate(vals)}
             self.dom_inv[name] = inv
             self.strides[name] = last_stride
             last_stride *= len(vals)
