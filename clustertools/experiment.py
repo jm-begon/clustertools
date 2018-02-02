@@ -13,7 +13,6 @@ import sys
 from abc import ABCMeta, abstractmethod
 from itertools import product as cartesian_product
 from collections import defaultdict
-from six import string_types
 
 from .storage import PickleStorage
 from .state import RunningState, Monitor
@@ -242,7 +241,7 @@ class ParameterSet(object):
         """
         for param_name, param_val in kwargs.items():
             values = []
-            if isinstance(param_val, string_types):
+            if isinstance(param_val, str):
                 values.append(param_val)
             else:
                 try:
@@ -399,6 +398,10 @@ class ConstrainedParameterSet(ParameterSet):
 
 class Experiment(object):
 
+    @classmethod
+    def name_computation(cls, exp_name, index):
+        return "Computation-{}-{:d}".format(exp_name, index)
+
     def __init__(self, exp_name, parameter_set, computation_factory,
                  storage_factory=PickleStorage, user=None):
         self.exp_name = exp_name
@@ -410,9 +413,6 @@ class Experiment(object):
     @property
     def storage(self):
         return self.monitor.storage
-
-    def name_computation(self, index):
-        return "Computation-" + self.exp_name + "-" + str(index)
 
     def yield_computations(self, context="n/a", start=0, capacity=None):
         if capacity is None:
@@ -431,7 +431,7 @@ class Experiment(object):
                 continue
             if i >= capacity:
                 break
-            label = self.name_computation(j)
+            label = Experiment.name_computation(self.exp_name, j)
             if label in unlaunchable:
                 continue
 
