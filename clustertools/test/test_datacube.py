@@ -423,23 +423,21 @@ def test_indexing_path():
     assert_equal(val, val2)
 
 
-
-
-def test_numpify():
+def test_numpyfy():
     import numpy as np
     # TODO skip if not numpy
     name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
     cube2 = cube[0, 0]
     assert_equal(len(cube2.parameters), 0)
-    numpified = cube2.numpify()
+    numpified = cube2.numpyfy(False)
     assert_equal(numpified.shape, (2, ))
     for v1, v2 in zip(numpified, [15, 51]):
         assert_equal(v1, v2)
     arr1 = np.array([[15, 25, 35], [16, 26, 36]])
     arr2 = np.array([[51, 52, 53], [61, 62, 63]])
     array = np.dstack([arr1, arr2])
-    numpified = cube.numpify()
+    numpified = cube.numpyfy(False)
     assert_equal(numpified.shape, array.shape)
     for v1, v2 in zip(numpified, array):
         for v11, v22 in zip(v1, v2):
