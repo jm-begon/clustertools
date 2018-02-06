@@ -1,0 +1,544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.experiment &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="clustertools" href="../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.experiment</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module :mod:`experiment` is a set of functions and classes to build, run and</span>
+<span class="sd">monitor experiments</span>
+
+<span class="sd">Restriction</span>
+<span class="sd">-----------</span>
+<span class="sd">Experiment names should always elligible file names.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span> <span class="k">as</span> <span class="n">cartesian_product</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">.storage</span> <span class="k">import</span> <span class="n">PickleStorage</span>
+<span class="kn">from</span> <span class="nn">.state</span> <span class="k">import</span> <span class="n">RunningState</span><span class="p">,</span> <span class="n">Monitor</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="Result"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Result">[docs]</a><span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ``Result``</span>
+<span class="sd">    ==========</span>
+<span class="sd">    A result is a place holder for pairs metric=value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">metric_names</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">metric_names</span><span class="p">})</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Result</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="c1"># cf. https://github.com/scikit-learn/scikit-learn/issues/6196.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{k}</span><span class="s2">=</span><span class="si">{v}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2">(</span><span class="si">{kwargs}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                        <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Computation"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Computation">[docs]</a><span class="k">class</span> <span class="nc">Computation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Computation`</span>
+<span class="sd">    =============</span>
+<span class="sd">    A ``Computation`` is any computation that must be run as part of an</span>
+<span class="sd">    experiment on a given set of parameters</span>
+
+<span class="sd">    Constructor parameters</span>
+<span class="sd">    ----------------------</span>
+<span class="sd">    exp_name: str</span>
+<span class="sd">        The name of the experiment</span>
+<span class="sd">    comp_name: str</span>
+<span class="sd">        The name of the computation</span>
+<span class="sd">    context: str (optional)</span>
+<span class="sd">        Context information (can be the time/memory requirements, for instance)</span>
+<span class="sd">    storage_factory: callable str -&gt; cls:`Storage`</span>
+<span class="sd">        A factory which takes as input the experiment name and returns</span>
+<span class="sd">        a cls:`Storage` instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span>
+                 <span class="n">storage_factory</span><span class="o">=</span><span class="n">PickleStorage</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span> <span class="o">=</span> <span class="n">comp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="n">storage_factory</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2">(exp_name=</span><span class="si">{exp_name}</span><span class="s2">, comp_name=</span><span class="si">{comp_name}</span><span class="s2">, &quot;</span> \
+               <span class="s2">&quot;context=</span><span class="si">{context}</span><span class="s2">, &quot;</span> \
+               <span class="s2">&quot;storage_factory=</span><span class="si">{storage_factory}</span><span class="s2">).lazyfiy(**</span><span class="si">{parameters}</span><span class="s2">)&quot;</span> \
+               <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                         <span class="n">exp_name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">),</span>
+                         <span class="n">comp_name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">),</span>
+                         <span class="n">context</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">),</span>
+                         <span class="n">storage_factory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                         <span class="n">parameters</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Computation.run"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Computation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="n">actual_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">actual_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">RunningState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">actual_parameters</span><span class="p">)</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">to_critical</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">save_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">actual_parameters</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">to_completed</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">abort</span><span class="p">(</span><span class="n">exception</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="Computation.lazyfy"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Computation.lazyfy">[docs]</a>    <span class="k">def</span> <span class="nf">lazyfy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<div class="viewcode-block" id="PartialComputation"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.PartialComputation">[docs]</a><span class="k">class</span> <span class="nc">PartialComputation</span><span class="p">(</span><span class="n">Computation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Expect the run method to be a generator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="n">actual_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">actual_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">RunningState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">partial_result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">partial_result</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">actual_parameters</span><span class="p">):</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">to_critical</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">save_result</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">actual_parameters</span><span class="p">,</span>
+                                         <span class="n">partial_result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">to_partial</span><span class="p">())</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">to_completed</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">abort</span><span class="p">(</span><span class="n">exception</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">partial_result</span></div>
+
+
+<div class="viewcode-block" id="ParameterSet"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ParameterSet">[docs]</a><span class="k">class</span> <span class="nc">ParameterSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `ParameterSet`</span>
+<span class="sd">    ==============</span>
+<span class="sd">    A `ParameterSet` is a structure yielding parameter tuples. A parameter tuple</span>
+<span class="sd">    `pt` is an ordered list of values such that `pt[i]` is an admissible value</span>
+<span class="sd">    for parameter `i`. For the sake of ambiguity, a parameter</span>
+<span class="sd">    tuple can be referred to as a multidimensional parameter, which can be</span>
+<span class="sd">    abbreviated to &quot;parameter&quot; (dropping the plural to raise the confusion</span>
+<span class="sd">    with single-dimension parameters).</span>
+
+<span class="sd">    A parameter is either a metadata, if it can only take one value, or a</span>
+<span class="sd">    variable, if it can take several values. The set of values a parameter can</span>
+<span class="sd">    take is referred as its domain.</span>
+
+<span class="sd">    To entertain confusion further, &quot;parameter&quot; can refer to the name</span>
+<span class="sd">    of the parameter, the value it takes, both or to the mapping between</span>
+<span class="sd">    the name and the domain. Enjoy!</span>
+
+<span class="sd">    Parameter tuples are generated as the cartesian product of the parameters</span>
+<span class="sd">    domain, ordered following the lexicographic order of the parameter names</span>
+<span class="sd">    and according the separator: all the tuples of the domains defined before</span>
+<span class="sd">    the separator must be yielded before enlarging the domains with was comes</span>
+<span class="sd">    after the separator.</span>
+
+<span class="sd">    The separator allows for two use cases:</span>
+<span class="sd">      1. Force an ordering on the computations (do more important stuff first)</span>
+<span class="sd">      2. Make more computation after the first round</span>
+
+
+<span class="sd">    Constructor parameters</span>
+<span class="sd">    ----------------------</span>
+<span class="sd">    param_map_seq: sequence of mapping str -&gt; set, or None (default: None)</span>
+<span class="sd">        Each mapping defines one or several bindings of the type &quot;parameter name</span>
+<span class="sd">        (i.e. the string)-domain (i.e. the set)&quot;. The sequence represents</span>
+<span class="sd">        partial domains isolated by separators.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_map_seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">param_map_seq</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">param_map_seq</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">partial_domain</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">partial_domain</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c1"># If Hashability is a problem, we cound allow for the choice of the</span>
+        <span class="c1"># defaultdict type (for list, for instance). It would not garantee</span>
+        <span class="c1"># against colliding domain values, however</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(param_map_seq=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                         <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">domains</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">param_map</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param_domain</span> <span class="ow">in</span> <span class="n">param_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">domains</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">param_domain</span><span class="p">)</span>
+        <span class="n">nb</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">domains</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">nb</span> <span class="o">*=</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nb</span>
+
+<div class="viewcode-block" id="ParameterSet.add_single_values"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ParameterSet.add_single_values">[docs]</a>    <span class="k">def</span> <span class="nf">add_single_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        kwargs: mapping str -&gt; object</span>
+<span class="sd">            A mapping where each key is a parameter name and the object is</span>
+<span class="sd">            domain element.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameter_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_singleton</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># separator free</span>
+                    <span class="c1"># A parameter cannot be added afterward</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;New parameter (i.e. &#39;</span><span class="si">%s</span><span class="s2">&#39;) cannot be &quot;</span>
+                                     <span class="s2">&quot;added after the first separator.&quot;</span>
+                                     <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">param_name</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+            <span class="n">parameter_mapping</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">param_singleton</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="ParameterSet.add_parameters"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ParameterSet.add_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        kwargs: mapping str -&gt; object</span>
+<span class="sd">            A mapping where each key is a parameter name and the object is</span>
+<span class="sd">            either a single domain element or a sequence of domain elements.</span>
+<span class="sd">            If the domain elements are sequences, use `add_single_values`</span>
+<span class="sd">            instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param_val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Duck typing: is param_val a sequence?</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">param_val</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="c1"># Was not a sequence</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param_val</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_single_values</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">param_name</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="ParameterSet.add_separator"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ParameterSet.add_separator">[docs]</a>    <span class="k">def</span> <span class="nf">add_separator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        kwargs: mapping str -&gt; object</span>
+<span class="sd">            A mapping where each key is a parameter name and the object is</span>
+<span class="sd">            domain element. This mapping represent the default value that he</span>
+<span class="sd">            absence of parameter represented before this separator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Note: since we allow for only a singleton for unknown parameters,</span>
+        <span class="c1"># it will not generate more parameter tuples until that parameter is</span>
+        <span class="c1"># enlarged. Neither will the order be changed, only the tuple size</span>
+        <span class="k">for</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;</span><span class="si">%s</span><span class="s2">&#39; already exists.&quot;</span> <span class="o">%</span> <span class="n">param_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+
+        <span class="n">parameter_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_singleton</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">parameter_mapping</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">param_singleton</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Note: using list and sorting is necessary for reproducibility reasons</span>
+        <span class="n">parameter_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">)</span>
+        <span class="n">parameter_names</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">domains</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># list (over the ordered name) of lists (domain values)</span>
+        <span class="n">param_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_names</span><span class="p">:</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">param_map</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">ls</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">domains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param_tuple</span> <span class="ow">in</span> <span class="n">cartesian_product</span><span class="p">(</span><span class="o">*</span><span class="n">domains</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parameter_names</span><span class="p">,</span> <span class="n">param_tuple</span><span class="p">)}</span>
+
+        <span class="c1"># Invariant: domain is up to date regarding self.param_map_seq[:i]</span>
+        <span class="c1"># and all the tuples of the domain have been yielded</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">param_map</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Invariant: domain is up to date regarding self.param_map_seq[:i]</span>
+            <span class="c1"># AND parameter_names[:j] ...</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parameter_names</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">param_map</span><span class="p">:</span>
+                    <span class="c1"># Generate the tuples with the new values of the parameter</span>
+                    <span class="n">new_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">param_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                                  <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">domains</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                    <span class="c1"># Domains are expected to be small so this should not be</span>
+                    <span class="c1"># too heavy, even though it is inefficient</span>
+
+                    <span class="n">new_values</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                    <span class="n">dom_tmp</span> <span class="o">=</span> <span class="n">domains</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># Store to restore</span>
+                    <span class="n">domains</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_values</span>
+                    <span class="k">for</span> <span class="n">param_tuple</span> <span class="ow">in</span> <span class="n">cartesian_product</span><span class="p">(</span><span class="o">*</span><span class="n">domains</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">j</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span>
+                                  <span class="nb">zip</span><span class="p">(</span><span class="n">parameter_names</span><span class="p">,</span> <span class="n">param_tuple</span><span class="p">)}</span>
+                    <span class="c1"># Restore the full domain</span>
+                    <span class="n">dom_tmp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_values</span><span class="p">)</span>
+                    <span class="n">domains</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dom_tmp</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">param_dict</span>
+
+<div class="viewcode-block" id="ParameterSet.get_indices_with"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ParameterSet.get_indices_with">[docs]</a>    <span class="k">def</span> <span class="nf">get_indices_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Yields indices of parameter tuples containing the parameter-values given</span>
+
+<span class="sd">        kwargs: mapping str -&gt; set</span>
+<span class="sd">            A mapping where each key is a parameter name and the set is the</span>
+<span class="sd">            domain of the parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameter_names</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">yield_it</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameter_names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">param_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+                    <span class="n">yield_it</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">yield_it</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">index</span></div>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">index</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">param_dict</span>
+
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Index </span><span class="si">%d</span><span class="s2"> out of range&quot;</span> <span class="o">%</span> <span class="n">index</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConstrainedParameterSet"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ConstrainedParameterSet">[docs]</a><span class="k">class</span> <span class="nc">ConstrainedParameterSet</span><span class="p">(</span><span class="n">ParameterSet</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_map_seq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filters_seq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConstrainedParameterSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">param_map_seq</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filters_seq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filters_seq</span> <span class="o">=</span> <span class="p">[{}]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span> <span class="o">=</span> <span class="n">filters_seq</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&#39;param_map_seq&#39; and &#39;filters_seq&#39; must have &quot;</span>
+                                 <span class="s2">&quot;the same length&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2">(param_map_seq=</span><span class="si">{pms}</span><span class="s2">, filters_seq=</span><span class="si">{fs}</span><span class="s2">)&quot;</span> \
+               <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                         <span class="n">pms</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_map_seq</span><span class="p">),</span>
+                         <span class="n">fs</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ConstrainedParameterSet.add_separator"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ConstrainedParameterSet.add_separator">[docs]</a>    <span class="k">def</span> <span class="nf">add_separator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConstrainedParameterSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_separator</span><span class="p">()</span>
+        <span class="c1"># Keep all the filters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span></div>
+
+<div class="viewcode-block" id="ConstrainedParameterSet.add_constraints"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ConstrainedParameterSet.add_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">add_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add the constraints. Constraints apply from this stage on, they are not</span>
+<span class="sd">        retroactive with respect to separators.</span>
+
+<span class="sd">        kwargs: mapping str -&gt; callable(**kwargs)</span>
+<span class="sd">            a named predicate. It takes as input a detupled param tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConstrainedParameterSet.delete_constraints"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.ConstrainedParameterSet.delete_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">delete_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">constraint_name</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">constraint_name</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">tuple_dict</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">(</span><span class="n">ConstrainedParameterSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_iter</span><span class="p">():</span>
+            <span class="n">yield_it</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters_seq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">constraint</span><span class="p">(</span><span class="o">**</span><span class="n">tuple_dict</span><span class="p">):</span>
+                    <span class="n">yield_it</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">yield_it</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">j</span><span class="p">,</span> <span class="n">tuple_dict</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="Experiment"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Experiment">[docs]</a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Experiment.name_computation"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Experiment.name_computation">[docs]</a>    <span class="k">def</span> <span class="nf">name_computation</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Computation-</span><span class="si">{}</span><span class="s2">-</span><span class="si">{:d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">parameter_set</span><span class="p">,</span> <span class="n">computation_factory</span><span class="p">,</span>
+                 <span class="n">storage_factory</span><span class="o">=</span><span class="n">PickleStorage</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_set</span> <span class="o">=</span> <span class="n">parameter_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_factory</span> <span class="o">=</span> <span class="n">computation_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_factory</span> <span class="o">=</span> <span class="n">storage_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">Monitor</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">storage_factory</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">storage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">storage</span>
+
+<div class="viewcode-block" id="Experiment.yield_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.experiment.Experiment.yield_computations">[docs]</a>    <span class="k">def</span> <span class="nf">yield_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">capacity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">capacity</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="n">storage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">storage</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">unlaunchable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">unlaunchable_computations</span><span class="p">()</span>
+
+        <span class="n">storage_factory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_factory</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_set</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">capacity</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">Experiment</span><span class="o">.</span><span class="n">name_computation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">unlaunchable</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">computation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_factory</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span>
+                                            <span class="n">comp_name</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                                            <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                            <span class="n">storage_factory</span><span class="o">=</span><span class="n">storage_factory</span><span class="p">)</span>
+
+            <span class="k">yield</span> <span class="n">computation</span><span class="o">.</span><span class="n">lazyfy</span><span class="p">(</span><span class="o">**</span><span class="n">param_dict</span><span class="p">)</span>
+
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_computations</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_set</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

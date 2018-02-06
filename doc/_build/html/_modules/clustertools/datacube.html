@@ -1,0 +1,697 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.datacube &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="clustertools" href="../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.datacube</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">reorder</span><span class="p">,</span> <span class="n">hashlist</span><span class="p">,</span> <span class="n">deprecated</span>
+
+<span class="kn">from</span> <span class="nn">.storage</span> <span class="k">import</span> <span class="n">PickleStorage</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="Hasher"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher">[docs]</a><span class="k">class</span> <span class="nc">Hasher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    metrics: iterable of metric_name</span>
+<span class="sd">    domain: mapping param_name -&gt; iterable of values (axis domain)</span>
+<span class="sd">    metadata: mapping param_name -&gt; param_val</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Hasher.sort_back"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher.sort_back">[docs]</a>    <span class="k">def</span> <span class="nf">sort_back</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">):</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">tmp</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_inv</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metrics</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">last_stride</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strides</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">domain</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">inv</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">)}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">inv</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_stride</span>
+            <span class="n">last_stride</span> <span class="o">*=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metric_stride</span> <span class="o">=</span> <span class="n">last_stride</span>
+        <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+
+<div class="viewcode-block" id="Hasher.get_cons_args"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher.get_cons_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_cons_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">Hasher</span><span class="o">.</span><span class="n">sort_back</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_inv</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">domdic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">Hasher</span><span class="o">.</span><span class="n">sort_back</span><span class="p">(</span><span class="n">domdic</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">domain</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">Hasher</span><span class="o">.</span><span class="n">sort_back</span><span class="p">(</span><span class="n">domdic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metadata</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">metrics</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cons_args</span><span class="p">()</span>
+        <span class="n">cls_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(metrics=</span><span class="si">%s</span><span class="s2">, domain=</span><span class="si">%s</span><span class="s2">, metadata=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cls_name</span><span class="p">,</span>
+                                                           <span class="nb">repr</span><span class="p">(</span><span class="n">metrics</span><span class="p">),</span>
+                                                           <span class="nb">repr</span><span class="p">(</span><span class="n">domain</span><span class="p">),</span>
+                                                           <span class="nb">repr</span><span class="p">(</span><span class="n">metadata</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Hasher.add_metadata"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher.add_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">add_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="Hasher.hash"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher.hash">[docs]</a>    <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        metric: str</span>
+<span class="sd">            A metric name</span>
+<span class="sd">        params: mapping str -&gt; value</span>
+<span class="sd">            A mapping from parameter names to values of their domain</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Expecting </span><span class="si">%d</span><span class="s2"> parameters/metadata, got </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_inv</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_stride</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="n">pv</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">index</span></div>
+
+<div class="viewcode-block" id="Hasher.dehash"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Hasher.dehash">[docs]</a>    <span class="k">def</span> <span class="nf">dehash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># First, find the metric:</span>
+        <span class="n">metric_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_stride</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">Hasher</span><span class="o">.</span><span class="n">sort_back</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_inv</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="n">metric_index</span><span class="p">]</span>
+
+        <span class="c1"># Then, find the parameters</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_stride</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strides</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">dims</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stride</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># We arrived at the metadata</span>
+                <span class="k">continue</span>
+            <span class="n">dom</span> <span class="o">=</span> <span class="n">Hasher</span><span class="o">.</span><span class="n">sort_back</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dom_inv</span><span class="p">[</span><span class="n">param</span><span class="p">])</span>
+            <span class="n">p_idx</span> <span class="o">=</span> <span class="n">index</span> <span class="o">//</span> <span class="n">stride</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">dom</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="n">stride</span>
+
+        <span class="k">return</span> <span class="n">res</span></div>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Datacube"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube">[docs]</a><span class="k">class</span> <span class="nc">Datacube</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    parameterss : iterable of mappings param_name -&gt; value</span>
+<span class="sd">    resultss : iterable of mappings metric_name -&gt; value</span>
+
+<span class="sd">    Instance variables</span>
+<span class="sd">    ------------------</span>
+<span class="sd">    name: str (default &quot;&quot;)</span>
+<span class="sd">        The experiment name</span>
+<span class="sd">    metadata: mapping str -&gt; value</span>
+<span class="sd">        A dictionary containing, for each of the metadatum, the associated value</span>
+<span class="sd">    domain: mapping str -&gt; iterable of values</span>
+<span class="sd">        A dictionary containing, for each domain name, the iterable of possible</span>
+<span class="sd">        values</span>
+<span class="sd">    parameters: iterable of str</span>
+<span class="sd">        The name of each axis (with correspind index)</span>
+<span class="sd">    metrics: iterable of str</span>
+<span class="sd">        The name of each metric. The metric is the last axis. Each index in that</span>
+<span class="sd">        axis correspond to a metric in the order of `metrics`</span>
+<span class="sd">    data: iterable</span>
+<span class="sd">        The raw data</span>
+<span class="sd">    hash: :class:`Hasher`</span>
+<span class="sd">        The hasher to the data</span>
+<span class="sd">    shape: tuple (of size `len(parameters)+1`)</span>
+<span class="sd">        The shape of the result cube. The N-1 first axis are linked to the</span>
+<span class="sd">        parameters and the last one to the metrics</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters_ls</span><span class="p">,</span> <span class="n">results_ls</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="n">param_tmp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Build back the parameters domain</span>
+        <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">parameters_ls</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">_set</span> <span class="o">=</span> <span class="n">param_tmp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                    <span class="n">param_tmp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_set</span>
+                <span class="n">_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="c1"># Sort metadata from parameters</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">parameter_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">domain</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">param_tmp</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="n">vi</span> <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ls</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                <span class="n">domain</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">]</span>
+                <span class="n">parameter_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ls</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">parameter_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c1"># Build back the metric list</span>
+        <span class="n">_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">results_ls</span><span class="p">:</span>
+            <span class="n">_set</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_set</span><span class="p">)</span>
+        <span class="n">metrics</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">]</span>
+
+        <span class="c1"># Allocate the data vector</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameter_list</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">domain</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">metrics</span><span class="p">))</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">)]</span>
+
+        <span class="c1"># Fill the data vector</span>
+        <span class="n">hasher</span> <span class="o">=</span> <span class="n">Hasher</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">_metrics</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parameters_ls</span><span class="p">,</span> <span class="n">results_ls</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">params_</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">hasher</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">metric_name</span><span class="p">),</span> <span class="n">params_</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">datahash</span> <span class="o">=</span> <span class="s2">&quot;n/a&quot;</span>
+
+        <span class="c1"># Set info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameter_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datahash</span> <span class="o">=</span> <span class="n">datahash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="n">hasher</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Datacube.compute_data_hash"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.compute_data_hash">[docs]</a>    <span class="k">def</span> <span class="nf">compute_data_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datahash</span> <span class="o">=</span> <span class="n">hashlist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datahash</span></div>
+
+<div class="viewcode-block" id="Datacube.size"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.size">[docs]</a>    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Datacube.full_parameters"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.full_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">full_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">doms</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">dom</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dom</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">doms</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Datacube.add_metadata"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.add_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">add_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="o">.</span><span class="n">add_metadata</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_index_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_dim</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">lku</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
+        <span class="k">if</span> <span class="n">n_dim</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">lku</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">n_dim</span><span class="p">]]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lku</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># TODO not yet working</span>
+                <span class="n">fval</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">lku2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lku</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lku</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">fval</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">i</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Name &#39;</span><span class="si">%s</span><span class="s2">&#39; unknown for dimension </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">n_dim</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Index: singleton, cf self[index, ...]</span>
+<span class="sd">        Index: tuple -&gt; for each elem</span>
+<span class="sd">            elem: int (= index of param value or metric)</span>
+<span class="sd">                Select only that value/metric</span>
+<span class="sd">            elem: str</span>
+<span class="sd">                Same as int but will perform a lookup to get the index</span>
+<span class="sd">            elem: slice of int</span>
+<span class="sd">                Slice along those values/metrics</span>
+<span class="sd">            elem: slice of str</span>
+<span class="sd">                Same as slice of int but will perform a lookup to get the indices</span>
+<span class="sd">            elem: iterable of int</span>
+<span class="sd">                Will select only those values/metrics</span>
+<span class="sd">            elem: iterable of str</span>
+<span class="sd">                Same as iterable of int but will perform a lookup to get the indices</span>
+<span class="sd">        If all indices are ints, return the value and not a view of the Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># ====== Building the list of slices/list (Adapted from NumPy) ======</span>
+        <span class="c1"># At the end, fixed will be a list of either slice or list of ints</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span> <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="p">,)</span>
+        <span class="n">fixed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">length</span><span class="p">,</span> <span class="n">dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Too many indices&quot;</span><span class="p">)</span>
+
+        <span class="n">return_scalar</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">slice_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">slice_</span> <span class="ow">is</span> <span class="bp">Ellipsis</span><span class="p">:</span>
+                <span class="c1"># Ellipsis --&gt; Develop</span>
+                <span class="n">fixed</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">dims</span><span class="o">-</span><span class="n">length</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span>
+                <span class="n">return_scalar</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slice_</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="c1"># Int(/long) --&gt; Build the appropriate slice</span>
+                <span class="c1"># Wrapping</span>
+                <span class="k">if</span> <span class="n">slice_</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">slice_</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">slice_</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Index out of range from dim. </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">slice_</span><span class="p">,</span> <span class="n">slice_</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slice_</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="c1"># String --&gt; Get the appropriate int</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_index_by_name</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">slice_</span><span class="p">)</span>
+                <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slice_</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="c1"># Slice --&gt; Lookup in case of strings</span>
+                <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">slice_</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slice_</span><span class="o">.</span><span class="n">stop</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_index_by_name</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_index_by_name</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">slice_</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
+                <span class="n">return_scalar</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># List of str/int --&gt; Lookup strings</span>
+                    <span class="n">slice2</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">slice_</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                            <span class="n">slice2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_index_by_name</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">idx</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># Wrapping</span>
+                            <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">idx</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Index out of range from dim. </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+                            <span class="n">slice2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                    <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slice2</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="c1"># Else ?</span>
+                    <span class="n">fixed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slice_</span><span class="p">)</span>
+                <span class="n">return_scalar</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span> <span class="o">*</span> <span class="p">(</span><span class="n">dims</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+            <span class="n">return_scalar</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># ====== Building the return ======</span>
+        <span class="c1"># +-&gt; Checking if the slice is whole</span>
+        <span class="n">same_obj</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="c1"># In case of slice</span>
+                <span class="n">same_obj</span> <span class="o">=</span> <span class="n">same_obj</span> <span class="ow">and</span> <span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">idx</span><span class="o">.</span><span class="n">start</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">same_obj</span> <span class="o">=</span> <span class="n">same_obj</span> <span class="ow">and</span> <span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">idx</span><span class="o">.</span><span class="n">stop</span><span class="p">))</span>
+                <span class="n">same_obj</span> <span class="o">=</span> <span class="n">same_obj</span> <span class="ow">and</span> <span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">idx</span><span class="o">.</span><span class="n">step</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># In case of list</span>
+                <span class="n">same_obj</span> <span class="o">=</span> <span class="n">same_obj</span> <span class="ow">and</span> <span class="p">(</span><span class="n">idx</span> <span class="o">==</span> <span class="n">tmp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">same_obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="n">p_slices</span><span class="p">,</span> <span class="n">m_slice</span> <span class="o">=</span> <span class="n">index</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># +-&gt; Looking for a scalar</span>
+        <span class="c1"># +--&gt; We are sure to have a list of slices of one item</span>
+        <span class="k">if</span> <span class="n">return_scalar</span><span class="p">:</span>
+            <span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">m_slice</span><span class="o">.</span><span class="n">start</span><span class="p">]</span>
+            <span class="c1"># We need to include the metadata for the hasher</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">slc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p_slices</span><span class="p">):</span>
+                <span class="n">p_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">p_name</span><span class="p">]</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">p_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">slc</span><span class="o">.</span><span class="n">start</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+
+        <span class="c1"># +-&gt; Looking for a sliced Result</span>
+        <span class="n">clone</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># Deepcopy of the dict which will be modified in place</span>
+        <span class="n">clone</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">clone</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">)</span>
+
+        <span class="c1"># +---&gt; Processing the parameters</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">slc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">p_slices</span><span class="p">):</span>
+            <span class="n">param_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slc</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="c1"># In case of slice</span>
+                <span class="n">newvals</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">slc</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># In case of list</span>
+                <span class="n">newvals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reorder</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">slc</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newvals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>   <span class="c1"># ??</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newvals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Must shift from domain/param into metadata and remove dim</span>
+                <span class="n">clone</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">newvals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">clone</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">clone</span><span class="o">.</span><span class="n">parameters</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="n">param_name</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">clone</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Must update the domain</span>
+                <span class="n">clone</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">newvals</span>
+                <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newvals</span><span class="p">))</span>
+
+        <span class="c1"># +---&gt; Processing the metrics</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m_slice</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="c1"># In case of slice</span>
+            <span class="n">newmetrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">m_slice</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># In case of list</span>
+            <span class="n">newmetrics</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reorder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">m_slice</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmetrics</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">pass</span>   <span class="c1"># ??</span>
+        <span class="n">clone</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">newmetrics</span>
+        <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">newmetrics</span><span class="p">))</span>
+        <span class="n">clone</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">clone</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">)):</span>
+                <span class="c1"># If there are only metrics, yield their values not</span>
+                <span class="c1"># a Result view</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]])):</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="c1"># Computing the slices</span>
+        <span class="n">slices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;</span><span class="si">%s</span><span class="s2">&#39; does not exist&quot;</span><span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metric</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">slices</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">__getslice__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;This solves a subtle bug, where __getitem__ is not called, and all</span>
+<span class="sd">        the dimensional checking not done, when a slice of only the first</span>
+<span class="sd">        dimension is taken, e.g. a[1:3]. From the Python docs:</span>
+<span class="sd">       Deprecated since version 2.0: Support slice objects as parameters</span>
+<span class="sd">       to the __getitem__() method. (However, built-in types in CPython</span>
+<span class="sd">       currently still implement __getslice__(). Therefore, you have to</span>
+<span class="sd">       override it in derived classes when implementing slicing.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Datacube.numpyfy"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.numpyfy">[docs]</a>    <span class="k">def</span> <span class="nf">numpyfy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Only metrics, everything is in metadata</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)]</span>
+                             <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">])</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arr</span><span class="o">.</span><span class="n">numpyfy</span><span class="p">()</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">squeeze</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">arr</span></div>
+
+    <span class="nd">@deprecated</span>
+<div class="viewcode-block" id="Datacube.numpify"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.numpify">[docs]</a>    <span class="k">def</span> <span class="nf">numpify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">numpyfy</span><span class="p">(</span><span class="n">squeeze</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Datacube.reorder_parameters"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.reorder_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">reorder_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># lookup</span>
+                <span class="n">order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">order</span><span class="p">]</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="n">tmps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tmps</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span></div>
+
+<div class="viewcode-block" id="Datacube.iter_dimensions"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.iter_dimensions">[docs]</a>    <span class="k">def</span> <span class="nf">iter_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(),</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">values</span><span class="p">,</span> <span class="n">dbi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                    <span class="n">new_values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">dim</span><span class="p">]]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+                    <span class="k">yield</span> <span class="n">new_values</span><span class="p">,</span> <span class="n">dbi</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">dim_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">dim</span><span class="p">]:</span>
+                    <span class="c1"># Slicing is fast, no need to cache intermediate result</span>
+                    <span class="n">res_tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">dim</span><span class="p">:</span><span class="n">dim_value</span><span class="p">})</span>
+                    <span class="k">for</span> <span class="n">values</span><span class="p">,</span> <span class="n">dbi</span> <span class="ow">in</span> <span class="n">res_tmp</span><span class="o">.</span><span class="n">iter_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+
+                        <span class="n">new_values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">dim_value</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+                        <span class="k">yield</span> <span class="n">new_values</span><span class="p">,</span> <span class="n">dbi</span></div>
+
+    <span class="nd">@deprecated</span>
+<div class="viewcode-block" id="Datacube.iteritems"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Datacube.items"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Yields pairs (params, metrics) in the order of this `Result`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_gen</span> <span class="o">=</span> <span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">p_gen</span><span class="p">:</span>
+            <span class="n">p_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">params</span><span class="p">)}</span>
+            <span class="n">p_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">p_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">params</span><span class="p">,</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Datacube.in_domain"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.in_domain">[docs]</a>    <span class="k">def</span> <span class="nf">in_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">idom</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">append</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metrics</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">append</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+                <span class="n">p_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)}</span>
+                <span class="n">idom</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idom</span></div>
+
+<div class="viewcode-block" id="Datacube.out_of_domain"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.out_of_domain">[docs]</a>    <span class="k">def</span> <span class="nf">out_of_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ood</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metrics</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">p_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)}</span>
+                    <span class="n">ood</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">p_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">ood</span></div>
+
+    <span class="k">def</span> <span class="nf">_missing_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ood</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ood</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_domain</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ood</span><span class="p">))</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_some_miss_vs_all_there</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ood</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ood</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_domain</span><span class="p">()</span>
+        <span class="n">sets</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ood</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="n">miss_dict</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sets</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">miss_dict</span><span class="p">[</span><span class="n">param</span><span class="p">])</span>
+        <span class="n">some_missings</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">all_there</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Same order as in domain</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">domls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">some_missings</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">domls</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sets</span><span class="p">[</span><span class="n">param</span><span class="p">]]</span>
+            <span class="n">all_there</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">domls</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sets</span><span class="p">[</span><span class="n">param</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">some_missings</span><span class="p">,</span> <span class="n">all_there</span>
+
+<div class="viewcode-block" id="Datacube.diagnose"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.diagnose">[docs]</a>    <span class="k">def</span> <span class="nf">diagnose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_domain</span><span class="p">()</span>
+        <span class="n">some_missings</span><span class="p">,</span> <span class="n">all_there</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_some_miss_vs_all_there</span><span class="p">(</span><span class="n">ood</span><span class="p">)</span>
+
+        <span class="n">diagnosis</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Missing ratio&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_ratio</span><span class="p">(</span><span class="n">ood</span><span class="p">),</span>
+            <span class="s2">&quot;At least one missing&quot;</span><span class="p">:</span> <span class="n">some_missings</span><span class="p">,</span>
+            <span class="s2">&quot;All there&quot;</span><span class="p">:</span> <span class="n">all_there</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">diagnosis</span></div>
+
+<div class="viewcode-block" id="Datacube.maximal_hypercube"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.maximal_hypercube">[docs]</a>    <span class="k">def</span> <span class="nf">maximal_hypercube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cube</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">all_there</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">_some_miss_vs_all_there</span><span class="p">()</span>
+        <span class="n">max_key</span><span class="p">,</span> <span class="n">max_len</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">all_there</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_len</span><span class="p">:</span>
+                <span class="n">max_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">max_key</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">return</span> <span class="n">cube</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">max_key</span><span class="p">:</span><span class="n">all_there</span><span class="p">[</span><span class="n">max_key</span><span class="p">]})</span></div>
+
+<div class="viewcode-block" id="Datacube.minimal_hypercube"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.Datacube.minimal_hypercube">[docs]</a>    <span class="k">def</span> <span class="nf">minimal_hypercube</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cube</span> <span class="o">=</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">all_there</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">_some_miss_vs_all_there</span><span class="p">()</span>
+        <span class="n">slicing</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">all_there</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">cube</span><span class="p">(</span><span class="o">**</span><span class="n">slicing</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(name=&#39;</span><span class="si">%s</span><span class="s2">&#39;, metadata=</span><span class="si">%s</span><span class="s2">, parameters=</span><span class="si">%s</span><span class="s2">, domain=</span><span class="si">%s</span><span class="s2">,&quot;</span> \
+               <span class="s2">&quot; metrics=</span><span class="si">%s</span><span class="s2">, data=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> \
+               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">),</span>
+               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">datahash</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">domain</span><span class="p">)</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+        <span class="n">same</span> <span class="o">=</span> <span class="n">same</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">same</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+
+
+<span class="nd">@deprecated</span>
+<div class="viewcode-block" id="build_result_cube"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.build_result_cube">[docs]</a><span class="k">def</span> <span class="nf">build_result_cube</span><span class="p">(</span><span class="n">exp_name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">build_datacube</span><span class="p">(</span><span class="n">exp_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="build_datacube"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.datacube.build_datacube">[docs]</a><span class="k">def</span> <span class="nf">build_datacube</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">storage_factory</span><span class="o">=</span><span class="n">PickleStorage</span><span class="p">,</span> <span class="o">**</span><span class="n">default_meta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    default_meta: mapping str -&gt; str</span>
+<span class="sd">        The (potientially) missing metadata</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">storage_factory</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">)</span>
+    <span class="n">parameters_ls</span><span class="p">,</span> <span class="n">results_ls</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">load_params_and_results</span><span class="p">(</span><span class="o">**</span><span class="n">default_meta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Datacube</span><span class="p">(</span><span class="n">parameters_ls</span><span class="p">,</span> <span class="n">results_ls</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

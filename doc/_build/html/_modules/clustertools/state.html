@@ -1,0 +1,432 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.state &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="clustertools" href="../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.state</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module :mod:`notification` manages the notification system.</span>
+
+<span class="sd">Convention</span>
+<span class="sd">----------</span>
+<span class="sd">A computaiton absent from the notification db is considered in launchable state.</span>
+<span class="sd">This avoid a useless call to the notification db</span>
+
+<span class="sd">Note</span>
+<span class="sd">----</span>
+<span class="sd">A running job aborted for uncatchable reasons will stay in running state</span>
+<span class="sd">although it is not running any longer. Refresh the historic to get it right</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">clusterlib.scheduler</span> <span class="k">import</span> <span class="n">queued_or_running_jobs</span>
+
+<span class="kn">from</span> <span class="nn">.storage</span> <span class="k">import</span> <span class="n">PickleStorage</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+<span class="c1"># States</span>
+<span class="n">__RUNNING__</span> <span class="o">=</span> <span class="s2">&quot;RUNNING&quot;</span>
+<span class="n">__COMPLETED__</span> <span class="o">=</span> <span class="s2">&quot;COMPLETED&quot;</span>
+<span class="n">__ABORTED__</span> <span class="o">=</span> <span class="s2">&quot;ABORTED&quot;</span>
+<span class="n">__PENDING__</span> <span class="o">=</span> <span class="s2">&quot;PENDING&quot;</span>
+<span class="n">__LAUNCHABLE__</span> <span class="o">=</span> <span class="s2">&quot;LAUNCHABLE&quot;</span>
+<span class="n">__PARTIAL__</span> <span class="o">=</span> <span class="s2">&quot;PARTIAL&quot;</span>
+<span class="n">__INCOMPLETE__</span> <span class="o">=</span> <span class="s2">&quot;INCOMPLETE&quot;</span>
+<span class="n">__CRITICAL__</span> <span class="o">=</span> <span class="s2">&quot;CRITIC&quot;</span>
+
+<span class="n">__STATE__</span> <span class="o">=</span> <span class="s2">&quot;STATE&quot;</span>
+<span class="n">__DATE__</span> <span class="o">=</span> <span class="s2">&quot;date&quot;</span>
+<span class="n">__LASTSAVE__</span> <span class="o">=</span> <span class="s2">&quot;last save&quot;</span>
+<span class="n">__DURATION__</span> <span class="o">=</span> <span class="s2">&quot;duration&quot;</span>
+<span class="n">__EXCEPT__</span> <span class="o">=</span> <span class="s2">&quot;exception&quot;</span>
+
+
+<span class="c1"># ============================= STATE AUTOMATON ============================= #</span>
+
+<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ``State``</span>
+<span class="sd">    ==========</span>
+<span class="sd">    State is which is a given computation</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The `State` object contains a datetime. This is purely informative and is</span>
+<span class="sd">    not considered as an essential component of the object. As such, it is</span>
+<span class="sd">    not considered for repr or equailty</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="State.from_"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State.from_">[docs]</a>    <span class="k">def</span> <span class="nf">from_</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span> <span class="o">=</span> <span class="n">comp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2">(exp_name=</span><span class="si">{exp_name}</span><span class="s2">, comp_name=</span><span class="si">{comp_name}</span><span class="s2">)&quot;</span> \
+               <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                         <span class="n">exp_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span>
+                         <span class="n">comp_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="c1"># Funny how the isinstance might break symmetry of equivalence</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span> <span class="ow">and</span> \
+               <span class="n">other</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span> <span class="ow">and</span> \
+               <span class="n">other</span><span class="o">.</span><span class="n">comp_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># This is technically not consistent with equality since we are looking</span>
+        <span class="c1"># for the exact class</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="State.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="State.reset"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">LaunchableState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="State.abort"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State.abort">[docs]</a>    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AbortedState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="State.is_not_up"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.State.is_not_up">[docs]</a>    <span class="k">def</span> <span class="nf">is_not_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the `State` corresponding to this `State` if it were</span>
+<span class="sd">        discovered it is actually neither waiting nor working&quot;&quot;&quot;</span>
+        <span class="c1"># running not up = stopped --&gt; launchable</span>
+        <span class="c1"># (rare)pending not in queued = has run and was stoppped --&gt; launachable</span>
+        <span class="c1"># partial not up = incomplete</span>
+        <span class="c1"># critical not in queued --&gt; to check whether it was critical for the</span>
+        <span class="c1"># first time</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<span class="c1"># --------------------------------------------------------------- Waiting states</span>
+<div class="viewcode-block" id="PendingState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PendingState">[docs]</a><span class="k">class</span> <span class="nc">PendingState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="PendingState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PendingState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__PENDING__</span></div>
+
+<div class="viewcode-block" id="PendingState.to_running"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PendingState.to_running">[docs]</a>    <span class="k">def</span> <span class="nf">to_running</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RunningState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PendingState.is_not_up"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PendingState.is_not_up">[docs]</a>    <span class="k">def</span> <span class="nf">is_not_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">LaunchableState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># --------------------------------------------------------------- Stopped states</span>
+<div class="viewcode-block" id="LaunchableState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.LaunchableState">[docs]</a><span class="k">class</span> <span class="nc">LaunchableState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="LaunchableState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.LaunchableState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__LAUNCHABLE__</span></div>
+
+<div class="viewcode-block" id="LaunchableState.to_pending"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.LaunchableState.to_pending">[docs]</a>    <span class="k">def</span> <span class="nf">to_pending</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PendingState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CompletedState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CompletedState">[docs]</a><span class="k">class</span> <span class="nc">CompletedState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="CompletedState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CompletedState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__COMPLETED__</span></div></div>
+
+
+<div class="viewcode-block" id="AbortedState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.AbortedState">[docs]</a><span class="k">class</span> <span class="nc">AbortedState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AbortedState.from_"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.AbortedState.from_">[docs]</a>    <span class="k">def</span> <span class="nf">from_</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AbortedState</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exception</span> <span class="o">=</span> <span class="n">exception</span>
+
+<div class="viewcode-block" id="AbortedState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.AbortedState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__ABORTED__</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{cls}</span><span class="s2">(exp_name=</span><span class="si">{exp_name}</span><span class="s2">, comp_name=</span><span class="si">{comp_name}</span><span class="s2">, &quot;</span> \
+               <span class="s2">&quot;exception=</span><span class="si">{exception}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                                               <span class="n">exp_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span>
+                                               <span class="n">comp_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span>
+                                               <span class="n">exception</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exception</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="IncompleteState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.IncompleteState">[docs]</a><span class="k">class</span> <span class="nc">IncompleteState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="IncompleteState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.IncompleteState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__INCOMPLETE__</span></div></div>
+
+
+<span class="c1"># --------------------------------------------------------------- Working states</span>
+<div class="viewcode-block" id="WorkingState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.WorkingState">[docs]</a><span class="k">class</span> <span class="nc">WorkingState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+<div class="viewcode-block" id="WorkingState.to_launchable"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.WorkingState.to_launchable">[docs]</a>    <span class="k">def</span> <span class="nf">to_launchable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WorkingState.to_aborted"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.WorkingState.to_aborted">[docs]</a>    <span class="k">def</span> <span class="nf">to_aborted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">AbortedState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="RunningState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.RunningState">[docs]</a><span class="k">class</span> <span class="nc">RunningState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="RunningState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.RunningState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__RUNNING__</span></div>
+
+<div class="viewcode-block" id="RunningState.to_critical"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.RunningState.to_critical">[docs]</a>    <span class="k">def</span> <span class="nf">to_critical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CriticalState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_critical</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RunningState.is_not_up"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.RunningState.is_not_up">[docs]</a>    <span class="k">def</span> <span class="nf">is_not_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">LaunchableState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CriticalState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState">[docs]</a><span class="k">class</span> <span class="nc">CriticalState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="CriticalState.from_"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState.from_">[docs]</a>    <span class="k">def</span> <span class="nf">from_</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">first_critical</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">first_critical</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">first_critical</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CriticalState</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">first_critical</span> <span class="o">=</span> <span class="n">first_critical</span>
+
+<div class="viewcode-block" id="CriticalState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__CRITICAL__</span></div>
+
+<div class="viewcode-block" id="CriticalState.to_completed"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState.to_completed">[docs]</a>    <span class="k">def</span> <span class="nf">to_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CompletedState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CriticalState.to_partial"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState.to_partial">[docs]</a>    <span class="k">def</span> <span class="nf">to_partial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">PartialState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CriticalState.is_not_up"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.CriticalState.is_not_up">[docs]</a>    <span class="k">def</span> <span class="nf">is_not_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_critical</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LaunchableState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Might be corrupted but not likely</span>
+            <span class="k">return</span> <span class="n">IncompleteState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PartialState"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState">[docs]</a><span class="k">class</span> <span class="nc">PartialState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+<div class="viewcode-block" id="PartialState.get_name"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState.get_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">__PARTIAL__</span></div>
+
+<div class="viewcode-block" id="PartialState.to_completed"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState.to_completed">[docs]</a>    <span class="k">def</span> <span class="nf">to_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CompletedState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PartialState.to_incomplete"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState.to_incomplete">[docs]</a>    <span class="k">def</span> <span class="nf">to_incomplete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">IncompleteState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PartialState.to_critical"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState.to_critical">[docs]</a>    <span class="k">def</span> <span class="nf">to_critical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CriticalState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_critical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PartialState.is_not_up"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.PartialState.is_not_up">[docs]</a>    <span class="k">def</span> <span class="nf">is_not_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">IncompleteState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ManualInterruption"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.ManualInterruption">[docs]</a><span class="k">class</span> <span class="nc">ManualInterruption</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># ============================ EXPERIMENT MONITOR ============================ #</span>
+
+<div class="viewcode-block" id="Monitor"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor">[docs]</a><span class="k">class</span> <span class="nc">Monitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Monitor`</span>
+<span class="sd">    ========</span>
+<span class="sd">    A class which monitors the computations of a given experiment</span>
+
+<span class="sd">    job_dict : mapping {comp_name -&gt; state}</span>
+<span class="sd">    state_dict: mapping {state -&gt; job_dict}</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The number n of computations per experiment being usually low (a few</span>
+<span class="sd">    thousands at most), it is not necessary to be better than O(n) per</span>
+<span class="sd">    operations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">storage_factory</span><span class="o">=</span><span class="n">PickleStorage</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span> <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage</span> <span class="o">=</span> <span class="n">storage_factory</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Monitor.refresh"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.refresh">[docs]</a>    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">load_states</span><span class="p">()</span>
+        <span class="n">queued</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">queued_or_running_jobs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">queued</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">is_not_up</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_cls</span><span class="o">=</span><span class="n">State</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">),</span>
+                <span class="n">extract</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">extract</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span> <span class="k">if</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">state_cls</span><span class="p">)</span> <span class="ow">and</span> <span class="n">predicate</span><span class="p">(</span><span class="n">state</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_cls</span><span class="o">=</span><span class="n">State</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of indices [i_1, i_2, ...i_p] for which</span>
+<span class="sd">        predicate(self.state[i_j]) == True (1 &lt;= j &lt;= p)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">state_cls</span><span class="o">=</span><span class="n">state_cls</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="n">predicate</span><span class="p">,</span>
+                            <span class="n">extract</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="p">:</span> <span class="n">i</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Monitor.computation_names"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.computation_names">[docs]</a>    <span class="k">def</span> <span class="nf">computation_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_cls</span><span class="o">=</span><span class="n">State</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">state_cls</span><span class="o">=</span><span class="n">state_cls</span><span class="p">,</span>
+                                <span class="n">extract</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">comp_name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Monitor.aborted_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.aborted_computations">[docs]</a>    <span class="k">def</span> <span class="nf">aborted_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">computation_names</span><span class="p">(</span><span class="n">AbortedState</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.launchable_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.launchable_computations">[docs]</a>    <span class="k">def</span> <span class="nf">launchable_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">computation_names</span><span class="p">(</span><span class="n">LaunchableState</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.incomplete_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.incomplete_computations">[docs]</a>    <span class="k">def</span> <span class="nf">incomplete_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">computation_names</span><span class="p">(</span><span class="n">IncompleteState</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.critical_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.critical_computations">[docs]</a>    <span class="k">def</span> <span class="nf">critical_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">computation_names</span><span class="p">(</span><span class="n">CriticalState</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.unlaunchable_computations"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.unlaunchable_computations">[docs]</a>    <span class="k">def</span> <span class="nf">unlaunchable_computations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">launchables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">predicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">comp_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">launchables</span><span class="p">,</span>
+                            <span class="n">extract</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.partition_by_state"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.partition_by_state">[docs]</a>    <span class="k">def</span> <span class="nf">partition_by_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">by_state</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="n">by_state</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">get_name</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">by_state</span></div>
+
+<div class="viewcode-block" id="Monitor.count_by_state"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.count_by_state">[docs]</a>    <span class="k">def</span> <span class="nf">count_by_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_by_state</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="Monitor.to_launchables"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.to_launchables">[docs]</a>    <span class="k">def</span> <span class="nf">to_launchables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">new_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">reset</span><span class="p">())</span>
+            <span class="c1"># In case of error, do not update locally</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_state</span></div>
+
+<div class="viewcode-block" id="Monitor.to_launchable"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.to_launchable">[docs]</a>    <span class="k">def</span> <span class="nf">to_launchable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">):</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indices</span><span class="p">(</span><span class="n">predicate</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">comp_name</span> <span class="o">==</span> <span class="n">comp_name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_launchables</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.reset"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_state</span><span class="o">=</span><span class="n">State</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_launchables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_indices</span><span class="p">(</span><span class="n">from_state</span><span class="p">,</span> <span class="n">predicate</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Monitor.aborted_to_launchable"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.aborted_to_launchable">[docs]</a>    <span class="k">def</span> <span class="nf">aborted_to_launchable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">AbortedState</span><span class="p">,</span> <span class="n">predicate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.incomplete_to_launchable"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.incomplete_to_launchable">[docs]</a>    <span class="k">def</span> <span class="nf">incomplete_to_launchable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">IncompleteState</span><span class="p">,</span> <span class="n">predicate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.abort"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.state.Monitor.abort">[docs]</a>    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Monitor interruption&quot;</span><span class="p">),</span>
+              <span class="n">from_state</span><span class="o">=</span><span class="n">State</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indices</span><span class="p">(</span><span class="n">from_state</span><span class="p">,</span> <span class="n">predicate</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">new_state</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">exception</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">new_state</span><span class="p">)</span>
+            <span class="c1"># In case of error, do not update locally</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_state</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

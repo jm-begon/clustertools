@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.test_parser &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.test_parser</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_equal</span><span class="p">,</span> <span class="n">assert_raises</span>
+<span class="kn">from</span> <span class="nn">clustertools.parser</span> <span class="k">import</span> <span class="n">BaseParser</span><span class="p">,</span> <span class="n">ClusterParser</span><span class="p">,</span> <span class="n">positive_int</span><span class="p">,</span> \
+    <span class="n">time_string</span><span class="p">,</span> <span class="n">or_none</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="test_positive_int"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_parser.test_positive_int">[docs]</a><span class="k">def</span> <span class="nf">test_positive_int</span><span class="p">():</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">positive_int</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">))</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">positive_int</span><span class="p">,</span> <span class="s2">&quot;-2&quot;</span><span class="p">)</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">positive_int</span><span class="p">,</span> <span class="s2">&quot;aaa&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_time_string"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_parser.test_time_string">[docs]</a><span class="k">def</span> <span class="nf">test_time_string</span><span class="p">():</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="s2">&quot;1:00:00&quot;</span><span class="p">,</span> <span class="n">time_string</span><span class="p">(</span><span class="s2">&quot;1:00:00&quot;</span><span class="p">))</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">time_string</span><span class="p">,</span> <span class="s2">&quot;aaa&quot;</span><span class="p">)</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">time_string</span><span class="p">,</span> <span class="s2">&quot;23:00:00:00&quot;</span><span class="p">)</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">time_string</span><span class="p">,</span> <span class="s2">&quot;22:65:00&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_or_none"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_parser.test_or_none">[docs]</a><span class="k">def</span> <span class="nf">test_or_none</span><span class="p">():</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">or_none</span><span class="p">(</span><span class="nb">int</span><span class="p">)(</span><span class="mi">5</span><span class="p">))</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">or_none</span><span class="p">(</span><span class="nb">int</span><span class="p">)(</span><span class="kc">None</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_base_parser"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_parser.test_base_parser">[docs]</a><span class="k">def</span> <span class="nf">test_base_parser</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">BaseParser</span><span class="p">()</span>
+    <span class="n">environment</span><span class="p">,</span> <span class="n">custom_options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">([</span><span class="s2">&quot;custom1&quot;</span><span class="p">,</span> <span class="s2">&quot;custom2&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--no_fail_fast&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">custom_options</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;custom1&quot;</span><span class="p">,</span> <span class="s2">&quot;custom2&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">fail_fast</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+    <span class="c1"># TODO check start/capacity are OK (https://stackoverflow.com/questions/2677185/how-can-i-read-a-functions-signature-including-default-argument-values)</span>
+
+
+<div class="viewcode-block" id="test_cluster_parser"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_parser.test_cluster_parser">[docs]</a><span class="k">def</span> <span class="nf">test_cluster_parser</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ClusterParser</span><span class="p">()</span>
+    <span class="n">environment</span><span class="p">,</span> <span class="n">custom_options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">([</span><span class="s2">&quot;--capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;1:00:00&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--memory&quot;</span><span class="p">,</span> <span class="s2">&quot;7231&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--partition&quot;</span><span class="p">,</span> <span class="s2">&quot;luke&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--n_proc&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;custom1&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;custom2&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">custom_options</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;custom1&quot;</span><span class="p">,</span> <span class="s2">&quot;custom2&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="s2">&quot;1:00:00&quot;</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="mi">7231</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">partition</span><span class="p">,</span> <span class="s2">&quot;luke&quot;</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">n_proc</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">fail_fast</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+    <span class="c1"># TODO check start/capacity are OK</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

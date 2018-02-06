@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.util_test &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.util_test</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span> <span class="nn">clustertools.experiment</span> <span class="k">import</span> <span class="n">Result</span><span class="p">,</span> <span class="n">Computation</span><span class="p">,</span> <span class="n">PartialComputation</span>
+<span class="kn">from</span> <span class="nn">clustertools.storage</span> <span class="k">import</span> <span class="n">Storage</span><span class="p">,</span> <span class="n">Architecture</span><span class="p">,</span> <span class="n">PickleStorage</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+<span class="n">__EXP_NAME__</span> <span class="o">=</span> <span class="s2">&quot;ClustertoolsTest&quot;</span>
+
+
+<div class="viewcode-block" id="IntrospectStorage"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.IntrospectStorage">[docs]</a><span class="k">class</span> <span class="nc">IntrospectStorage</span><span class="p">(</span><span class="n">Storage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This `Storage` does not store anything on disk but rather keeps track</span>
+<span class="sd">    of everything that has happened.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    state_history: mapping: computation_name -&gt; list of `State`</span>
+<span class="sd">        The list of state of that computation (most recent at the end)</span>
+<span class="sd">    result_history: mapping: computation_name -&gt; list of saved results</span>
+<span class="sd">        The list of results of that computation (most recent at the end)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_name</span><span class="p">,</span> <span class="n">architecture</span><span class="o">=</span><span class="n">Architecture</span><span class="p">()):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">IntrospectStorage</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">experiment_name</span><span class="p">,</span> <span class="n">architecture</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_history</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_history</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IntrospectStorage.update_state"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.IntrospectStorage.update_state">[docs]</a>    <span class="k">def</span> <span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_history</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">comp_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="IntrospectStorage.load_states"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.IntrospectStorage.load_states">[docs]</a>    <span class="k">def</span> <span class="nf">load_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">states</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_history</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span></div>
+
+    <span class="k">def</span> <span class="nf">_save_r_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">r_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_history</span><span class="p">[</span><span class="n">comp_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_r_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_history</span><span class="p">[</span><span class="n">comp_name</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_load_r_dicts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">comp_name</span><span class="p">:</span> <span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">history</span>
+                <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_history</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+<div class="viewcode-block" id="purge"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.purge">[docs]</a><span class="k">def</span> <span class="nf">purge</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">storage_factory</span><span class="o">=</span><span class="n">IntrospectStorage</span><span class="p">):</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">storage_factory</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">storage</span></div>
+
+
+<div class="viewcode-block" id="pickle_purge"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.pickle_purge">[docs]</a><span class="k">def</span> <span class="nf">pickle_purge</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">):</span>
+    <span class="n">purge</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">PickleStorage</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prep"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.prep">[docs]</a><span class="k">def</span> <span class="nf">prep</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">storage_factory</span><span class="o">=</span><span class="n">IntrospectStorage</span><span class="p">):</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">purge</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">storage_factory</span><span class="p">)</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">init</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="pickle_prep"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.pickle_prep">[docs]</a><span class="k">def</span> <span class="nf">pickle_prep</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">):</span>
+    <span class="n">prep</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">PickleStorage</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestComputation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.TestComputation">[docs]</a><span class="k">class</span> <span class="nc">TestComputation</span><span class="p">(</span><span class="n">Computation</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">comp_name</span><span class="o">=</span><span class="s2">&quot;TestComp&quot;</span><span class="p">,</span>
+                 <span class="n">context</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span> <span class="n">storage_factory</span><span class="o">=</span><span class="n">IntrospectStorage</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TestComputation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span>
+                                              <span class="n">comp_name</span><span class="o">=</span><span class="n">comp_name</span><span class="p">,</span>
+                                              <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                              <span class="n">storage_factory</span><span class="o">=</span><span class="n">storage_factory</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestComputation.run"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.TestComputation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="o">**</span><span class="n">ignored</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="s2">&quot;mult&quot;</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">mult</span> <span class="o">=</span> <span class="n">x1</span><span class="o">*</span><span class="n">x2</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<div class="viewcode-block" id="TestPartialComputation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.TestPartialComputation">[docs]</a><span class="k">class</span> <span class="nc">TestPartialComputation</span><span class="p">(</span><span class="n">PartialComputation</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">comp_name</span><span class="o">=</span><span class="s2">&quot;TestComp&quot;</span><span class="p">,</span>
+                 <span class="n">context</span><span class="o">=</span><span class="s2">&quot;n/a&quot;</span><span class="p">,</span> <span class="n">storage_factory</span><span class="o">=</span><span class="n">IntrospectStorage</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TestPartialComputation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span>
+                                                     <span class="n">comp_name</span><span class="o">=</span><span class="n">comp_name</span><span class="p">,</span>
+                                                     <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                                                     <span class="n">storage_factory</span><span class="o">=</span><span class="n">storage_factory</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestPartialComputation.run"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.util_test.TestPartialComputation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">ignored</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter n cannot be greater than 3.&quot;</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">yield</span> <span class="n">result</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

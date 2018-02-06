@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.test_experiment &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.test_experiment</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_equal</span><span class="p">,</span> <span class="n">assert_in</span><span class="p">,</span> <span class="n">assert_less</span><span class="p">,</span> <span class="n">assert_raises</span><span class="p">,</span> \
+    <span class="n">with_setup</span><span class="p">,</span> <span class="n">assert_true</span>
+
+<span class="kn">from</span> <span class="nn">clustertools</span> <span class="k">import</span> <span class="n">ParameterSet</span><span class="p">,</span> <span class="n">ConstrainedParameterSet</span><span class="p">,</span> <span class="n">Result</span><span class="p">,</span> \
+    <span class="n">Experiment</span>
+<span class="kn">from</span> <span class="nn">clustertools.state</span> <span class="k">import</span> <span class="n">RunningState</span><span class="p">,</span> <span class="n">CompletedState</span><span class="p">,</span> <span class="n">AbortedState</span><span class="p">,</span> \
+    <span class="n">CriticalState</span><span class="p">,</span> <span class="n">PartialState</span>
+
+<span class="kn">from</span> <span class="nn">.util_test</span> <span class="k">import</span> <span class="n">purge</span><span class="p">,</span> <span class="n">prep</span><span class="p">,</span> <span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">IntrospectStorage</span><span class="p">,</span> \
+    <span class="n">TestComputation</span><span class="p">,</span> <span class="n">TestPartialComputation</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<span class="c1"># ----------------------------------------------------------------- ParameterSet</span>
+
+<div class="viewcode-block" id="test_paramset_yield"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_paramset_yield">[docs]</a><span class="k">def</span> <span class="nf">test_paramset_yield</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># The null dictionary</span>
+
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p2</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">p3</span><span class="o">=</span><span class="s2">&quot;param&quot;</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">p2</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">cart_prod</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;p3&quot;</span><span class="p">:</span> <span class="s2">&quot;param&quot;</span><span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+        <span class="n">assert_in</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">cart_prod</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_paramset_list_insertion"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_paramset_list_insertion">[docs]</a><span class="k">def</span> <span class="nf">test_paramset_list_insertion</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_single_values</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">p2</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)})</span></div>
+
+
+<div class="viewcode-block" id="test_paramset_separator"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_paramset_separator">[docs]</a><span class="k">def</span> <span class="nf">test_paramset_separator</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">p2</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_separator</span><span class="p">(</span><span class="n">p3</span><span class="o">=</span><span class="s2">&quot;param&quot;</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p3&quot;</span><span class="p">],</span> <span class="s2">&quot;param&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">assert_in</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">assert_equal</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p2</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">9</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p3&quot;</span><span class="p">],</span> <span class="s2">&quot;param&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">assert_in</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="n">assert_in</span><span class="p">(</span><span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p2&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">param_dict</span><span class="p">[</span><span class="s2">&quot;p2&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">,</span> <span class="n">p4</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_paramset_getitem"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_paramset_getitem">[docs]</a><span class="k">def</span> <span class="nf">test_paramset_getitem</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">p2</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_separator</span><span class="p">(</span><span class="n">p3</span><span class="o">=</span><span class="s2">&quot;param&quot;</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">p2</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ps</span><span class="p">):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">ps</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="test_paramset_get_indices_with"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_paramset_get_indices_with">[docs]</a><span class="k">def</span> <span class="nf">test_paramset_get_indices_with</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">p2</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_separator</span><span class="p">(</span><span class="n">p3</span><span class="o">=</span><span class="s2">&quot;param&quot;</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">p2</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">ps</span><span class="o">.</span><span class="n">get_indices_with</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">{</span><span class="mi">3</span><span class="p">}):</span>
+        <span class="n">assert_less</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>  <span class="c1"># 0,1,2,3 --&gt; [1,2] x [a,b]</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">get_indices_with</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">{</span><span class="mi">4</span><span class="p">}))),</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="c1"># ------------------------------------------------------ ConstrainedParameterSet</span>
+
+<div class="viewcode-block" id="test_constrainparamset"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_constrainparamset">[docs]</a><span class="k">def</span> <span class="nf">test_constrainparamset</span><span class="p">():</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">ConstrainedParameterSet</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p1</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">p2</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_constraints</span><span class="p">(</span><span class="n">c1</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">p2</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span> <span class="k">else</span> <span class="n">p1</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># (1, a), (2, a), (3, a), (2, b)</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;p1&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;p2&quot;</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">},</span>
+                <span class="p">]</span>
+    <span class="k">for</span> <span class="n">param_dict</span> <span class="ow">in</span> <span class="n">ps</span><span class="p">:</span>
+        <span class="n">assert_in</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_separator</span><span class="p">()</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">p2</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">delete_constraints</span><span class="p">(</span><span class="s2">&quot;c1&quot;</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span></div>
+
+
+<span class="c1"># ----------------------------------------------------------------------- Result</span>
+
+<div class="viewcode-block" id="test_result"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_result">[docs]</a><span class="k">def</span> <span class="nf">test_result</span><span class="p">():</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;m&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)}</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Result</span><span class="p">(</span><span class="s2">&quot;m1&quot;</span><span class="p">,</span> <span class="n">m2</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">m3</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">m1</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">m3</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">&quot;m4&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">expected</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">expected</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># redundant</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">expected</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="nb">repr</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<span class="c1"># ------------------------------------------------------------------ Computation</span>
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span> <span class="n">purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_correct_computation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_correct_computation">[docs]</a><span class="k">def</span> <span class="nf">test_correct_computation</span><span class="p">():</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">TestComputation</span><span class="p">()</span>
+    <span class="n">intro_storage</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">storage</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="n">computation</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">x3</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="n">intro_storage</span><span class="o">.</span><span class="n">load_result</span><span class="p">(</span><span class="n">computation</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result1</span><span class="p">,</span> <span class="n">result2</span><span class="p">:</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one metric</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;mult&quot;</span><span class="p">],</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">result_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># If correct, state should have followed the sequence:</span>
+    <span class="c1"># Running, Critical, Completed</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">RunningState</span><span class="p">))</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">CriticalState</span><span class="p">))</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">CompletedState</span><span class="p">))</span>
+    <span class="nb">repr</span><span class="p">(</span><span class="n">computation</span><span class="p">)</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span> <span class="n">purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_error_computation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_error_computation">[docs]</a><span class="k">def</span> <span class="nf">test_error_computation</span><span class="p">():</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">TestComputation</span><span class="p">()</span>
+    <span class="n">intro_storage</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">storage</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">lazyfy</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">x2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x3</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="n">computation</span><span class="p">)</span>  <span class="c1"># 5*None</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">result_history</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># Computation not saved</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># If correct (i.e. error occurs), state should have evolved as:</span>
+    <span class="c1"># Running, Aborted</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">RunningState</span><span class="p">))</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">AbortedState</span><span class="p">))</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span> <span class="n">purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_correct_partial_computation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_correct_partial_computation">[docs]</a><span class="k">def</span> <span class="nf">test_correct_partial_computation</span><span class="p">():</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">TestPartialComputation</span><span class="p">()</span>
+    <span class="n">intro_storage</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">storage</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="n">computation</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># i=0, 1, 2</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="n">intro_storage</span><span class="o">.</span><span class="n">load_result</span><span class="p">(</span><span class="n">computation</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result1</span><span class="p">,</span> <span class="n">result2</span><span class="p">:</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one metric</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;i&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Last one is 2</span>
+
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">result_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># If correct, state should have evolved as:</span>
+    <span class="c1"># Running, (Critical, Partial) x3, Completed</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">RunningState</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">CriticalState</span><span class="p">,</span> <span class="n">PartialState</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> \
+               <span class="p">[</span><span class="n">CompletedState</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">cls</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">cls</span><span class="p">))</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span> <span class="n">purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_error_partial_computation"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_error_partial_computation">[docs]</a><span class="k">def</span> <span class="nf">test_error_partial_computation</span><span class="p">():</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">TestPartialComputation</span><span class="p">()</span>
+    <span class="n">intro_storage</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">storage</span>
+    <span class="n">computation</span> <span class="o">=</span> <span class="n">computation</span><span class="o">.</span><span class="n">lazyfy</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">computation</span><span class="p">)</span>  <span class="c1"># [0, 1, 2] only</span>
+    <span class="c1"># |-&gt; Result</span>
+    <span class="c1"># last saved should be i=2</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">intro_storage</span><span class="o">.</span><span class="n">load_result</span><span class="p">(</span><span class="n">computation</span><span class="o">.</span><span class="n">comp_name</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;i&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Last one is 2</span>
+    <span class="c1"># |-&gt; State</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">result_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Only one computation</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intro_storage</span><span class="o">.</span><span class="n">state_history</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># If correct, state should have evolved as:</span>
+    <span class="c1"># Running, (Critical, Partial) x3, Aborted</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">RunningState</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">CriticalState</span><span class="p">,</span> <span class="n">PartialState</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> \
+               <span class="p">[</span><span class="n">AbortedState</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">state</span><span class="p">,</span> <span class="n">cls</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">cls</span><span class="p">))</span></div>
+
+
+<span class="c1"># ------------------------------------------------------------------- Experiment</span>
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span> <span class="n">purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_experiment"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_experiment.test_experiment">[docs]</a><span class="k">def</span> <span class="nf">test_experiment</span><span class="p">():</span>
+    <span class="n">parameter_set</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+    <span class="n">parameter_set</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">x1</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">x2</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="n">parameter_set</span><span class="p">,</span> <span class="n">TestComputation</span><span class="p">,</span>
+                            <span class="n">IntrospectStorage</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">yield_computations</span><span class="p">())),</span> <span class="mi">9</span><span class="p">)</span>
+    <span class="c1"># start=3 : skip 0,1,2</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">yield_computations</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">3</span><span class="p">))),</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="c1"># capacity=6 : skip 6, 7, 8</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">yield_computations</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">6</span><span class="p">))),</span> <span class="mi">6</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

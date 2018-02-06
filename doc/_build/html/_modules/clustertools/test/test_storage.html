@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.test_storage &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.test_storage</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_in</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_equal</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">with_setup</span>
+
+<span class="kn">from</span> <span class="nn">clustertools.storage</span> <span class="k">import</span> <span class="n">PickleStorage</span>
+<span class="kn">from</span> <span class="nn">clustertools.state</span> <span class="k">import</span> <span class="n">PendingState</span><span class="p">,</span> <span class="n">AbortedState</span><span class="p">,</span> <span class="n">ManualInterruption</span>
+
+<span class="kn">from</span> <span class="nn">.util_test</span> <span class="k">import</span> <span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">,</span> <span class="n">__EXP_NAME__</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_save_then_load_result"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_storage.test_save_then_load_result">[docs]</a><span class="k">def</span> <span class="nf">test_save_then_load_result</span><span class="p">():</span>
+    <span class="n">comp_name</span> <span class="o">=</span> <span class="s2">&quot;test_comp&quot;</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)}</span>
+    <span class="n">expected_result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">)}</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">save_result</span><span class="p">(</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">expected_result</span><span class="p">)</span>
+    <span class="n">given_result</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">load_result</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">expected_result</span><span class="p">,</span> <span class="n">given_result</span><span class="p">)</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_save_then_load_result_and_params"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_storage.test_save_then_load_result_and_params">[docs]</a><span class="k">def</span> <span class="nf">test_save_then_load_result_and_params</span><span class="p">():</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)}</span>
+    <span class="n">r1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">)}</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">}</span>
+    <span class="n">r2</span> <span class="o">=</span><span class="p">{</span><span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="mi">120</span><span class="p">)}</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">save_result</span><span class="p">(</span><span class="s2">&quot;test_comp1&quot;</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">r1</span><span class="p">)</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">save_result</span><span class="p">(</span><span class="s2">&quot;test_comp2&quot;</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">r2</span><span class="p">)</span>
+    <span class="c1"># expectation</span>
+    <span class="n">default_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)}</span>
+    <span class="n">p2</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">default_meta</span><span class="p">)</span>
+    <span class="n">p_expected</span><span class="p">,</span> <span class="n">r_expected</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">load_params_and_results</span><span class="p">(</span><span class="o">**</span><span class="n">default_meta</span><span class="p">)</span>
+    <span class="c1"># check</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p_expected</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p_expected</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">p_expected</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r_expected</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r_expected</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r_expected</span><span class="p">)</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_save_then_load_state"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_storage.test_save_then_load_state">[docs]</a><span class="k">def</span> <span class="nf">test_save_then_load_state</span><span class="p">():</span>
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="n">PendingState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;pending&quot;</span><span class="p">)</span>
+    <span class="n">abort_exp</span> <span class="o">=</span> <span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
+    <span class="n">aborted</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;aborted&quot;</span><span class="p">,</span> <span class="n">abort_exp</span><span class="p">)</span>
+    <span class="c1"># First storage</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">pending</span><span class="p">)</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">aborted</span><span class="p">)</span>
+    <span class="c1"># Same after loading</span>
+    <span class="n">loaded</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">load_states</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">pending</span><span class="p">,</span> <span class="n">loaded</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="p">,</span> <span class="n">loaded</span><span class="p">)</span>
+    <span class="c1"># Update</span>
+    <span class="n">launchable</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">launchable</span><span class="p">)</span>
+    <span class="c1"># Test after second loading</span>
+    <span class="n">loaded</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">load_states</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">launchable</span><span class="p">,</span> <span class="n">loaded</span><span class="p">)</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="p">,</span> <span class="n">loaded</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

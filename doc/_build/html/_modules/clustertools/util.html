@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.util &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="clustertools" href="../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module :mod:`util` is a set of misc. functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getargspec</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">sha256</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="kw_intersect"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.kw_intersect">[docs]</a><span class="k">def</span> <span class="nf">kw_intersect</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the intersection between the function&#39;s parameters and</span>
+<span class="sd">    the given dictionary</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    function : callable</span>
+<span class="sd">        The function to process</span>
+<span class="sd">    dictionary : dict</span>
+<span class="sd">        The dictionary to process</span>
+<span class="sd">    args : list</span>
+<span class="sd">        The list of positional arguments</span>
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        The keyword arguments</span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    intersect_dict : dict</span>
+<span class="sd">        The intersection between the function&#39;s parameters and the given</span>
+<span class="sd">        dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO getargspec deprecated in Python</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prototype</span> <span class="o">=</span> <span class="n">getargspec</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># In case of a class</span>
+        <span class="n">prototype</span> <span class="o">=</span> <span class="n">getargspec</span><span class="p">(</span><span class="n">function</span><span class="o">.</span><span class="n">__init__</span><span class="p">)</span>
+
+    <span class="c1"># If function as a **kwargs, it will swallow all the extra arguments</span>
+    <span class="k">if</span> <span class="n">prototype</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+    <span class="c1"># Intersecting dictionaries</span>
+    <span class="n">sub_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">func_args</span> <span class="o">=</span> <span class="n">prototype</span><span class="o">.</span><span class="n">args</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">func_args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
+                <span class="n">sub_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">sub_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sub_dict</span></div>
+
+
+<div class="viewcode-block" id="call_with"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.call_with">[docs]</a><span class="k">def</span> <span class="nf">call_with</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call the given function with the given dictionary with the additional</span>
+<span class="sd">    supplied arguments</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    function : callable</span>
+<span class="sd">        The function to process</span>
+<span class="sd">    dictionary : dict</span>
+<span class="sd">        The dictionary to process</span>
+<span class="sd">    args : list</span>
+<span class="sd">        The list of positional arguments</span>
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        The keyword arguments</span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    The result of the function with the given sefely inputs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw_intersect</span><span class="p">(</span><span class="n">function</span><span class="p">,</span>
+                                          <span class="n">dictionary</span><span class="p">,</span>
+                                          <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+                                          <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="escape"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.escape">[docs]</a><span class="k">def</span> <span class="nf">escape</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\\&#39;</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\\&quot;</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2"> &quot;</span><span class="p">)</span>\
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">(&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="reorder"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.reorder">[docs]</a><span class="k">def</span> <span class="nf">reorder</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">in_place</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">in_place</span><span class="p">:</span>
+        <span class="n">tmps</span> <span class="o">=</span> <span class="p">[</span><span class="n">ls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tmps</span><span class="p">):</span>
+            <span class="n">ls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">ls</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices</span><span class="p">):</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ls</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">res</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="hashlist"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.hashlist">[docs]</a><span class="k">def</span> <span class="nf">hashlist</span><span class="p">(</span><span class="n">ls</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">sha256</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ls</span><span class="p">))</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span></div>
+
+
+<span class="c1"># from http://stackoverflow.com/questions/2536307/decorators-in-the-python-standard-lib-deprecated-specifically</span>
+<div class="viewcode-block" id="deprecated"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.util.deprecated">[docs]</a><span class="k">def</span> <span class="nf">deprecated</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a decorator which can be used to mark functions</span>
+<span class="sd">    as deprecated. It will result in a warning being emmitted</span>
+<span class="sd">    when the function is used.&quot;&quot;&quot;</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">new_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;always&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>  <span class="c1"># turn off filter</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Call to deprecated function </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">),</span>
+                      <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>  <span class="c1"># reset filter</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_func</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

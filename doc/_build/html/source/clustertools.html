@@ -1,0 +1,1695 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools package &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">clustertools 0.1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="clustertools-package">
+<h1>clustertools package<a class="headerlink" href="#clustertools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="clustertools.test.html">clustertools.test package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_config">clustertools.test.test_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_datacube">clustertools.test.test_datacube module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_environment">clustertools.test.test_environment module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_experiment">clustertools.test.test_experiment module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_parser">clustertools.test.test_parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_states">clustertools.test.test_states module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_storage">clustertools.test.test_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.test_util">clustertools.test.test_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test.util_test">clustertools.test.util_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clustertools.test.html#module-clustertools.test">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-clustertools.config">
+<span id="clustertools-config-module"></span><h2>clustertools.config module<a class="headerlink" href="#module-clustertools.config" title="Permalink to this headline">¶</a></h2>
+<p>Module <code class="xref py py-mod docutils literal"><span class="pre">config</span></code> contains the configurable features</p>
+<dl class="function">
+<dt id="clustertools.config.get_ct_folder">
+<code class="descclassname">clustertools.config.</code><code class="descname">get_ct_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/config.html#get_ct_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.config.get_ct_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-clustertools.datacube">
+<span id="clustertools-datacube-module"></span><h2>clustertools.datacube module<a class="headerlink" href="#module-clustertools.datacube" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="clustertools.datacube.Datacube">
+<em class="property">class </em><code class="descclassname">clustertools.datacube.</code><code class="descname">Datacube</code><span class="sig-paren">(</span><em>parameters_ls</em>, <em>results_ls</em>, <em>exp_name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">collections.abc.Mapping</span></code></p>
+<p>parameterss : iterable of mappings param_name -&gt; value
+resultss : iterable of mappings metric_name -&gt; value</p>
+<dl class="docutils">
+<dt>name: str (default &#8220;&#8221;)</dt>
+<dd>The experiment name</dd>
+<dt>metadata: mapping str -&gt; value</dt>
+<dd>A dictionary containing, for each of the metadatum, the associated value</dd>
+<dt>domain: mapping str -&gt; iterable of values</dt>
+<dd>A dictionary containing, for each domain name, the iterable of possible
+values</dd>
+<dt>parameters: iterable of str</dt>
+<dd>The name of each axis (with correspind index)</dd>
+<dt>metrics: iterable of str</dt>
+<dd>The name of each metric. The metric is the last axis. Each index in that
+axis correspond to a metric in the order of <cite>metrics</cite></dd>
+<dt>data: iterable</dt>
+<dd>The raw data</dd>
+<dt>hash: <a class="reference internal" href="#clustertools.datacube.Hasher" title="clustertools.datacube.Hasher"><code class="xref py py-class docutils literal"><span class="pre">Hasher</span></code></a></dt>
+<dd>The hasher to the data</dd>
+<dt>shape: tuple (of size <cite>len(parameters)+1</cite>)</dt>
+<dd>The shape of the result cube. The N-1 first axis are linked to the
+parameters and the last one to the metrics</dd>
+</dl>
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.add_metadata">
+<code class="descname">add_metadata</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.add_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.add_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.compute_data_hash">
+<code class="descname">compute_data_hash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.compute_data_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.compute_data_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.diagnose">
+<code class="descname">diagnose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.diagnose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.diagnose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.full_parameters">
+<code class="descname">full_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.full_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.full_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.in_domain">
+<code class="descname">in_domain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.in_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.in_domain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields pairs (params, metrics) in the order of this <cite>Result</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.iter_dimensions">
+<code class="descname">iter_dimensions</code><span class="sig-paren">(</span><em>*dimensions</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.iter_dimensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.iter_dimensions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.iteritems">
+<code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.iteritems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.maximal_hypercube">
+<code class="descname">maximal_hypercube</code><span class="sig-paren">(</span><em>metric=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.maximal_hypercube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.maximal_hypercube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.minimal_hypercube">
+<code class="descname">minimal_hypercube</code><span class="sig-paren">(</span><em>metric=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.minimal_hypercube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.minimal_hypercube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.numpify">
+<code class="descname">numpify</code><span class="sig-paren">(</span><em>squeeze=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.numpify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.numpify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.numpyfy">
+<code class="descname">numpyfy</code><span class="sig-paren">(</span><em>squeeze=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.numpyfy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.numpyfy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.out_of_domain">
+<code class="descname">out_of_domain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.out_of_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.out_of_domain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.reorder_parameters">
+<code class="descname">reorder_parameters</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.reorder_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.reorder_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Datacube.size">
+<code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Datacube.size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Datacube.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.datacube.Hasher">
+<em class="property">class </em><code class="descclassname">clustertools.datacube.</code><code class="descname">Hasher</code><span class="sig-paren">(</span><em>metrics</em>, <em>domain</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>metrics: iterable of metric_name
+domain: mapping param_name -&gt; iterable of values (axis domain)
+metadata: mapping param_name -&gt; param_val</p>
+<dl class="method">
+<dt id="clustertools.datacube.Hasher.add_metadata">
+<code class="descname">add_metadata</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher.add_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher.add_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Hasher.dehash">
+<code class="descname">dehash</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher.dehash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher.dehash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Hasher.get_cons_args">
+<code class="descname">get_cons_args</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher.get_cons_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher.get_cons_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.datacube.Hasher.hash">
+<code class="descname">hash</code><span class="sig-paren">(</span><em>metric</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher.hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher.hash" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>metric: str</dt>
+<dd>A metric name</dd>
+<dt>params: mapping str -&gt; value</dt>
+<dd>A mapping from parameter names to values of their domain</dd>
+</dl>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="clustertools.datacube.Hasher.sort_back">
+<em class="property">classmethod </em><code class="descname">sort_back</code><span class="sig-paren">(</span><em>dictionary</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#Hasher.sort_back"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.Hasher.sort_back" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.datacube.build_datacube">
+<code class="descclassname">clustertools.datacube.</code><code class="descname">build_datacube</code><span class="sig-paren">(</span><em>exp_name</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em>, <em>**default_meta</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#build_datacube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.build_datacube" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>default_meta: mapping str -&gt; str</dt>
+<dd>The (potientially) missing metadata</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.datacube.build_result_cube">
+<code class="descclassname">clustertools.datacube.</code><code class="descname">build_result_cube</code><span class="sig-paren">(</span><em>exp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#build_result_cube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.datacube.build_result_cube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-clustertools.environment">
+<span id="clustertools-environment-module"></span><h2>clustertools.environment module<a class="headerlink" href="#module-clustertools.environment" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="clustertools.environment.BashEnvironment">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">BashEnvironment</code><span class="sig-paren">(</span><em>serializer=Serializer()</em>, <em>fail_fast=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#BashEnvironment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.BashEnvironment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.environment.Environment" title="clustertools.environment.Environment"><code class="xref py py-class docutils literal"><span class="pre">clustertools.environment.Environment</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.environment.BashEnvironment.issue">
+<code class="descname">issue</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#BashEnvironment.issue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.BashEnvironment.issue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.Environment">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">Environment</code><span class="sig-paren">(</span><em>fail_fast=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The <cite>Environment</cite> controls how the computations of a given experiment
+must be run. It is a stateless component</p>
+<p>The <cite>Environment</cite> runs a experiment. To do so, it creates a <cite>Session</cite>.
+The <cite>Session</cite> is the stateful component which is responsible for:</p>
+<blockquote>
+<div><ul class="simple">
+<li>counting the number of expirement run</li>
+<li>logging everything</li>
+<li>enforcing the capacity constraint</li>
+</ul>
+</div></blockquote>
+<p>A <cite>Session</cite> should not be created directly.
+Finally, the <cite>Session</cite> issues the computation through the <cite>Environment</cite>.</p>
+<dl class="method">
+<dt id="clustertools.environment.Environment.create_session">
+<code class="descname">create_session</code><span class="sig-paren">(</span><em>experiment</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Environment.create_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Environment.create_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Environment.issue">
+<code class="descname">issue</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Environment.issue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Environment.issue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually launch the <cite>lazy_computation</cite></p>
+<dl class="docutils">
+<dt>lazy_computation: lazyfied <cite>Computation</cite></dt>
+<dd>The computation to launch</dd>
+</dl>
+<p>Will throw an exception if an error occurred during the launching. If
+no exception is raised, the launching is (apparently) fine</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Environment.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>experiment</em>, <em>start=0</em>, <em>capacity=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Environment.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Environment.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>experiment
+start
+capacity</p>
+<dl class="docutils">
+<dt>error_count: int &gt;= 0</dt>
+<dd>The number of computations that could not be launched</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.FileSerializer">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">FileSerializer</code><a class="reference internal" href="../_modules/clustertools/environment.html#FileSerializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.FileSerializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.environment.Serializer" title="clustertools.environment.Serializer"><code class="xref py py-class docutils literal"><span class="pre">clustertools.environment.Serializer</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.environment.FileSerializer.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serlialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#FileSerializer.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.FileSerializer.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.FileSerializer.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#FileSerializer.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.FileSerializer.serialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.InSituEnvironment">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">InSituEnvironment</code><span class="sig-paren">(</span><em>fail_fast=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#InSituEnvironment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.InSituEnvironment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.environment.Environment" title="clustertools.environment.Environment"><code class="xref py py-class docutils literal"><span class="pre">clustertools.environment.Environment</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.environment.InSituEnvironment.issue">
+<code class="descname">issue</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#InSituEnvironment.issue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.InSituEnvironment.issue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.Serializer">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">Serializer</code><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Serializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="clustertools.environment.Serializer.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serlialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Serializer.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object represented by the serialized string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Serializer.deserialize_and_run">
+<code class="descname">deserialize_and_run</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.deserialize_and_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Serializer.deserialize_and_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Serializer.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Serializer.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a unserializable string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Serializer.serialize_and_script">
+<code class="descname">serialize_and_script</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.serialize_and_script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Serializer.serialize_and_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a script to run the lazy_computation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.Session">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">Session</code><span class="sig-paren">(</span><em>parent_environment</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <cite>Session</cite> is responsible for managing stateful information about a
+group of computations being run in a given environment</p>
+<dl class="method">
+<dt id="clustertools.environment.Session.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>exp_len</em>, <em>storage</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Session.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Session.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Session.is_open">
+<code class="descname">is_open</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Session.is_open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Session.is_open" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.environment.Session.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Session.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.Session.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>lazy_computation</p>
+<dl class="docutils">
+<dt>success: bool</dt>
+<dd>Whether launching the <cite>lazy_computation</cite> was (apparently) a
+success</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.environment.SlurmEnvironment">
+<em class="property">class </em><code class="descclassname">clustertools.environment.</code><code class="descname">SlurmEnvironment</code><span class="sig-paren">(</span><em>serializer=Serializer()</em>, <em>time='1:00:00'</em>, <em>memory=4000</em>, <em>partition=None</em>, <em>n_proc=None</em>, <em>shell_script='#!/bin/bash'</em>, <em>fail_fast=True</em>, <em>other_args=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#SlurmEnvironment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.SlurmEnvironment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.environment.Environment" title="clustertools.environment.Environment"><code class="xref py py-class docutils literal"><span class="pre">clustertools.environment.Environment</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.environment.SlurmEnvironment.issue">
+<code class="descname">issue</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#SlurmEnvironment.issue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.environment.SlurmEnvironment.issue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-clustertools.experiment">
+<span id="clustertools-experiment-module"></span><h2>clustertools.experiment module<a class="headerlink" href="#module-clustertools.experiment" title="Permalink to this headline">¶</a></h2>
+<p>Module <code class="xref py py-mod docutils literal"><span class="pre">experiment</span></code> is a set of functions and classes to build, run and
+monitor experiments</p>
+<div class="section" id="restriction">
+<h3>Restriction<a class="headerlink" href="#restriction" title="Permalink to this headline">¶</a></h3>
+<p>Experiment names should always elligible file names.</p>
+<dl class="class">
+<dt id="clustertools.experiment.Computation">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">Computation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>context='n/a'</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Computation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <code class="docutils literal"><span class="pre">Computation</span></code> is any computation that must be run as part of an
+experiment on a given set of parameters</p>
+<dl class="docutils">
+<dt>exp_name: str</dt>
+<dd>The name of the experiment</dd>
+<dt>comp_name: str</dt>
+<dd>The name of the computation</dd>
+<dt>context: str (optional)</dt>
+<dd>Context information (can be the time/memory requirements, for instance)</dd>
+<dt>storage_factory: callable str -&gt; cls:<cite>Storage</cite></dt>
+<dd>A factory which takes as input the experiment name and returns
+a cls:<cite>Storage</cite> instance</dd>
+</dl>
+<dl class="method">
+<dt id="clustertools.experiment.Computation.lazyfy">
+<code class="descname">lazyfy</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation.lazyfy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Computation.lazyfy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.Computation.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Computation.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.experiment.ConstrainedParameterSet">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">ConstrainedParameterSet</code><span class="sig-paren">(</span><em>param_map_seq=None</em>, <em>filters_seq=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ConstrainedParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.experiment.ParameterSet" title="clustertools.experiment.ParameterSet"><code class="xref py py-class docutils literal"><span class="pre">clustertools.experiment.ParameterSet</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.experiment.ConstrainedParameterSet.add_constraints">
+<code class="descname">add_constraints</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.add_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ConstrainedParameterSet.add_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the constraints. Constraints apply from this stage on, they are not
+retroactive with respect to separators.</p>
+<dl class="docutils">
+<dt>kwargs: mapping str -&gt; callable(<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs)</dt>
+<dd>a named predicate. It takes as input a detupled param tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.ConstrainedParameterSet.add_separator">
+<code class="descname">add_separator</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.add_separator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ConstrainedParameterSet.add_separator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.ConstrainedParameterSet.delete_constraints">
+<code class="descname">delete_constraints</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.delete_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ConstrainedParameterSet.delete_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.experiment.Experiment">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">Experiment</code><span class="sig-paren">(</span><em>exp_name</em>, <em>parameter_set</em>, <em>computation_factory</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em>, <em>user=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="classmethod">
+<dt id="clustertools.experiment.Experiment.name_computation">
+<em class="property">classmethod </em><code class="descname">name_computation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment.name_computation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Experiment.name_computation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="clustertools.experiment.Experiment.storage">
+<code class="descname">storage</code><a class="headerlink" href="#clustertools.experiment.Experiment.storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.Experiment.yield_computations">
+<code class="descname">yield_computations</code><span class="sig-paren">(</span><em>context='n/a'</em>, <em>start=0</em>, <em>capacity=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment.yield_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Experiment.yield_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.experiment.ParameterSet">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">ParameterSet</code><span class="sig-paren">(</span><em>param_map_seq=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <cite>ParameterSet</cite> is a structure yielding parameter tuples. A parameter tuple
+<cite>pt</cite> is an ordered list of values such that <cite>pt[i]</cite> is an admissible value
+for parameter <cite>i</cite>. For the sake of ambiguity, a parameter
+tuple can be referred to as a multidimensional parameter, which can be
+abbreviated to &#8220;parameter&#8221; (dropping the plural to raise the confusion
+with single-dimension parameters).</p>
+<p>A parameter is either a metadata, if it can only take one value, or a
+variable, if it can take several values. The set of values a parameter can
+take is referred as its domain.</p>
+<p>To entertain confusion further, &#8220;parameter&#8221; can refer to the name
+of the parameter, the value it takes, both or to the mapping between
+the name and the domain. Enjoy!</p>
+<p>Parameter tuples are generated as the cartesian product of the parameters
+domain, ordered following the lexicographic order of the parameter names
+and according the separator: all the tuples of the domains defined before
+the separator must be yielded before enlarging the domains with was comes
+after the separator.</p>
+<dl class="docutils">
+<dt>The separator allows for two use cases:</dt>
+<dd><ol class="first last arabic simple">
+<li>Force an ordering on the computations (do more important stuff first)</li>
+<li>Make more computation after the first round</li>
+</ol>
+</dd>
+</dl>
+<dl class="docutils">
+<dt>param_map_seq: sequence of mapping str -&gt; set, or None (default: None)</dt>
+<dd>Each mapping defines one or several bindings of the type &#8220;parameter name
+(i.e. the string)-domain (i.e. the set)&#8221;. The sequence represents
+partial domains isolated by separators.</dd>
+</dl>
+<dl class="method">
+<dt id="clustertools.experiment.ParameterSet.add_parameters">
+<code class="descname">add_parameters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ParameterSet.add_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+either a single domain element or a sequence of domain elements.
+If the domain elements are sequences, use <cite>add_single_values</cite>
+instead.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.ParameterSet.add_separator">
+<code class="descname">add_separator</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_separator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ParameterSet.add_separator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+domain element. This mapping represent the default value that he
+absence of parameter represented before this separator.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.ParameterSet.add_single_values">
+<code class="descname">add_single_values</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_single_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ParameterSet.add_single_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+domain element.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.experiment.ParameterSet.get_indices_with">
+<code class="descname">get_indices_with</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.get_indices_with"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.ParameterSet.get_indices_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields indices of parameter tuples containing the parameter-values given</p>
+<dl class="docutils">
+<dt>kwargs: mapping str -&gt; set</dt>
+<dd>A mapping where each key is a parameter name and the set is the
+domain of the parameter</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.experiment.PartialComputation">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">PartialComputation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>context='n/a'</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#PartialComputation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.PartialComputation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.experiment.Computation" title="clustertools.experiment.Computation"><code class="xref py py-class docutils literal"><span class="pre">clustertools.experiment.Computation</span></code></a></p>
+<p>Expect the run method to be a generator</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.experiment.Result">
+<em class="property">class </em><code class="descclassname">clustertools.experiment.</code><code class="descname">Result</code><span class="sig-paren">(</span><em>*metric_names</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.experiment.Result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">dict</span></code></p>
+<p>A result is a place holder for pairs metric=value</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-clustertools.parser">
+<span id="clustertools-parser-module"></span><h2>clustertools.parser module<a class="headerlink" href="#module-clustertools.parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="clustertools.parser.BaseParser">
+<em class="property">class </em><code class="descclassname">clustertools.parser.</code><code class="descname">BaseParser</code><span class="sig-paren">(</span><em>serializer_factory=&lt;class 'clustertools.environment.Serializer'&gt;</em>, <em>description='Clustertool launcher'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.BaseParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="clustertools.parser.BaseParser.get_parser">
+<code class="descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser.get_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.BaseParser.get_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.parser.BaseParser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>args=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.BaseParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.parser.ClusterParser">
+<em class="property">class </em><code class="descclassname">clustertools.parser.</code><code class="descname">ClusterParser</code><span class="sig-paren">(</span><em>serializer_factory=&lt;class 'clustertools.environment.Serializer'&gt;</em>, <em>description='Clustertool launcher'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.ClusterParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.parser.BaseParser" title="clustertools.parser.BaseParser"><code class="xref py py-class docutils literal"><span class="pre">clustertools.parser.BaseParser</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.parser.ClusterParser.get_parser">
+<code class="descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser.get_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.ClusterParser.get_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.parser.ClusterParser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>args=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.ClusterParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.parser.or_none">
+<code class="descclassname">clustertools.parser.</code><code class="descname">or_none</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#or_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.or_none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="clustertools.parser.positive_int">
+<code class="descclassname">clustertools.parser.</code><code class="descname">positive_int</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#positive_int"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.positive_int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="clustertools.parser.time_string">
+<code class="descclassname">clustertools.parser.</code><code class="descname">time_string</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#time_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.parser.time_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expecting &#8220;HH:MM:SS&#8221; format</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-clustertools.state">
+<span id="clustertools-state-module"></span><h2>clustertools.state module<a class="headerlink" href="#module-clustertools.state" title="Permalink to this headline">¶</a></h2>
+<p>Module <code class="xref py py-mod docutils literal"><span class="pre">notification</span></code> manages the notification system.</p>
+<div class="section" id="convention">
+<h3>Convention<a class="headerlink" href="#convention" title="Permalink to this headline">¶</a></h3>
+<p>A computaiton absent from the notification db is considered in launchable state.
+This avoid a useless call to the notification db</p>
+</div>
+<div class="section" id="note">
+<h3>Note<a class="headerlink" href="#note" title="Permalink to this headline">¶</a></h3>
+<p>A running job aborted for uncatchable reasons will stay in running state
+although it is not running any longer. Refresh the historic to get it right</p>
+<dl class="class">
+<dt id="clustertools.state.AbortedState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">AbortedState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#AbortedState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.AbortedState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="classmethod">
+<dt id="clustertools.state.AbortedState.from_">
+<em class="property">classmethod </em><code class="descname">from_</code><span class="sig-paren">(</span><em>state</em>, <em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#AbortedState.from_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.AbortedState.from_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.AbortedState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#AbortedState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.AbortedState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.CompletedState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">CompletedState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CompletedState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CompletedState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.CompletedState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CompletedState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CompletedState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.CriticalState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">CriticalState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>first_critical=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="classmethod">
+<dt id="clustertools.state.CriticalState.from_">
+<em class="property">classmethod </em><code class="descname">from_</code><span class="sig-paren">(</span><em>state</em>, <em>first_critical=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState.from_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState.from_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.CriticalState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.CriticalState.is_not_up">
+<code class="descname">is_not_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState.is_not_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState.is_not_up" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.CriticalState.to_completed">
+<code class="descname">to_completed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState.to_completed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState.to_completed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.CriticalState.to_partial">
+<code class="descname">to_partial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#CriticalState.to_partial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.CriticalState.to_partial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.IncompleteState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">IncompleteState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#IncompleteState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.IncompleteState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.IncompleteState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#IncompleteState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.IncompleteState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.LaunchableState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">LaunchableState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#LaunchableState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.LaunchableState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.LaunchableState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#LaunchableState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.LaunchableState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.LaunchableState.to_pending">
+<code class="descname">to_pending</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#LaunchableState.to_pending"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.LaunchableState.to_pending" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="clustertools.state.ManualInterruption">
+<em class="property">exception </em><code class="descclassname">clustertools.state.</code><code class="descname">ManualInterruption</code><a class="reference internal" href="../_modules/clustertools/state.html#ManualInterruption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.ManualInterruption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.Monitor">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">Monitor</code><span class="sig-paren">(</span><em>exp_name</em>, <em>user=None</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class which monitors the computations of a given experiment</p>
+<p>job_dict : mapping {comp_name -&gt; state}
+state_dict: mapping {state -&gt; job_dict}</p>
+<p>The number n of computations per experiment being usually low (a few
+thousands at most), it is not necessary to be better than O(n) per
+operations</p>
+<dl class="method">
+<dt id="clustertools.state.Monitor.abort">
+<code class="descname">abort</code><span class="sig-paren">(</span><em>exception=ManualInterruption('Monitor interruption'</em>, <em>)</em>, <em>from_state=&lt;class 'clustertools.state.State'&gt;</em>, <em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.abort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.aborted_computations">
+<code class="descname">aborted_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.aborted_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.aborted_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.aborted_to_launchable">
+<code class="descname">aborted_to_launchable</code><span class="sig-paren">(</span><em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.aborted_to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.aborted_to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.computation_names">
+<code class="descname">computation_names</code><span class="sig-paren">(</span><em>state_cls=&lt;class 'clustertools.state.State'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.computation_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.computation_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.count_by_state">
+<code class="descname">count_by_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.count_by_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.count_by_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.critical_computations">
+<code class="descname">critical_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.critical_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.critical_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.incomplete_computations">
+<code class="descname">incomplete_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.incomplete_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.incomplete_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.incomplete_to_launchable">
+<code class="descname">incomplete_to_launchable</code><span class="sig-paren">(</span><em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.incomplete_to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.incomplete_to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.launchable_computations">
+<code class="descname">launchable_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.launchable_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.launchable_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.partition_by_state">
+<code class="descname">partition_by_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.partition_by_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.partition_by_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.refresh">
+<code class="descname">refresh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.refresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>from_state=&lt;class 'clustertools.state.State'&gt;</em>, <em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.to_launchable">
+<code class="descname">to_launchable</code><span class="sig-paren">(</span><em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.to_launchables">
+<code class="descname">to_launchables</code><span class="sig-paren">(</span><em>indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.to_launchables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.to_launchables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.Monitor.unlaunchable_computations">
+<code class="descname">unlaunchable_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.unlaunchable_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.Monitor.unlaunchable_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.PartialState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">PartialState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.PartialState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PartialState.is_not_up">
+<code class="descname">is_not_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState.is_not_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState.is_not_up" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PartialState.to_completed">
+<code class="descname">to_completed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState.to_completed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState.to_completed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PartialState.to_critical">
+<code class="descname">to_critical</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState.to_critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState.to_critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PartialState.to_incomplete">
+<code class="descname">to_incomplete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PartialState.to_incomplete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PartialState.to_incomplete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.PendingState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">PendingState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PendingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PendingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.PendingState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PendingState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PendingState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PendingState.is_not_up">
+<code class="descname">is_not_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PendingState.is_not_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PendingState.is_not_up" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.PendingState.to_running">
+<code class="descname">to_running</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#PendingState.to_running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.PendingState.to_running" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.RunningState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">RunningState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#RunningState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.RunningState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.RunningState.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#RunningState.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.RunningState.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.RunningState.is_not_up">
+<code class="descname">is_not_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#RunningState.is_not_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.RunningState.is_not_up" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.RunningState.to_critical">
+<code class="descname">to_critical</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#RunningState.to_critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.RunningState.to_critical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.State">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">State</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>State is which is a given computation</p>
+<p>The <cite>State</cite> object contains a datetime. This is purely informative and is
+not considered as an essential component of the object. As such, it is
+not considered for repr or equailty</p>
+<dl class="method">
+<dt id="clustertools.state.State.abort">
+<code class="descname">abort</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State.abort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="clustertools.state.State.from_">
+<em class="property">classmethod </em><code class="descname">from_</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State.from_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State.from_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.State.get_name">
+<code class="descname">get_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State.get_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State.get_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.State.is_not_up">
+<code class="descname">is_not_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State.is_not_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State.is_not_up" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <cite>State</cite> corresponding to this <cite>State</cite> if it were
+discovered it is actually neither waiting nor working</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.State.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#State.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.State.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.state.WorkingState">
+<em class="property">class </em><code class="descclassname">clustertools.state.</code><code class="descname">WorkingState</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#WorkingState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.WorkingState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.state.State" title="clustertools.state.State"><code class="xref py py-class docutils literal"><span class="pre">clustertools.state.State</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.state.WorkingState.to_aborted">
+<code class="descname">to_aborted</code><span class="sig-paren">(</span><em>exception</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#WorkingState.to_aborted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.WorkingState.to_aborted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.state.WorkingState.to_launchable">
+<code class="descname">to_launchable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#WorkingState.to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.state.WorkingState.to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-clustertools.storage">
+<span id="clustertools-storage-module"></span><h2>clustertools.storage module<a class="headerlink" href="#module-clustertools.storage" title="Permalink to this headline">¶</a></h2>
+<p>Module <code class="xref py py-mod docutils literal"><span class="pre">database</span></code> contains helper function for manipulating the databases</p>
+<dl class="class">
+<dt id="clustertools.storage.Architecture">
+<em class="property">class </em><code class="descclassname">clustertools.storage.</code><code class="descname">Architecture</code><span class="sig-paren">(</span><em>ct_folder=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Architecture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Architecture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An <code class="docutils literal"><span class="pre">Architecture</span></code> is responsible for the organization of the experiments
+and logs on the file system.
+By default, clustertools is located in a folder named &#8216;clustertools_data&#8217;
+(aka ct_folder) in the user home directory. The ct_folder is structured as
+followed:</p>
+<blockquote>
+<div><p>clustertools_data
+<a href="#id3"><span class="problematic" id="id4">|</span></a>- logs
+<a href="#id5"><span class="problematic" id="id6">|</span></a>- exp_XXX
+|   <a href="#id7"><span class="problematic" id="id8">|</span></a>- logs
+|   <a href="#id9"><span class="problematic" id="id10">|</span></a>- $result$
+|   <a href="#id11"><span class="problematic" id="id12">|</span></a>- $notifs$
+<a href="#id13"><span class="problematic" id="id14">|</span></a>- exp_YYY</p>
+<blockquote>
+<div><a href="#id15"><span class="problematic" id="id16">|</span></a>...</div></blockquote>
+</div></blockquote>
+<p>where <cite>logs</cite> is a folder containing the main logs (not the ones corresponding
+to the experiments).  exp_XXX is the folder related to experiment &#8216;XXX&#8217;.</p>
+<dl class="method">
+<dt id="clustertools.storage.Architecture.erase_experiment">
+<code class="descname">erase_experiment</code><span class="sig-paren">(</span><em>exp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Architecture.erase_experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Architecture.erase_experiment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Architecture.get_basedir">
+<code class="descname">get_basedir</code><span class="sig-paren">(</span><em>exp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Architecture.get_basedir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Architecture.get_basedir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Architecture.get_meta_log_file">
+<code class="descname">get_meta_log_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Architecture.get_meta_log_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Architecture.get_meta_log_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Architecture.load_experiment_names">
+<code class="descname">load_experiment_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Architecture.load_experiment_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Architecture.load_experiment_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.storage.PickleStorage">
+<em class="property">class </em><code class="descclassname">clustertools.storage.</code><code class="descname">PickleStorage</code><span class="sig-paren">(</span><em>experiment_name</em>, <em>architecture=Architecture(ct_folder='/Users/jmbegon/clustertools_data')</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#PickleStorage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.PickleStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.storage.Storage" title="clustertools.storage.Storage"><code class="xref py py-class docutils literal"><span class="pre">clustertools.storage.Storage</span></code></a></p>
+<p>Databases are folders. Each record is an individual pickle file.
+Implements a backup mechanism for results to prevent long writes from
+being interrupted</p>
+<dl class="method">
+<dt id="clustertools.storage.PickleStorage.init">
+<code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#PickleStorage.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.PickleStorage.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.PickleStorage.load_states">
+<code class="descname">load_states</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#PickleStorage.load_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.PickleStorage.load_states" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.PickleStorage.restore_back_up">
+<code class="descname">restore_back_up</code><span class="sig-paren">(</span><em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#PickleStorage.restore_back_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.PickleStorage.restore_back_up" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.PickleStorage.update_state">
+<code class="descname">update_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#PickleStorage.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.PickleStorage.update_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.storage.Storage">
+<em class="property">class </em><code class="descclassname">clustertools.storage.</code><code class="descname">Storage</code><span class="sig-paren">(</span><em>experiment_name</em>, <em>architecture=Architecture(ct_folder='/Users/jmbegon/clustertools_data')</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <code class="docutils literal"><span class="pre">Storage</span></code> objects manages two databases:
+- &#8220;notifications&#8221; which contains the states of the computations
+- &#8220;results&#8221; which contains the results of the computations
+and two folders:
+- &#8220;logs&#8221; which contains the logs of each computations
+- &#8220;mess&#8221; which can be used to store other things</p>
+<dl class="attribute">
+<dt id="clustertools.storage.Storage.architecture">
+<code class="descname">architecture</code><a class="headerlink" href="#clustertools.storage.Storage.architecture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="clustertools.storage.Storage.exp_name">
+<code class="descname">exp_name</code><a class="headerlink" href="#clustertools.storage.Storage.exp_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="clustertools.storage.Storage.folder">
+<code class="descname">folder</code><a class="headerlink" href="#clustertools.storage.Storage.folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.get_last_log_file">
+<code class="descname">get_last_log_file</code><span class="sig-paren">(</span><em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.get_last_log_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.get_last_log_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the most recent (ctime) matching file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.get_log_folder">
+<code class="descname">get_log_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.get_log_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.get_log_folder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.get_log_prefix">
+<code class="descname">get_log_prefix</code><span class="sig-paren">(</span><em>comp_name</em>, <em>suffix=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.get_log_prefix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.get_log_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.get_messy_path">
+<code class="descname">get_messy_path</code><span class="sig-paren">(</span><em>fname=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.get_messy_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.get_messy_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.init">
+<code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.load_params_and_results">
+<code class="descname">load_params_and_results</code><span class="sig-paren">(</span><em>**default_meta</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.load_params_and_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.load_params_and_results" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>default_meta: mapping str -&gt; str</dt>
+<dd>The (potentially) missing metadata</dd>
+</dl>
+<p>(parameters_ls, results_ls)
+parameters_ls: list of dicts (size: nb of computations)</p>
+<blockquote>
+<div>parameters_ls[i] is the dictionary of parameters of the ith
+computation. The dictionary is a mapping str (name of the
+parameters) -&gt; value of the parameter</div></blockquote>
+<dl class="docutils">
+<dt>result_ls: list of dicts (size: nb of computations)</dt>
+<dd>result_ls[i] is the dictionary of metrics of the ith
+computation. The dictionary is a mapping str (name of the
+metric) -&gt; value of the metric</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.load_result">
+<code class="descname">load_result</code><span class="sig-paren">(</span><em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.load_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.load_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.load_states">
+<code class="descname">load_states</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.load_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.load_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of state corresponding to self.exp_name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.print_log">
+<code class="descname">print_log</code><span class="sig-paren">(</span><em>comp_name</em>, <em>last_lines=None</em>, <em>out=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.print_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.print_log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.purge_logs">
+<code class="descname">purge_logs</code><span class="sig-paren">(</span><em>comp_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.purge_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.purge_logs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.save_result">
+<code class="descname">save_result</code><span class="sig-paren">(</span><em>comp_name</em>, <em>parameters</em>, <em>result</em>, <em>context='n/a'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.save_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.save_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.storage.Storage.update_state">
+<code class="descname">update_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/storage.html#Storage.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.storage.Storage.update_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the given state as current state and returns it</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-clustertools.util">
+<span id="clustertools-util-module"></span><h2>clustertools.util module<a class="headerlink" href="#module-clustertools.util" title="Permalink to this headline">¶</a></h2>
+<p>Module <code class="xref py py-mod docutils literal"><span class="pre">util</span></code> is a set of misc. functions</p>
+<dl class="function">
+<dt id="clustertools.util.call_with">
+<code class="descclassname">clustertools.util.</code><code class="descname">call_with</code><span class="sig-paren">(</span><em>function</em>, <em>dictionary</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#call_with"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.call_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the given function with the given dictionary with the additional
+supplied arguments
+Parameters
+&#8212;&#8212;&#8212;-
+function : callable</p>
+<blockquote>
+<div>The function to process</div></blockquote>
+<dl class="docutils">
+<dt>dictionary</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The dictionary to process</dd>
+<dt>args</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd>The list of positional arguments</dd>
+<dt>kwargs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The keyword arguments</dd>
+</dl>
+<p>The result of the function with the given sefely inputs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.util.deprecated">
+<code class="descclassname">clustertools.util.</code><code class="descname">deprecated</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#deprecated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.deprecated" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a decorator which can be used to mark functions
+as deprecated. It will result in a warning being emmitted
+when the function is used.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.util.escape">
+<code class="descclassname">clustertools.util.</code><code class="descname">escape</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#escape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.escape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="clustertools.util.hashlist">
+<code class="descclassname">clustertools.util.</code><code class="descname">hashlist</code><span class="sig-paren">(</span><em>ls</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#hashlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.hashlist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="clustertools.util.kw_intersect">
+<code class="descclassname">clustertools.util.</code><code class="descname">kw_intersect</code><span class="sig-paren">(</span><em>function</em>, <em>dictionary</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#kw_intersect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.kw_intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the intersection between the function&#8217;s parameters and
+the given dictionary
+Parameters
+&#8212;&#8212;&#8212;-
+function : callable</p>
+<blockquote>
+<div>The function to process</div></blockquote>
+<dl class="docutils">
+<dt>dictionary</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The dictionary to process</dd>
+<dt>args</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd>The list of positional arguments</dd>
+<dt>kwargs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The keyword arguments</dd>
+</dl>
+<dl class="docutils">
+<dt>intersect_dict</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The intersection between the function&#8217;s parameters and the given
+dictionary</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.util.reorder">
+<code class="descclassname">clustertools.util.</code><code class="descname">reorder</code><span class="sig-paren">(</span><em>ls</em>, <em>indices</em>, <em>in_place=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#reorder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.util.reorder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-clustertools"></span><div class="section" id="clustertools">
+<h3>clustertools<a class="headerlink" href="#clustertools" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#module-clustertools" title="clustertools"><code class="xref py py-mod docutils literal"><span class="pre">clustertools</span></code></a> is a toolkit to run experiments on supercomputers.
+It is built on top of clusterlib (<a class="reference external" href="https://github.com/clusterlib/clusterlib">https://github.com/clusterlib/clusterlib</a>).</p>
+<p>TODO
+clustertools_db
+clustertools_logs
+notification system</p>
+<div class="section" id="file-system">
+<h4>File system<a class="headerlink" href="#file-system" title="Permalink to this headline">¶</a></h4>
+<p>By default everything related to clustertools is located in a folder named
+&#8216;clustertools_data&#8217; (aka ct_folder) in the user home directory. The ct_folder
+is structured as followed:</p>
+<blockquote>
+<div><p>clustertools_data
+<a href="#id17"><span class="problematic" id="id18">|</span></a>- logs
+<a href="#id19"><span class="problematic" id="id20">|</span></a>- exp_XXX
+|   <a href="#id21"><span class="problematic" id="id22">|</span></a>- logs
+|   <a href="#id23"><span class="problematic" id="id24">|</span></a>- $result$
+|   <a href="#id25"><span class="problematic" id="id26">|</span></a>- $notifs$
+<a href="#id27"><span class="problematic" id="id28">|</span></a>- exp_YYY</p>
+<blockquote>
+<div><a href="#id29"><span class="problematic" id="id30">|</span></a>...</div></blockquote>
+</div></blockquote>
+<p>where logs is a folder containing the main logs (not the one corresponding to
+the experiments). exp_XXX is the folder related to experiment &#8216;XXX&#8217;.</p>
+</div>
+<div class="section" id="logging">
+<h4>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>This library uses logging for</dt>
+<dd><ul class="first last simple">
+<li>Warning in <code class="xref py py-func docutils literal"><span class="pre">experiment.run_experiment()</span></code> (&#8216;clustertools&#8217;)</li>
+</ul>
+</dd>
+</dl>
+<p>By default, logging is disabled</p>
+<dl class="class">
+<dt id="clustertools.Monitor">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">Monitor</code><span class="sig-paren">(</span><em>exp_name</em>, <em>user=None</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class which monitors the computations of a given experiment</p>
+<p>job_dict : mapping {comp_name -&gt; state}
+state_dict: mapping {state -&gt; job_dict}</p>
+<p>The number n of computations per experiment being usually low (a few
+thousands at most), it is not necessary to be better than O(n) per
+operations</p>
+<dl class="method">
+<dt id="clustertools.Monitor.abort">
+<code class="descname">abort</code><span class="sig-paren">(</span><em>exception=ManualInterruption('Monitor interruption'</em>, <em>)</em>, <em>from_state=&lt;class 'clustertools.state.State'&gt;</em>, <em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.abort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.aborted_computations">
+<code class="descname">aborted_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.aborted_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.aborted_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.aborted_to_launchable">
+<code class="descname">aborted_to_launchable</code><span class="sig-paren">(</span><em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.aborted_to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.aborted_to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.computation_names">
+<code class="descname">computation_names</code><span class="sig-paren">(</span><em>state_cls=&lt;class 'clustertools.state.State'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.computation_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.computation_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.count_by_state">
+<code class="descname">count_by_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.count_by_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.count_by_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.critical_computations">
+<code class="descname">critical_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.critical_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.critical_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.incomplete_computations">
+<code class="descname">incomplete_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.incomplete_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.incomplete_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.incomplete_to_launchable">
+<code class="descname">incomplete_to_launchable</code><span class="sig-paren">(</span><em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.incomplete_to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.incomplete_to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.launchable_computations">
+<code class="descname">launchable_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.launchable_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.launchable_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.partition_by_state">
+<code class="descname">partition_by_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.partition_by_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.partition_by_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.refresh">
+<code class="descname">refresh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.refresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>from_state=&lt;class 'clustertools.state.State'&gt;</em>, <em>predicate=&lt;function Monitor.&lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.to_launchable">
+<code class="descname">to_launchable</code><span class="sig-paren">(</span><em>comp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.to_launchable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.to_launchable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.to_launchables">
+<code class="descname">to_launchables</code><span class="sig-paren">(</span><em>indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.to_launchables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.to_launchables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Monitor.unlaunchable_computations">
+<code class="descname">unlaunchable_computations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/state.html#Monitor.unlaunchable_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Monitor.unlaunchable_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.Computation">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">Computation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>context='n/a'</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Computation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <code class="docutils literal"><span class="pre">Computation</span></code> is any computation that must be run as part of an
+experiment on a given set of parameters</p>
+<dl class="docutils">
+<dt>exp_name: str</dt>
+<dd>The name of the experiment</dd>
+<dt>comp_name: str</dt>
+<dd>The name of the computation</dd>
+<dt>context: str (optional)</dt>
+<dd>Context information (can be the time/memory requirements, for instance)</dd>
+<dt>storage_factory: callable str -&gt; cls:<cite>Storage</cite></dt>
+<dd>A factory which takes as input the experiment name and returns
+a cls:<cite>Storage</cite> instance</dd>
+</dl>
+<dl class="method">
+<dt id="clustertools.Computation.lazyfy">
+<code class="descname">lazyfy</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation.lazyfy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Computation.lazyfy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Computation.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Computation.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Computation.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.PartialComputation">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">PartialComputation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>comp_name</em>, <em>context='n/a'</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#PartialComputation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.PartialComputation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.experiment.Computation" title="clustertools.experiment.Computation"><code class="xref py py-class docutils literal"><span class="pre">clustertools.experiment.Computation</span></code></a></p>
+<p>Expect the run method to be a generator</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.ParameterSet">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">ParameterSet</code><span class="sig-paren">(</span><em>param_map_seq=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A <cite>ParameterSet</cite> is a structure yielding parameter tuples. A parameter tuple
+<cite>pt</cite> is an ordered list of values such that <cite>pt[i]</cite> is an admissible value
+for parameter <cite>i</cite>. For the sake of ambiguity, a parameter
+tuple can be referred to as a multidimensional parameter, which can be
+abbreviated to &#8220;parameter&#8221; (dropping the plural to raise the confusion
+with single-dimension parameters).</p>
+<p>A parameter is either a metadata, if it can only take one value, or a
+variable, if it can take several values. The set of values a parameter can
+take is referred as its domain.</p>
+<p>To entertain confusion further, &#8220;parameter&#8221; can refer to the name
+of the parameter, the value it takes, both or to the mapping between
+the name and the domain. Enjoy!</p>
+<p>Parameter tuples are generated as the cartesian product of the parameters
+domain, ordered following the lexicographic order of the parameter names
+and according the separator: all the tuples of the domains defined before
+the separator must be yielded before enlarging the domains with was comes
+after the separator.</p>
+<dl class="docutils">
+<dt>The separator allows for two use cases:</dt>
+<dd><ol class="first last arabic simple">
+<li>Force an ordering on the computations (do more important stuff first)</li>
+<li>Make more computation after the first round</li>
+</ol>
+</dd>
+</dl>
+<dl class="docutils">
+<dt>param_map_seq: sequence of mapping str -&gt; set, or None (default: None)</dt>
+<dd>Each mapping defines one or several bindings of the type &#8220;parameter name
+(i.e. the string)-domain (i.e. the set)&#8221;. The sequence represents
+partial domains isolated by separators.</dd>
+</dl>
+<dl class="method">
+<dt id="clustertools.ParameterSet.add_parameters">
+<code class="descname">add_parameters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ParameterSet.add_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+either a single domain element or a sequence of domain elements.
+If the domain elements are sequences, use <cite>add_single_values</cite>
+instead.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ParameterSet.add_separator">
+<code class="descname">add_separator</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_separator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ParameterSet.add_separator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+domain element. This mapping represent the default value that he
+absence of parameter represented before this separator.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ParameterSet.add_single_values">
+<code class="descname">add_single_values</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.add_single_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ParameterSet.add_single_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>kwargs: mapping str -&gt; object</dt>
+<dd>A mapping where each key is a parameter name and the object is
+domain element.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ParameterSet.get_indices_with">
+<code class="descname">get_indices_with</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ParameterSet.get_indices_with"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ParameterSet.get_indices_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields indices of parameter tuples containing the parameter-values given</p>
+<dl class="docutils">
+<dt>kwargs: mapping str -&gt; set</dt>
+<dd>A mapping where each key is a parameter name and the set is the
+domain of the parameter</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.ConstrainedParameterSet">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">ConstrainedParameterSet</code><span class="sig-paren">(</span><em>param_map_seq=None</em>, <em>filters_seq=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ConstrainedParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.experiment.ParameterSet" title="clustertools.experiment.ParameterSet"><code class="xref py py-class docutils literal"><span class="pre">clustertools.experiment.ParameterSet</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.ConstrainedParameterSet.add_constraints">
+<code class="descname">add_constraints</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.add_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ConstrainedParameterSet.add_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the constraints. Constraints apply from this stage on, they are not
+retroactive with respect to separators.</p>
+<dl class="docutils">
+<dt>kwargs: mapping str -&gt; callable(<a href="#id31"><span class="problematic" id="id32">**</span></a>kwargs)</dt>
+<dd>a named predicate. It takes as input a detupled param tuple</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ConstrainedParameterSet.add_separator">
+<code class="descname">add_separator</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.add_separator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ConstrainedParameterSet.add_separator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ConstrainedParameterSet.delete_constraints">
+<code class="descname">delete_constraints</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#ConstrainedParameterSet.delete_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ConstrainedParameterSet.delete_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.Result">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">Result</code><span class="sig-paren">(</span><em>*metric_names</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">dict</span></code></p>
+<p>A result is a place holder for pairs metric=value</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.Experiment">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">Experiment</code><span class="sig-paren">(</span><em>exp_name</em>, <em>parameter_set</em>, <em>computation_factory</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em>, <em>user=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="classmethod">
+<dt id="clustertools.Experiment.name_computation">
+<em class="property">classmethod </em><code class="descname">name_computation</code><span class="sig-paren">(</span><em>exp_name</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment.name_computation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Experiment.name_computation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="clustertools.Experiment.storage">
+<code class="descname">storage</code><a class="headerlink" href="#clustertools.Experiment.storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Experiment.yield_computations">
+<code class="descname">yield_computations</code><span class="sig-paren">(</span><em>context='n/a'</em>, <em>start=0</em>, <em>capacity=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/experiment.html#Experiment.yield_computations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Experiment.yield_computations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.Serializer">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">Serializer</code><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Serializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="clustertools.Serializer.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serlialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Serializer.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the object represented by the serialized string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Serializer.deserialize_and_run">
+<code class="descname">deserialize_and_run</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.deserialize_and_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Serializer.deserialize_and_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Serializer.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Serializer.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a unserializable string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clustertools.Serializer.serialize_and_script">
+<code class="descname">serialize_and_script</code><span class="sig-paren">(</span><em>lazy_computation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/environment.html#Serializer.serialize_and_script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.Serializer.serialize_and_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a script to run the lazy_computation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.build_result_cube">
+<code class="descclassname">clustertools.</code><code class="descname">build_result_cube</code><span class="sig-paren">(</span><em>exp_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#build_result_cube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.build_result_cube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="clustertools.build_datacube">
+<code class="descclassname">clustertools.</code><code class="descname">build_datacube</code><span class="sig-paren">(</span><em>exp_name</em>, <em>storage_factory=&lt;class 'clustertools.storage.PickleStorage'&gt;</em>, <em>**default_meta</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/datacube.html#build_datacube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.build_datacube" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>default_meta: mapping str -&gt; str</dt>
+<dd>The (potientially) missing metadata</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.BaseParser">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">BaseParser</code><span class="sig-paren">(</span><em>serializer_factory=&lt;class 'clustertools.environment.Serializer'&gt;</em>, <em>description='Clustertool launcher'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.BaseParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="clustertools.BaseParser.get_parser">
+<code class="descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser.get_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.BaseParser.get_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.BaseParser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>args=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#BaseParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.BaseParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clustertools.ClusterParser">
+<em class="property">class </em><code class="descclassname">clustertools.</code><code class="descname">ClusterParser</code><span class="sig-paren">(</span><em>serializer_factory=&lt;class 'clustertools.environment.Serializer'&gt;</em>, <em>description='Clustertool launcher'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ClusterParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#clustertools.parser.BaseParser" title="clustertools.parser.BaseParser"><code class="xref py py-class docutils literal"><span class="pre">clustertools.parser.BaseParser</span></code></a></p>
+<dl class="method">
+<dt id="clustertools.ClusterParser.get_parser">
+<code class="descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser.get_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ClusterParser.get_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="clustertools.ClusterParser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>args=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/parser.html#ClusterParser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.ClusterParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.call_with">
+<code class="descclassname">clustertools.</code><code class="descname">call_with</code><span class="sig-paren">(</span><em>function</em>, <em>dictionary</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools/util.html#call_with"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.call_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the given function with the given dictionary with the additional
+supplied arguments
+Parameters
+&#8212;&#8212;&#8212;-
+function : callable</p>
+<blockquote>
+<div>The function to process</div></blockquote>
+<dl class="docutils">
+<dt>dictionary</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The dictionary to process</dd>
+<dt>args</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd>The list of positional arguments</dd>
+<dt>kwargs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The keyword arguments</dd>
+</dl>
+<p>The result of the function with the given sefely inputs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="clustertools.set_stdout_logging">
+<code class="descclassname">clustertools.</code><code class="descname">set_stdout_logging</code><span class="sig-paren">(</span><em>architecture=Architecture(ct_folder='/Users/jmbegon/clustertools_data')</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clustertools.html#set_stdout_logging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clustertools.set_stdout_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets stdout as default logging facility</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">clustertools package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-clustertools.config">clustertools.config module</a></li>
+<li><a class="reference internal" href="#module-clustertools.datacube">clustertools.datacube module</a></li>
+<li><a class="reference internal" href="#module-clustertools.environment">clustertools.environment module</a></li>
+<li><a class="reference internal" href="#module-clustertools.experiment">clustertools.experiment module</a><ul>
+<li><a class="reference internal" href="#restriction">Restriction</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clustertools.parser">clustertools.parser module</a></li>
+<li><a class="reference internal" href="#module-clustertools.state">clustertools.state module</a><ul>
+<li><a class="reference internal" href="#convention">Convention</a></li>
+<li><a class="reference internal" href="#note">Note</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clustertools.storage">clustertools.storage module</a></li>
+<li><a class="reference internal" href="#module-clustertools.util">clustertools.util module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a><ul>
+<li><a class="reference internal" href="#clustertools">clustertools</a><ul>
+<li><a class="reference internal" href="#file-system">File system</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/clustertools.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">clustertools 0.1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

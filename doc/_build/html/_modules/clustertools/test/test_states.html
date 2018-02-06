@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.test_states &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.test_states</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_in</span><span class="p">,</span> <span class="n">assert_not_in</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_equal</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">with_setup</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_true</span><span class="p">,</span> <span class="n">assert_false</span>
+
+
+<span class="kn">from</span> <span class="nn">clustertools.state</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">clustertools.storage</span> <span class="k">import</span> <span class="n">PickleStorage</span>
+
+<span class="kn">from</span> <span class="nn">.util_test</span> <span class="k">import</span> <span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">,</span> <span class="n">__EXP_NAME__</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<span class="c1"># ------------------------------------------------------------------------ STATE</span>
+
+
+<div class="viewcode-block" id="test_reset_state"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_reset_state">[docs]</a><span class="k">def</span> <span class="nf">test_reset_state</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">state_cls</span> <span class="ow">in</span> <span class="n">PendingState</span><span class="p">,</span> <span class="n">RunningState</span><span class="p">,</span> <span class="n">CompletedState</span><span class="p">,</span> \
+                     <span class="n">IncompleteState</span><span class="p">,</span> <span class="n">CriticalState</span><span class="p">,</span> <span class="n">PartialState</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state_cls</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">)</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">reset</span><span class="p">(),</span> <span class="n">LaunchableState</span><span class="p">))</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">,</span>
+                         <span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">reset</span><span class="p">(),</span> <span class="n">LaunchableState</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_abort_state"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_abort_state">[docs]</a><span class="k">def</span> <span class="nf">test_abort_state</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">state_cls</span> <span class="ow">in</span> <span class="n">PendingState</span><span class="p">,</span> <span class="n">RunningState</span><span class="p">,</span> <span class="n">CompletedState</span><span class="p">,</span> \
+                     <span class="n">IncompleteState</span><span class="p">,</span> <span class="n">CriticalState</span><span class="p">,</span> <span class="n">PartialState</span><span class="p">,</span> \
+                     <span class="n">LaunchableState</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state_cls</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">abort</span><span class="p">(</span><span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">AbortedState</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_computation_state_routine"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_computation_state_routine">[docs]</a><span class="k">def</span> <span class="nf">test_computation_state_routine</span><span class="p">():</span>
+    <span class="c1"># Is this routine working ?</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">PendingState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">)</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_running</span><span class="p">()</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_critical</span><span class="p">()</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">first_critical</span><span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">to_completed</span><span class="p">()</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_computation_state_failed_routine"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_computation_state_failed_routine">[docs]</a><span class="k">def</span> <span class="nf">test_computation_state_failed_routine</span><span class="p">():</span>
+    <span class="c1"># Is this routine working ?</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">PendingState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">)</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_running</span><span class="p">()</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">abort</span><span class="p">(</span><span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">AbortedState</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_partial_computation_state_routine"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_partial_computation_state_routine">[docs]</a><span class="k">def</span> <span class="nf">test_partial_computation_state_routine</span><span class="p">():</span>
+    <span class="c1"># Is this routine working ?</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">PendingState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_comp&quot;</span><span class="p">)</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_running</span><span class="p">()</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_critical</span><span class="p">()</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">first_critical</span><span class="p">)</span>
+    <span class="c1"># loop</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_partial</span><span class="p">()</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">to_critical</span><span class="p">()</span>
+        <span class="n">assert_false</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">first_critical</span><span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">to_completed</span><span class="p">()</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------- MONITOR</span>
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_monitor_refresh"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_monitor_refresh">[docs]</a><span class="k">def</span> <span class="nf">test_monitor_refresh</span><span class="p">():</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="n">PendingState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_pending&quot;</span><span class="p">)</span>
+    <span class="n">running</span> <span class="o">=</span> <span class="n">RunningState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_running&quot;</span><span class="p">)</span>
+    <span class="n">completed</span> <span class="o">=</span> <span class="n">CompletedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_completed&quot;</span><span class="p">)</span>
+    <span class="n">launchable</span> <span class="o">=</span> <span class="n">LaunchableState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_lauchable&quot;</span><span class="p">)</span>
+    <span class="n">partial</span> <span class="o">=</span> <span class="n">PartialState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_partial&quot;</span><span class="p">)</span>
+    <span class="n">first_critical</span> <span class="o">=</span> <span class="n">CriticalState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_first_critical&quot;</span><span class="p">,</span>
+                                   <span class="n">first_critical</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">not_first_critical</span> <span class="o">=</span> <span class="n">CriticalState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_not_first_critical&quot;</span><span class="p">,</span>
+                                       <span class="n">first_critical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">aborted</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_aborted&quot;</span><span class="p">,</span>
+                           <span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+    <span class="n">incomplete</span> <span class="o">=</span> <span class="n">IncompleteState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;incomplete&quot;</span><span class="p">)</span>
+
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">,</span> <span class="n">running</span><span class="p">,</span> <span class="n">completed</span><span class="p">,</span> <span class="n">launchable</span><span class="p">,</span> <span class="n">partial</span><span class="p">,</span> \
+                 <span class="n">first_critical</span><span class="p">,</span> <span class="n">not_first_critical</span><span class="p">,</span> <span class="n">aborted</span><span class="p">,</span> <span class="n">incomplete</span><span class="p">:</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="n">monitor</span> <span class="o">=</span> <span class="n">Monitor</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+
+    <span class="c1"># Should be moved to launchable</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">running</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+
+    <span class="c1"># Should be moved to incomplete</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">partial</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">not_first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+
+    <span class="c1"># At the right place</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">launchable</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">completed</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">computation_names</span><span class="p">(</span><span class="n">CompletedState</span><span class="p">))</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">aborted_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">incomplete</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+
+    <span class="c1"># 4 types of states: launchable, completed, incomplete, aborted</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">monitor</span><span class="o">.</span><span class="n">count_by_state</span><span class="p">()),</span> <span class="mi">4</span><span class="p">)</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_monitor_incomplete_to_launchable"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_monitor_incomplete_to_launchable">[docs]</a><span class="k">def</span> <span class="nf">test_monitor_incomplete_to_launchable</span><span class="p">():</span>
+    <span class="n">incomplete</span> <span class="o">=</span> <span class="n">IncompleteState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;incomplete&quot;</span><span class="p">)</span>
+    <span class="n">partial</span> <span class="o">=</span> <span class="n">PartialState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_partial&quot;</span><span class="p">)</span>
+    <span class="n">not_first_critical</span> <span class="o">=</span> <span class="n">CriticalState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_not_first_critical&quot;</span><span class="p">,</span>
+                                       <span class="n">first_critical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">first_critical</span> <span class="o">=</span> <span class="n">CriticalState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_first_critical&quot;</span><span class="p">,</span>
+                                   <span class="n">first_critical</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">aborted</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_aborted&quot;</span><span class="p">,</span>
+                           <span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">incomplete</span><span class="p">,</span> <span class="n">partial</span><span class="p">,</span> <span class="n">not_first_critical</span><span class="p">,</span> <span class="n">aborted</span><span class="p">,</span> \
+            <span class="n">first_critical</span><span class="p">:</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="n">monitor</span> <span class="o">=</span> <span class="n">Monitor</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+
+    <span class="c1"># partial and not_first_critical are incomplete</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">partial</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">not_first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">incomplete</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">aborted_computations</span><span class="p">())</span>
+
+    <span class="n">monitor</span><span class="o">.</span><span class="n">incomplete_to_launchable</span><span class="p">()</span>
+
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">incomplete</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">partial</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">not_first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">first_critical</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">aborted_computations</span><span class="p">())</span></div>
+
+
+<span class="nd">@with_setup</span><span class="p">(</span><span class="n">pickle_prep</span><span class="p">,</span> <span class="n">pickle_purge</span><span class="p">)</span>
+<div class="viewcode-block" id="test_monitor_aborted_to_launchable"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_states.test_monitor_aborted_to_launchable">[docs]</a><span class="k">def</span> <span class="nf">test_monitor_aborted_to_launchable</span><span class="p">():</span>
+    <span class="n">incomplete</span> <span class="o">=</span> <span class="n">IncompleteState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;incomplete&quot;</span><span class="p">)</span>
+    <span class="n">completed</span> <span class="o">=</span> <span class="n">CompletedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;completed&quot;</span><span class="p">)</span>
+    <span class="n">aborted</span> <span class="o">=</span> <span class="n">AbortedState</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">,</span> <span class="s2">&quot;test_aborted&quot;</span><span class="p">,</span>
+                           <span class="n">ManualInterruption</span><span class="p">(</span><span class="s2">&quot;Test interruption&quot;</span><span class="p">))</span>
+
+    <span class="n">storage</span> <span class="o">=</span> <span class="n">PickleStorage</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">incomplete</span><span class="p">,</span> <span class="n">completed</span><span class="p">,</span> <span class="n">aborted</span><span class="p">:</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="n">monitor</span> <span class="o">=</span> <span class="n">Monitor</span><span class="p">(</span><span class="n">__EXP_NAME__</span><span class="p">)</span>
+    <span class="n">monitor</span><span class="o">.</span><span class="n">aborted_to_launchable</span><span class="p">()</span>
+
+    <span class="n">assert_in</span><span class="p">(</span><span class="n">aborted</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">incomplete</span><span class="p">,</span> <span class="n">completed</span><span class="p">:</span>
+        <span class="n">assert_not_in</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">comp_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">.</span><span class="n">launchable_computations</span><span class="p">())</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

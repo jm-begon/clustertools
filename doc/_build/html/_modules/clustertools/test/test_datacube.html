@@ -1,0 +1,622 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.test.test_datacube &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="clustertools" href="../../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.test.test_datacube</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="k">import</span> <span class="n">assert_dict_equal</span><span class="p">,</span> <span class="n">assert_not_in</span><span class="p">,</span> <span class="n">assert_equal</span><span class="p">,</span> \
+    <span class="n">assert_not_equal</span><span class="p">,</span> <span class="n">assert_in</span><span class="p">,</span> <span class="n">assert_true</span><span class="p">,</span> <span class="n">assert_raises</span>
+
+<span class="kn">from</span> <span class="nn">clustertools.datacube</span> <span class="k">import</span> <span class="n">Datacube</span><span class="p">,</span> <span class="n">Hasher</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="basic"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.basic">[docs]</a><span class="k">def</span> <span class="nf">basic</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    values</span>
+<span class="sd">           w              w</span>
+<span class="sd">         5   6          5    6</span>
+<span class="sd">       +---+---+      +---+----+</span>
+<span class="sd">      1| 2 | 2 |     1| 9 | 10 |</span>
+<span class="sd">       +---+---+      +---+----+</span>
+<span class="sd">    x 2| 4 | 4 |   x 2| 9 | 10 |</span>
+<span class="sd">       +---+---+      +---+----+</span>
+<span class="sd">      3| 6 | 6 |     3| 9 | 10 |</span>
+<span class="sd">       +---+---+      +---+----+</span>
+<span class="sd">           f1             f2</span>
+<span class="sd">    /!\ tranposed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Computation-basic-0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-basic-1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-basic-2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-basic-3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-basic-4&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-basic-5&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;basic&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}}}</span>
+
+    <span class="c1"># Notice the ordering</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]}</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s2">&quot;4&quot;</span><span class="p">}</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+    <span class="n">parameters</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">]</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">exp_name</span> <span class="o">=</span> <span class="s2">&quot;basic&quot;</span>
+    <span class="k">return</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="alldiff"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.alldiff">[docs]</a><span class="k">def</span> <span class="nf">alldiff</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    values</span>
+<span class="sd">            w                w</span>
+<span class="sd">          5    6           5    6</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      1| 15 | 16 |     1| 51 | 61 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">    x 2| 25 | 26 |   x 2| 52 | 62 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      3| 35 | 36 |     3| 53 | 63 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">           f1             f2</span>
+<span class="sd">    /!\ tranposed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Computation-alldiff-0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">51</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">61</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">52</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">62</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-4&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">53</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-5&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">63</span><span class="p">}}}</span>
+
+    <span class="c1"># Notice the ordering</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]}</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s2">&quot;4&quot;</span><span class="p">}</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+    <span class="n">parameters</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">]</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">exp_name</span> <span class="o">=</span> <span class="s2">&quot;alldiff&quot;</span>
+    <span class="k">return</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="some_ood"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.some_ood">[docs]</a><span class="k">def</span> <span class="nf">some_ood</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    values</span>
+<span class="sd">            w                w</span>
+<span class="sd">          5    6           5    6</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      1| 15 | 16 |     1| 51 | 61 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">    x 2|    | 26 |   x 2|    | 62 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      3| 35 | 36 |     3| 53 | 63 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">           f1             f2</span>
+<span class="sd">    /!\ tranposed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Computation-alldiff-0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">51</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">61</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">62</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-4&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">53</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-alldiff-5&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;alldiff&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">63</span><span class="p">}}}</span>
+
+    <span class="c1"># Notice the ordering</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]}</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s2">&quot;4&quot;</span><span class="p">}</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+    <span class="n">parameters</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">]</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">exp_name</span> <span class="o">=</span> <span class="s2">&quot;alldiff&quot;</span>
+    <span class="k">return</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="some_meta"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.some_meta">[docs]</a><span class="k">def</span> <span class="nf">some_meta</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    values</span>
+<span class="sd">            w                w</span>
+<span class="sd">          5    6           5    6</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      1| 15 | 16 |     1| 51 | 61 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">    x 2| 25 | 26 |   x 2| 52 | 62 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      3| 35 | 36 |     3| 53 | 63 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">           f1             f2</span>
+<span class="sd">    /!\ tranposed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Computation-somemeta-0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">51</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-somemeta-1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">61</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-somemeta-2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">52</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-somemeta-3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">62</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-somemeta-4&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">53</span><span class="p">}},</span>
+            <span class="s1">&#39;Computation-somemeta-5&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Experiment&#39;</span><span class="p">:</span> <span class="s1">&#39;somemeta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">},</span>
+            <span class="s1">&#39;Results&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;f1&#39;</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span> <span class="s1">&#39;f2&#39;</span><span class="p">:</span> <span class="mi">63</span><span class="p">}}}</span>
+
+    <span class="c1"># Notice the ordering</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]}</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;7&#39;</span><span class="p">}</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+    <span class="n">parameters</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">]</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">exp_name</span> <span class="o">=</span> <span class="s2">&quot;somemeta&quot;</span>
+    <span class="k">return</span> <span class="n">exp_name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="build_cube"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.build_cube">[docs]</a><span class="k">def</span> <span class="nf">build_cube</span><span class="p">(</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+    <span class="n">parameterss</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">resultss</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">parameterss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;Parameters&quot;</span><span class="p">])</span>
+        <span class="n">resultss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;Results&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">Datacube</span><span class="p">(</span><span class="n">parameterss</span><span class="p">,</span> <span class="n">resultss</span><span class="p">,</span> <span class="n">exp_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_info"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_info">[docs]</a><span class="k">def</span> <span class="nf">test_info</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">basic</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">dom</span><span class="p">)</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">))</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="c1">#w/x/m</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">assert_in</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_hasher"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_hasher">[docs]</a><span class="k">def</span> <span class="nf">test_hasher</span><span class="p">():</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;m1&quot;</span><span class="p">,</span> <span class="s2">&quot;m2&quot;</span><span class="p">]</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;v1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;v2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+    <span class="n">ls</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">vv2</span> <span class="ow">in</span> <span class="n">domain</span><span class="p">[</span><span class="s2">&quot;v2&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">vv1</span> <span class="ow">in</span> <span class="n">domain</span><span class="p">[</span><span class="s2">&quot;v1&quot;</span><span class="p">]:</span>
+                <span class="n">ls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;v1&quot;</span><span class="p">:</span> <span class="n">vv1</span><span class="p">,</span> <span class="s2">&quot;v2&quot;</span><span class="p">:</span> <span class="n">vv2</span><span class="p">}))</span>
+    <span class="n">hasher</span> <span class="o">=</span> <span class="n">Hasher</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">metric</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">hasher</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">assert_not_in</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">seen</span><span class="p">)</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">seen</span><span class="p">))</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">seen</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_result_data"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_result_data">[docs]</a><span class="k">def</span> <span class="nf">test_result_data</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">basic</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">metrics</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cube</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+        <span class="n">assert_not_equal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_call"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_call">[docs]</a><span class="k">def</span> <span class="nf">test_call</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">basic</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="test_indexing"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_indexing">[docs]</a><span class="k">def</span> <span class="nf">test_indexing</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">26</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">35</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">36</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">51</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">61</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">52</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">62</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">53</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">63</span><span class="p">)</span>
+
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="test_call_indexing"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_call_indexing">[docs]</a><span class="k">def</span> <span class="nf">test_call_indexing</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">26</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">),</span> <span class="mi">35</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="mi">36</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">51</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="mi">61</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">52</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f2&quot;</span><span class="p">),</span> <span class="mi">62</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">53</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=3)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="s2">&quot;f2&quot;</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="mi">63</span><span class="p">)</span>
+
+    <span class="n">assert_raises</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">cube</span><span class="p">,</span> <span class="s2">&quot;f3&quot;</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="test_indexing_name"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_indexing_name">[docs]</a><span class="k">def</span> <span class="nf">test_indexing_name</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">],</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">],</span> <span class="mi">26</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">],</span> <span class="mi">51</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">61</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">52</span><span class="p">)</span>
+    <span class="c1"># f2(w=6, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;f2&quot;</span><span class="p">],</span> <span class="mi">62</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_call_indexing_name"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_call_indexing_name">[docs]</a><span class="k">def</span> <span class="nf">test_call_indexing_name</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="c1"># f1(w=5, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">),</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="c1"># f1(w=6, x=1)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="c1"># f2(w=5, x=2)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f2&quot;</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">),</span> <span class="mi">52</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="test_slicing"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_slicing">[docs]</a><span class="k">def</span> <span class="nf">test_slicing</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="c1"># ==== False slicing ====</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># TODO nicefy</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># ==== Partial slicing: removing a dim ====</span>
+    <span class="c1"># x=1</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">assert_not_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;w&quot;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]})</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;z&quot;</span><span class="p">:</span><span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span><span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="c1"># w/m</span>
+
+    <span class="c1"># ==== Partial slicing: not removing a dim ====</span>
+     <span class="c1"># x \in {1, 2}</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">assert_not_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">],</span> <span class="s2">&quot;w&quot;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]})</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="c1">#w/x/m</span>
+
+    <span class="c1"># ==== Partial slicing: not removing a dim ====</span>
+     <span class="c1"># x \in {1, 3}</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+    <span class="n">assert_not_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s2">&quot;w&quot;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]})</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="c1">#w/x/m</span>
+
+
+    <span class="c1"># ==== Partial slicing: selecting a metric ====</span>
+    <span class="c1"># metrics = f1</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">assert_not_equal</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">cube2</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">cube</span><span class="p">))</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s2">&quot;w&quot;</span><span class="p">:[</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">]})</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">])</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="c1">#w/x/m</span>
+
+    <span class="c1"># ==== Swapping the metrics ====</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">[</span><span class="s2">&quot;f2&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;f2&quot;</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="test_indexing_path"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_indexing_path">[docs]</a><span class="k">def</span> <span class="nf">test_indexing_path</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">)</span>
+    <span class="n">c2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">(</span><span class="n">w</span><span class="o">=</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+    <span class="n">val2</span> <span class="o">=</span> <span class="n">c2</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s2">&quot;f1&quot;</span><span class="p">)</span>
+    <span class="n">vs</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">c2</span><span class="p">]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">vs</span><span class="p">[</span><span class="n">c2</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;f1&quot;</span><span class="p">)],</span> <span class="n">val</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_numpyfy"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_numpyfy">[docs]</a><span class="k">def</span> <span class="nf">test_numpyfy</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="c1"># TODO skip if not numpy</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">cube2</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cube2</span><span class="o">.</span><span class="n">parameters</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">numpified</span> <span class="o">=</span> <span class="n">cube2</span><span class="o">.</span><span class="n">numpyfy</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">numpified</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">for</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">numpified</span><span class="p">,</span> <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">51</span><span class="p">]):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+    <span class="n">arr1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">35</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">36</span><span class="p">]])</span>
+    <span class="n">arr2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">51</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">],</span> <span class="p">[</span><span class="mi">61</span><span class="p">,</span> <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">]])</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dstack</span><span class="p">([</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">])</span>
+    <span class="n">numpified</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">numpyfy</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">numpified</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">numpified</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">v11</span><span class="p">,</span> <span class="n">v22</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">v111</span><span class="p">,</span> <span class="n">v222</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">v11</span><span class="p">,</span> <span class="n">v22</span><span class="p">):</span>
+                <span class="n">assert_equal</span><span class="p">(</span><span class="n">v111</span><span class="p">,</span> <span class="n">v222</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_reorder"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_reorder">[docs]</a><span class="k">def</span> <span class="nf">test_reorder</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+    <span class="n">cube</span><span class="o">.</span><span class="n">reorder_parameters</span><span class="p">(</span><span class="o">*</span><span class="n">p2</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
+    <span class="n">cube</span><span class="o">.</span><span class="n">reorder_parameters</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="test_iteritems"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_iteritems">[docs]</a><span class="k">def</span> <span class="nf">test_iteritems</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">alldiff</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">ls</span> <span class="o">=</span> <span class="p">[(</span> <span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">51</span><span class="p">)</span> <span class="p">),</span>
+          <span class="p">(</span> <span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">52</span><span class="p">)</span> <span class="p">),</span>
+          <span class="p">(</span> <span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">35</span><span class="p">,</span> <span class="mi">53</span><span class="p">)</span> <span class="p">),</span>
+          <span class="p">(</span> <span class="p">(</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">61</span><span class="p">)</span> <span class="p">),</span>
+          <span class="p">(</span> <span class="p">(</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">26</span><span class="p">,</span> <span class="mi">62</span><span class="p">)</span> <span class="p">),</span>
+          <span class="p">(</span> <span class="p">(</span><span class="s2">&quot;6&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">36</span><span class="p">,</span> <span class="mi">63</span><span class="p">)</span> <span class="p">)]</span>
+    <span class="n">ls</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+    <span class="n">rs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">rs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_ood"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_ood">[docs]</a><span class="k">def</span> <span class="nf">test_ood</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">some_ood</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="n">expected_ood</span> <span class="o">=</span> <span class="p">[(</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">:</span><span class="s2">&quot;5&quot;</span><span class="p">},</span> <span class="s2">&quot;f1&quot;</span><span class="p">),</span>
+                    <span class="p">(</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">:</span><span class="s2">&quot;5&quot;</span><span class="p">},</span> <span class="s2">&quot;f2&quot;</span><span class="p">)]</span>
+    <span class="n">ood</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">out_of_domain</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ood</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">expected_ood</span><span class="p">))</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">expected_ood</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ood</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">assert_dict_equal</span><span class="p">(</span><span class="n">expected_ood</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ood</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">exp_m</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">expected_ood</span><span class="p">]</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ood</span><span class="p">]</span>
+    <span class="n">exp_m</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">exp_m</span><span class="p">)</span></div>
+
+<span class="c1"># def test_max_hypercube():</span>
+<span class="c1">#     name, metadata, params, dom, metrics, d = some_ood()</span>
+<span class="c1">#     cube = build_cube(name, d)</span>
+<span class="c1">#     cube2 = cube.maximal_hypercube()</span>
+<span class="c1">#     # print cube2.parameters</span>
+<span class="c1">#     # print cube2.domain</span>
+<span class="c1">#     # print cube2.metrics</span>
+<span class="c1">#     # print cube2.metadata</span>
+<span class="c1">#     assert_equal(cube2.shape, (2, 2, 2))#w/x/m</span>
+
+
+<div class="viewcode-block" id="test_iter_dimensions"><a class="viewcode-back" href="../../../source/clustertools.test.html#clustertools.test.test_datacube.test_iter_dimensions">[docs]</a><span class="k">def</span> <span class="nf">test_iter_dimensions</span><span class="p">():</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">some_meta</span><span class="p">()</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">build_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    values</span>
+<span class="sd">            w                w</span>
+<span class="sd">          5    6           5    6</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      1| 15 | 16 |     1| 51 | 61 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">    x 2| 25 | 26 |   x 2| 52 | 62 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">      3| 35 | 36 |     3| 53 | 63 |</span>
+<span class="sd">       +----+----+      +----+----+</span>
+<span class="sd">           f1             f2</span>
+<span class="sd">    /!\ tranposed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># y=7, z=4 are metadata</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">15</span><span class="p">),</span>
+        <span class="p">((</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">16</span><span class="p">),</span>
+        <span class="p">((</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">25</span><span class="p">),</span>
+        <span class="p">((</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">26</span><span class="p">),</span>
+        <span class="p">((</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">35</span><span class="p">),</span>
+        <span class="p">((</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">),</span> <span class="mi">36</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">cube_i</span><span class="p">),</span> <span class="p">(</span><span class="n">exp_val</span><span class="p">,</span> <span class="n">exp_res</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cube</span><span class="o">.</span><span class="n">iter_dimensions</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">),</span> <span class="n">expected</span><span class="p">):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">exp_val</span><span class="p">)</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">cube_i</span><span class="p">(</span><span class="s2">&quot;f1&quot;</span><span class="p">),</span> <span class="n">exp_res</span><span class="p">)</span></div>
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

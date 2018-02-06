@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">============</span>
+<span class="sd">clustertools</span>
+<span class="sd">============</span>
+<span class="sd">:mod:`clustertools` is a toolkit to run experiments on supercomputers.</span>
+<span class="sd">It is built on top of clusterlib (https://github.com/clusterlib/clusterlib).</span>
+
+<span class="sd">TODO</span>
+<span class="sd">clustertools_db</span>
+<span class="sd">clustertools_logs</span>
+<span class="sd">notification system</span>
+
+<span class="sd">File system</span>
+<span class="sd">===========</span>
+<span class="sd">By default everything related to clustertools is located in a folder named</span>
+<span class="sd">&#39;clustertools_data&#39; (aka ct_folder) in the user home directory. The ct_folder</span>
+<span class="sd">is structured as followed:</span>
+<span class="sd">    clustertools_data</span>
+<span class="sd">    |- logs</span>
+<span class="sd">    |- exp_XXX</span>
+<span class="sd">    |   |- logs</span>
+<span class="sd">    |   |- $result$</span>
+<span class="sd">    |   |- $notifs$</span>
+<span class="sd">    |- exp_YYY</span>
+<span class="sd">        |...</span>
+<span class="sd">where logs is a folder containing the main logs (not the one corresponding to</span>
+<span class="sd">the experiments). exp_XXX is the folder related to experiment &#39;XXX&#39;.</span>
+
+<span class="sd">Logging</span>
+<span class="sd">=======</span>
+<span class="sd">This library uses logging for</span>
+<span class="sd">    - Warning in :func:`experiment.run_experiment` (&#39;clustertools&#39;)</span>
+<span class="sd">By default, logging is disabled</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c1"># Clustertools visibility</span>
+<span class="kn">from</span> <span class="nn">.storage</span> <span class="k">import</span> <span class="n">Architecture</span>
+<span class="kn">from</span> <span class="nn">.state</span> <span class="k">import</span> <span class="n">Monitor</span>
+<span class="kn">from</span> <span class="nn">.experiment</span> <span class="k">import</span> <span class="n">Computation</span><span class="p">,</span> <span class="n">PartialComputation</span><span class="p">,</span> <span class="n">ParameterSet</span><span class="p">,</span> \
+    <span class="n">ConstrainedParameterSet</span><span class="p">,</span> <span class="n">Result</span><span class="p">,</span> <span class="n">Experiment</span>
+<span class="kn">from</span> <span class="nn">.environment</span> <span class="k">import</span> <span class="n">Serializer</span><span class="p">,</span> <span class="n">FileSerializer</span>
+<span class="kn">from</span> <span class="nn">.datacube</span> <span class="k">import</span> <span class="n">Datacube</span><span class="p">,</span> <span class="n">build_result_cube</span><span class="p">,</span> <span class="n">build_datacube</span>
+<span class="kn">from</span> <span class="nn">.parser</span> <span class="k">import</span> <span class="n">BaseParser</span><span class="p">,</span> <span class="n">ClusterParser</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">call_with</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="k">import</span> <span class="n">get_ct_folder</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.1.0&#39;</span>
+<span class="n">__date__</span> <span class="o">=</span> <span class="s2">&quot;08 Oct. 2015&quot;</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Monitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Computation&quot;</span><span class="p">,</span> <span class="s2">&quot;PartialComputation&quot;</span><span class="p">,</span> <span class="s2">&quot;ParameterSet&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;ConstrainedParameterSet&quot;</span><span class="p">,</span> <span class="s2">&quot;Result&quot;</span><span class="p">,</span> <span class="s2">&quot;Experiment&quot;</span><span class="p">,</span> <span class="s2">&quot;Serializer&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;FileSerializer&quot;</span> <span class="s2">&quot;Datacube&quot;</span><span class="p">,</span> <span class="s2">&quot;build_result_cube&quot;</span><span class="p">,</span> <span class="s2">&quot;build_datacube&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;BaseParser&quot;</span><span class="p">,</span> <span class="s2">&quot;ClusterParser&quot;</span><span class="p">,</span> <span class="s2">&quot;call_with&quot;</span><span class="p">,</span> <span class="s2">&quot;set_stdout_logging&quot;</span><span class="p">]</span>
+
+
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;clustertools&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">NullHandler</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="set_stdout_logging"><a class="viewcode-back" href="../source/clustertools.html#clustertools.set_stdout_logging">[docs]</a><span class="k">def</span> <span class="nf">set_stdout_logging</span><span class="p">(</span><span class="n">architecture</span><span class="o">=</span><span class="n">Architecture</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets stdout as default logging facility</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">architecture</span><span class="o">.</span><span class="n">get_meta_log_file</span><span class="p">())</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - &quot;</span>
+                                  <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;clustertools&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>

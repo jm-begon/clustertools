@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>clustertools.parser &#8212; clustertools 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="clustertools 0.1.0 documentation" href="../../index.html" />
+    <link rel="up" title="clustertools" href="../clustertools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" accesskey="U">clustertools</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for clustertools.parser</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">.environment</span> <span class="k">import</span> <span class="n">SlurmEnvironment</span><span class="p">,</span> <span class="n">BashEnvironment</span><span class="p">,</span> <span class="n">Serializer</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Begon Jean-Michel &lt;jm.begon@gmail.com&gt;&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;3-clause BSD License&quot;</span>
+
+
+<div class="viewcode-block" id="positive_int"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.positive_int">[docs]</a><span class="k">def</span> <span class="nf">positive_int</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">rtn</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rtn</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting positive integer, got &#39;</span><span class="si">{}</span><span class="s2">&#39; instead.&quot;</span>
+                        <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">rtn</span></div>
+
+
+<div class="viewcode-block" id="time_string"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.time_string">[docs]</a><span class="k">def</span> <span class="nf">time_string</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expecting &quot;HH:MM:SS&quot; format&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="n">segments</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># MM:SS format</span>
+            <span class="n">hours</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="n">segments</span>
+        <span class="n">hours</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hours</span><span class="p">)</span>
+        <span class="n">minutes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">minutes</span><span class="p">)</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hours</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">minutes</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">seconds</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expecting &#39;[HH:]MM:SS&#39; format, got </span><span class="si">{}</span><span class="s2"> instead.&quot;</span>
+                        <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+<div class="viewcode-block" id="or_none"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.or_none">[docs]</a><span class="k">def</span> <span class="nf">or_none</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">convert</span></div>
+
+
+<div class="viewcode-block" id="BaseParser"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.BaseParser">[docs]</a><span class="k">class</span> <span class="nc">BaseParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">serializer_factory</span><span class="o">=</span><span class="n">Serializer</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clustertool launcher&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serializer_factory</span> <span class="o">=</span> <span class="n">serializer_factory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+<div class="viewcode-block" id="BaseParser.get_parser"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.BaseParser.get_parser">[docs]</a>    <span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;custom_option&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Options to be passed on&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="n">positive_int</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The maximum number of job to launch</span>
+<span class="s2">                                        (default: as much as possible)&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--start&quot;</span><span class="p">,</span> <span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">positive_int</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The index from which to start the computations</span>
+<span class="s2">                                        (default: 0)&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--no_fail_fast&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If set, do not stop at the&quot;</span>
+                                               <span class="s2">&quot;first error.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parser</span></div>
+
+<div class="viewcode-block" id="BaseParser.parse"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.BaseParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="n">environment</span> <span class="o">=</span> <span class="n">BashEnvironment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serializer_factory</span><span class="p">(),</span>
+                                      <span class="n">args</span><span class="o">.</span><span class="n">no_fail_fast</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                  <span class="n">capacity</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">environment</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">custom_option</span></div></div>
+
+
+<div class="viewcode-block" id="ClusterParser"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.ClusterParser">[docs]</a><span class="k">class</span> <span class="nc">ClusterParser</span><span class="p">(</span><span class="n">BaseParser</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ClusterParser.get_parser"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.ClusterParser.get_parser">[docs]</a>    <span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ClusterParser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--time&quot;</span><span class="p">,</span> <span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;24:00:00&quot;</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="n">time_string</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum time; format &quot;HH:MM:SS&quot; &#39;</span>
+                                 <span class="s1">&#39;(defaul: 24:00:00)&#39;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--memory&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4000</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">positive_int</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum virtual memory in mega-bytes &quot;</span>
+                                 <span class="s2">&quot;(defaul: 4000)&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--shell&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;#!/bin/bash&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The shell in which to launch the jobs&#39;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--partition&quot;</span><span class="p">,</span> <span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="n">or_none</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The partition on which to launch the job. &#39;</span>
+                                 <span class="s1">&#39;(default: None; for the default partition&#39;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--n_proc&quot;</span><span class="p">,</span> <span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">or_none</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The number of computation unit. &#39;</span>
+                                 <span class="s1">&#39;(default: None; for only one&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parser</span></div>
+
+<div class="viewcode-block" id="ClusterParser.parse"><a class="viewcode-back" href="../../source/clustertools.html#clustertools.parser.ClusterParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="n">environment</span> <span class="o">=</span> <span class="n">SlurmEnvironment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serializer_factory</span><span class="p">(),</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">partition</span><span class="p">,</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">n_proc</span><span class="p">,</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">shell</span><span class="p">,</span>
+                                       <span class="n">args</span><span class="o">.</span><span class="n">no_fail_fast</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">environment</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                  <span class="n">capacity</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">environment</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">custom_option</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">clustertools 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../clustertools.html" >clustertools</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Jean-Michel Begon.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+    </div>
+  </body>
+</html>
