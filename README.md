@@ -57,8 +57,8 @@ Examples
 The examples folder contains a couple of scripts demonstrating the use of 
 `Clustertools`
 
-Environment
------------
+Environments
+------------
 So far, only Slurm (https://slurm.schedmd.com/) is covered. 
 SGE (http://gridscheduler.sourceforge.net/) could be covered with minimal effort 
 
