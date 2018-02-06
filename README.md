@@ -1,5 +1,8 @@
 ClusterTools
 ============
+
+[![Build Status](https://travis-ci.org/jm-begon/clustertools.svg?branch=master)](https://travis-ci.org/jm-begon/clustertools)
+
 ClusterTools is a toolkit to run experiments on supercomputers. It is built on 
 top of clusterlib (https://github.com/clusterlib/clusterlib).
 
