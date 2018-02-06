@@ -1,4 +1,3 @@
-clusterlib>=0.2.0
 dill>=0.2.7.1
 nose>=1.3.7
 coverage>=4.4.2
