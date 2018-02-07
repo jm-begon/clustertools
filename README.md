@@ -2,6 +2,7 @@ ClusterTools
 ============
 
 [![Build Status](https://travis-ci.org/jm-begon/clustertools.svg?branch=master)](https://travis-ci.org/jm-begon/clustertools)
+[![Coverage Status](https://coveralls.io/repos/github/jm-begon/clustertools/badge.svg)](https://coveralls.io/github/jm-begon/clustertools)
 
 ClusterTools is a toolkit to run experiments on supercomputers. It is built on 
 top of clusterlib (https://github.com/clusterlib/clusterlib).
@@ -65,5 +66,7 @@ Environments
 So far, only Slurm (https://slurm.schedmd.com/) is covered. 
 SGE (http://gridscheduler.sourceforge.net/) could be covered with minimal effort 
 
-
+License
+-------
+BSD 3
 
