@@ -455,7 +455,7 @@ def test_reorder():
     assert_equal(cube.parameters, params)
 
 
-def test_iteritems():
+def test_items():
     name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
     ls = [( ("5", "1"), (15, 51) ),
@@ -465,9 +465,10 @@ def test_iteritems():
           ( ("6", "2"), (26, 62) ),
           ( ("6", "3"), (36, 63) )]
     ls.sort()
-    rs = list(cube.iteritems())
+    rs = list(cube.items())
     rs.sort()
     assert_equal(ls, rs)
+
 
 def test_ood():
     name, metadata, params, dom, metrics, d = some_ood()
