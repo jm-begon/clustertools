@@ -25,6 +25,9 @@ Clustertools offers "1 file experiment" environment, managing easily the
 (cartesian product) of the parameters, tracking the state of your tasks, saving
 results and logs and helping greatly with the analyzis in a OLAP fashion.
 
+Learn more about clustertools on the 
+[wiki](https://github.com/jm-begon/clustertools/wiki)
+
 Dependencies
 ------------
 The following dependencies are necessary to use the toolkit
