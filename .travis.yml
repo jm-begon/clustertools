@@ -9,6 +9,7 @@ install:
   - unzip master.zip
   - pushd clusterlib-master && python setup.py install && popd
   - pip install -r requirements.txt
+  - pip install python-coveralls
 
 env:
   matrix:
