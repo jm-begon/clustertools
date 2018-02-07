@@ -41,7 +41,9 @@ If you plan to use the `Datacube`class to analyze the results, you will also nee
 
  * numpy >= 1.11.1
  
-You may use `pip install -r requirements.txt` to install all requirements.
+You may use `pip install -r requirements.txt` to install all requirements 
+except [clusterlib](https://github.com/arjoly/clusterlib) (the pip version is 
+not up to date).  
  
 As for the app suite (`ct_count`, `ct_display`, `ct_remote`, `ct_sync`) they 
 rely on `ssh` and `rsync` programs. These are optional components and the 
