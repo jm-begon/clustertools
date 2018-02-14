@@ -117,9 +117,9 @@ class Session(object):
         if not self.is_open():
             raise ValueError("The session has not been opened.")
         try:
-            self.environment.issue(lazy_computation)
             self.storage.update_state(PendingState(lazy_computation.exp_name,
                                                    lazy_computation.comp_name))
+            self.environment.issue(lazy_computation)
             self.n_launch += 1
             self.logger.debug("Launching '{}'".format(repr(lazy_computation)))
         except Exception as exception:
@@ -215,8 +215,44 @@ class Environment(object):
 
 
 class InSituEnvironment(Environment):
+    """
+    InSituEnvironment
+    =================
+    An `Environment` that runs the code in a sequential way, in the current
+    process.
+
+    Constructor Parameters
+    ----------------------
+    stdout: boolean (defaul: False)
+        Whether to print on the standard output rather than redirect
+        to a log file. Setting False is the standard way for environment.
+    fail_fast: boolean (default: True
+    """
+    def __init__(self, stdout=False, fail_fast=True):
+        super().__init__(fail_fast)
+        self.stdout = stdout
+
+    def __repr__(self):
+        return "{cls}(stdout={stdout}, fail_fast={fail_fast})"\
+               "".format(cls=self.__class__.__name__,
+                         stdout=repr(self.stdout),
+                         fail_fast=self.fail_fast)
+
     def issue(self, lazy_computation):
-        lazy_computation()
+        if self.stdout:
+            lazy_computation()
+            return
+
+        storage = lazy_computation.storage
+        log_file = storage.get_log_prefix(lazy_computation.comp_name,
+                                          "-{}".format(str(epoch())))
+        sys_backup = sys.stdout, sys.stderr
+        try:
+            with open(log_file, "w") as hdl:
+                sys.stdout = sys.stderr = hdl
+                lazy_computation()
+        finally:
+            sys.stdout, sys.stderr = sys_backup
 
 
 class BashEnvironment(Environment):
@@ -241,9 +277,11 @@ class BashEnvironment(Environment):
         log_file = storage.get_log_prefix(lazy_computation.comp_name,
                                           "-{}".format(str(epoch())))
 
-        with open(log_file, "w") as log_hdl:
-            # check_call will raise an exception if the return code is not 0
-            subprocess.check_call(job_command, stdout=log_hdl, stderr=log_hdl)
+        # Dirty hack: since we don't want to wait for the computation to end
+        # for closing the file, we leave it as is.
+        # For sequential computation `InSituEnvironment` is much cleaner
+        file_handle = open(log_file, "w")
+        subprocess.Popen(job_command, stderr=file_handle, stdout=file_handle)
 
 
 class SlurmEnvironment(Environment):

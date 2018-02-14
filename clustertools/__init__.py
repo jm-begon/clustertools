@@ -40,7 +40,7 @@ from .storage import Architecture
 from .state import Monitor
 from .experiment import Computation, PartialComputation, ParameterSet, \
     ConstrainedParameterSet, Result, Experiment
-from .environment import Serializer, FileSerializer
+from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
 from .parser import BaseParser, ClusterParser
 from .util import call_with
@@ -56,7 +56,8 @@ __date__ = "08 Oct. 2015"
 __all__ = ["Monitor", "Computation", "PartialComputation", "ParameterSet",
            "ConstrainedParameterSet", "Result", "Experiment", "Serializer",
            "FileSerializer" "Datacube", "build_result_cube", "build_datacube",
-           "BaseParser", "ClusterParser", "call_with", "set_stdout_logging"]
+           "BaseParser", "ClusterParser", "call_with", "set_stdout_logging",
+           "InSituEnvironment"]
 
 
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
