@@ -63,7 +63,31 @@ def test_cluster_script():
 # TODO how to test the logging is working correctly ?
 
 @with_setup(pickle_prep, pickle_purge)
+def test_in_situ_environment():
+    for environment in InSituEnvironment(), InSituEnvironment(stdout=True):
+        parameter_set = ParameterSet()
+        parameter_set.add_parameters(x1=range(3), x2=range(3))
+        experiment = Experiment(__EXP_NAME__, parameter_set,
+                                TestComputation,
+                                PickleStorage)
+        try:
+            error_code = environment.run(experiment, start=2, capacity=5)
+            assert_equal(error_code, 0)
+        except:
+            assert_true(False, "An exception was raised by the environment")
+            raise
+        storage = experiment.storage
+        parameters_ls, result_ls = storage.load_params_and_results()
+
+        assert_equal(len(parameters_ls), 5)   # 5 computations
+        assert_equal(len(result_ls), 5)  # 5 computations
+        for parameters, result in zip(parameters_ls, result_ls):
+            assert_equal(parameters["x1"]*parameters["x2"], result["mult"])
+
+
+@with_setup(pickle_prep, pickle_purge)
 def environment_integration(environment):
+    # Can only test whether the computation was issued correctly
     print(repr(environment))  # In case of error, prints the type of environment
     parameter_set = ParameterSet()
     parameter_set.add_parameters(x1=range(3), x2=range(3))
@@ -75,13 +99,7 @@ def environment_integration(environment):
         assert_equal(error_code, 0)
     except:
         assert_true(False, "An exception was raised by the environment")
-    storage = experiment.storage
-    parameters_ls, result_ls = storage.load_params_and_results()
-
-    assert_equal(len(parameters_ls), 5)   # 5 computations
-    assert_equal(len(result_ls), 5)  # 5 computations
-    for parameters, result in zip(parameters_ls, result_ls):
-        assert_equal(parameters["x1"]*parameters["x2"], result["mult"])
+        raise
 
 
 def test_bash_environment():
