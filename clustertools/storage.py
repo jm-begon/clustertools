@@ -86,8 +86,9 @@ class Architecture(object):
             if os.path.exists(path):
                 shutil.rmtree(path)
         except OSError as error:
-            logger.warn("Trouble erasing the databases: %s" % error.message,
-                        exc_info=True)
+            logger.warning("Trouble erasing the databases: {}"
+                           "".format(repr(error)),
+                           exc_info=True)
 
 
 # ============================== STORAGE MANAGER ============================= #
