@@ -258,7 +258,7 @@ class Monitor(object):
         queued = frozenset(queued_or_running_jobs(self.user))
         self.states = []
         for state in states:
-            if state not in queued:
+            if state.comp_name not in queued:
                 state = state.is_not_up()
             self.states.append(state)
 
