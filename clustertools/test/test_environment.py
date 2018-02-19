@@ -13,7 +13,7 @@ from clustertools.storage import PickleStorage
 from clusterlib._testing import skip_if_no_backend
 
 from .util_test import purge, prep, pickle_prep, pickle_purge, \
-    __EXP_NAME__, IntrospectStorage, TestComputation
+    __EXP_NAME__, IntrospectStorage, TestComputation, with_setup_
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -43,7 +43,7 @@ def test_session():
 
 
 # ------------------------------------------------- Environment generated script
-@with_setup(prep, purge)
+@with_setup_(prep, purge)
 def script_evaluation(environment):
     print(repr(environment))  # In case of error, prints the type of environment
     lazy_computation = TestComputation().lazyfy(x1=1, x2=2)
@@ -62,30 +62,35 @@ def test_cluster_script():
 # ---------------------------------------------- Environment: integrated testing
 # TODO how to test the logging is working correctly ?
 
-@with_setup(pickle_prep, pickle_purge)
+@with_setup_(pickle_prep, pickle_purge)
+def in_situ_env(environment):
+    print(repr(environment)) # In case of error, prints the type of environment
+    parameter_set = ParameterSet()
+    parameter_set.add_parameters(x1=range(3), x2=range(3))
+    experiment = Experiment(__EXP_NAME__, parameter_set,
+                            TestComputation,
+                            PickleStorage)
+    try:
+        error_code = environment.run(experiment, start=2, capacity=5)
+        assert_equal(error_code, 0)
+    except:
+        assert_true(False, "An exception was raised by the environment")
+        raise
+    storage = experiment.storage
+    parameters_ls, result_ls = storage.load_params_and_results()
+
+    assert_equal(len(parameters_ls), 5)  # 5 computations
+    assert_equal(len(result_ls), 5)  # 5 computations
+    for parameters, result in zip(parameters_ls, result_ls):
+        assert_equal(parameters["x1"] * parameters["x2"], result["mult"])
+
+
 def test_in_situ_environment():
     for environment in InSituEnvironment(), InSituEnvironment(stdout=True):
-        parameter_set = ParameterSet()
-        parameter_set.add_parameters(x1=range(3), x2=range(3))
-        experiment = Experiment(__EXP_NAME__, parameter_set,
-                                TestComputation,
-                                PickleStorage)
-        try:
-            error_code = environment.run(experiment, start=2, capacity=5)
-            assert_equal(error_code, 0)
-        except:
-            assert_true(False, "An exception was raised by the environment")
-            raise
-        storage = experiment.storage
-        parameters_ls, result_ls = storage.load_params_and_results()
-
-        assert_equal(len(parameters_ls), 5)   # 5 computations
-        assert_equal(len(result_ls), 5)  # 5 computations
-        for parameters, result in zip(parameters_ls, result_ls):
-            assert_equal(parameters["x1"]*parameters["x2"], result["mult"])
+        in_situ_env(environment)
 
 
-@with_setup(pickle_prep, pickle_purge)
+@with_setup_(pickle_prep, pickle_purge)
 def environment_integration(environment):
     # Can only test whether the computation was issued correctly
     print(repr(environment))  # In case of error, prints the type of environment
@@ -116,7 +121,7 @@ def test_slurm_environment():
 
 
 # ------------------------------------------------------------------- Serializer
-@with_setup(prep, purge)
+@with_setup_(prep, purge)
 def serializer_evaluation(serializer):
     print(repr(serializer))
     computation = TestComputation().lazyfy(x1=5, x2=10)

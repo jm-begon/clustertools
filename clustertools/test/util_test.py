@@ -68,6 +68,20 @@ def pickle_prep(exp_name=__EXP_NAME__):
     prep(exp_name, PickleStorage)
 
 
+def with_setup_(setup=None, teardown=None):
+    """Decorator like `with_setup` of nosetest but which can be applied to any
+    function"""
+    def decorated(function):
+        def app(*args, **kwargs):
+            if setup:
+                setup()
+            function(*args, **kwargs)
+            if teardown:
+                teardown()
+        return app
+    return decorated
+
+
 class TestComputation(Computation):
     def __init__(self, exp_name=__EXP_NAME__, comp_name="TestComp",
                  context="n/a", storage_factory=IntrospectStorage):

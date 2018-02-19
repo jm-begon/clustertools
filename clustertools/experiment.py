@@ -421,7 +421,7 @@ class Experiment(object):
         self.monitor.refresh()
         storage = self.monitor.storage
         storage.init()
-        unlaunchable = self.monitor.unlaunchable_computations()
+        unlaunchable = self.monitor.unlaunchable_comp_names()
 
         storage_factory = self.storage_factory
 

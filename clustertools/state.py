@@ -275,7 +275,7 @@ class Monitor(object):
         predicate(self.state[i_j]) == True (1 <= j <= p)
         """
         return self._filter(state_cls=state_cls, predicate=predicate,
-                            extract=(lambda i, s : i))
+                            extract=(lambda i, s: i))
 
     def computation_names(self, state_cls=State):
         return set(self._filter(state_cls=state_cls,
@@ -293,10 +293,12 @@ class Monitor(object):
     def critical_computations(self):
         return self.computation_names(CriticalState)
 
-    def unlaunchable_computations(self):
+    def unlaunchable_comp_names(self):
+        """Return a set of computation names which are not to be launched"""
         launchables = self.launchable_computations()
-        return self._filter(predicate=lambda s: s.comp_name not in launchables,
-                            extract=lambda i, s: i)
+        return frozenset(
+            self._filter(predicate=lambda s: s.comp_name not in launchables,
+                         extract=lambda i, s: s.comp_name))
 
     def partition_by_state(self):
         by_state = defaultdict(list)
