@@ -288,7 +288,7 @@ class SlurmEnvironment(Environment):
 
     def __init__(self, serializer=Serializer(), time="1:00:00", memory=4000,
                  partition=None, n_proc=None, shell_script="#!/bin/bash",
-                 fail_fast=True, other_args=None):
+                 fail_fast=True, other_flags=None, other_options=None):
         super(SlurmEnvironment, self).__init__(fail_fast)
         self.serializer = serializer
         self.time = time
@@ -296,14 +296,14 @@ class SlurmEnvironment(Environment):
         self.shell_script = shell_script
         self.partition = partition
         self.n_proc = n_proc
-        if other_args is None:
-            other_args = {}
-        self.other_args = other_args
+        self.other_flags = [] if other_flags is None else other_flags
+        self.other_options = {} if other_options is None else other_options
 
     def __repr__(self):
         return "{cls}(serializer={serializer}, time={time}, memory={memory}, " \
                "partition={partition}, n_proc={n_proc}, shell_script={shell}, "\
-               "fail_fast={fail_fast}, other_args={other})" \
+               "fail_fast={fail_fast}, other_flags={other_flags}, " \
+               "other_options={other_options})" \
                "".format(cls=self.__class__.__name__,
                          serializer=repr(self.serializer),
                          time=repr(self.time),
@@ -312,7 +312,8 @@ class SlurmEnvironment(Environment):
                          n_proc=repr(self.n_proc),
                          fail_fast=repr(self.fail_fast),
                          shell=self.shell_script,
-                         other=repr(self.other_args))
+                         other_flags=repr(self.other_flags),
+                         other_options=repr(self.other_options))
 
     def issue(self, lazy_computation):
         # Making Slurm command
@@ -332,8 +333,10 @@ class SlurmEnvironment(Environment):
         if self.n_proc is not None:
             slurm_cmd.append("--ntasks={}".format(self.n_proc))
 
-        for flag, value in self.other_args.items():
-            slurm_cmd.append("--{}={}".format(flag, value))
+        slurm_cmd.extend(self.other_flags)
+
+        for flag, value in self.other_options.items():
+            slurm_cmd.append("{}={}".format(flag, value))
 
         # Making computation command
         cmd_as_tuple = self.serializer.serialize_and_script(lazy_computation)

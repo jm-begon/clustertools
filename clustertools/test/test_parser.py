@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import argparse
 
 from nose.tools import assert_equal, assert_raises
 from clustertools.parser import BaseParser, ClusterParser, positive_int, \
@@ -30,29 +30,59 @@ def test_or_none():
 
 def test_base_parser():
     parser = BaseParser()
-    environment, custom_options = parser.parse(["custom1", "custom2",
-                                                "--capacity", "1",
-                                                "-s", "10",
-                                                "--no_fail_fast"])
-    assert_equal(custom_options, ["custom1", "custom2"])
+    parser.add_argument("custom1")
+    parser.add_argument("custom2")
+    environment, args = parser.parse(["custom1_value", "custom2_value",
+                                      "--capacity", "1",
+                                      "-s", "10",
+                                      "--no_fail_fast"])
+    assert_equal(args.custom1, "custom1_value")
+    assert_equal(args.custom2, "custom2_value")
     assert_equal(environment.fail_fast, False)
     # TODO check start/capacity are OK (https://stackoverflow.com/questions/2677185/how-can-i-read-a-functions-signature-including-default-argument-values)
 
 
+def test_parser_unkown_args():
+    parser = ClusterParser()
+    args, kwargs = parser.parse_unknown_args(["--other-flag",
+                                              "--other-option=opt-value"])
+    assert_equal(args, ["--other-flag"])
+    assert_equal(kwargs, {"--other-option": "opt-value"})
+
+
+def test_parse_known_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pos1")
+    parser.add_argument("--opt1")
+    args, rem = parser.parse_known_args(["pos1_value",
+                                         "--opt1", "opt1_value",
+                                         "--unknown"])
+    assert_equal(args.pos1, "pos1_value")
+    assert_equal(args.opt1, "opt1_value")
+    assert_equal(rem, ["--unknown"])
+
+
 def test_cluster_parser():
     parser = ClusterParser()
-    environment, custom_options = parser.parse(["--capacity", "1",
-                                                "-s", "10",
-                                                "-t", "1:00:00",
-                                                "--memory", "7231",
-                                                "--partition", "luke",
-                                                "--n_proc", "5",
-                                                "custom1",
-                                                "custom2"])
-    assert_equal(custom_options, ["custom1", "custom2"])
+    parser.add_argument("custom1")
+    parser.add_argument("custom2")
+    environment, args = parser.parse(["--capacity", "1",
+                                      "-s", "10",
+                                      "-t", "1:00:00",
+                                      "--memory", "7231",
+                                      "--partition", "luke",
+                                      "--n_proc", "5",
+                                      "custom1_value",
+                                      "custom2_value",
+                                      "--other-flag",
+                                      "--other-option=opt-value"])
+    assert_equal(args.custom1, "custom1_value")
+    assert_equal(args.custom2, "custom2_value")
     assert_equal(environment.time, "1:00:00")
     assert_equal(environment.memory, 7231)
     assert_equal(environment.partition, "luke")
     assert_equal(environment.n_proc, 5)
     assert_equal(environment.fail_fast, True)
+    assert_equal(environment.other_flags, ["--other-flag"])
+    assert_equal(environment.other_options, {"--other-option": "opt-value"})
     # TODO check start/capacity are OK

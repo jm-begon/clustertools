@@ -4,7 +4,8 @@ import argparse
 import sys
 from functools import partial
 
-from .environment import SlurmEnvironment, BashEnvironment, Serializer
+from .environment import SlurmEnvironment, BashEnvironment, Serializer, \
+    InSituEnvironment
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -55,15 +56,29 @@ def or_none(function):
 
 
 class BaseParser(object):
+    """
+    `BaseParser`
+    ============
+    A parser is responsible for managing command line arguments and returning
+    the adequate environment.
+
+    Constructor parameters
+    ----------------------
+    serializer_factory: callable () --> Serializer instance
+        A factory method to create the serializer
+
+    description: str
+        Description of the parser
+
+    Note
+    ----
+    You can use the :meth:`add_argument` method which works the same way as its
+    argparse homonym to add specific arguments
+    """
     def __init__(self, serializer_factory=Serializer,
                  description="Clustertool launcher"):
         self.serializer_factory = serializer_factory
-        self.description = description
-
-    def get_parser(self):
-        parser = argparse.ArgumentParser(description=self.description)
-        parser.add_argument("custom_option", nargs="*",
-                            help="Options to be passed on")
+        parser = argparse.ArgumentParser(description=description)
         parser.add_argument("--capacity", "-c", default=sys.maxsize,
                             type=positive_int,
                             help="""The maximum number of job to launch
@@ -74,52 +89,77 @@ class BaseParser(object):
         parser.add_argument("--no_fail_fast", action="store_false",
                             default=True, help="If set, do not stop at the"
                                                "first error.")
-        return parser
+        self.parser = parser
+
+    def add_argument(self, *args, **kwargs):
+        self.parser.add_argument(*args, **kwargs)
 
     def parse(self, args=None, namespace=None):
-        parser = self.get_parser()
-        args = parser.parse_args(args=args, namespace=namespace)
+        args = self.parser.parse_args(args=args, namespace=namespace)
         environment = BashEnvironment(self.serializer_factory(),
                                       args.no_fail_fast)
         environment.run = partial(environment.run, start=args.start,
                                   capacity=args.capacity)
 
-        return environment, args.custom_option
+        return environment, args
 
 
 class ClusterParser(BaseParser):
 
-    def get_parser(self):
-        parser = super(ClusterParser, self).get_parser()
-        parser.add_argument("--time", "-t", default="24:00:00",
-                            type=time_string,
-                            help='Maximum time; format "HH:MM:SS" '
-                                 '(defaul: 24:00:00)')
-        parser.add_argument("--memory", "-m", default=4000, type=positive_int,
-                            help="Maximum virtual memory in mega-bytes "
-                                 "(defaul: 4000)")
-        parser.add_argument("--shell", default="#!/bin/bash",
-                            help='The shell in which to launch the jobs')
-        parser.add_argument("--partition", "-p", default=None,
-                            type=or_none(str),
-                            help='The partition on which to launch the job. '
-                                 '(default: None; for the default partition')
-        parser.add_argument("--n_proc", "-n", default=None, type=or_none(int),
-                            help='The number of computation unit. '
-                                 '(default: None; for only one')
+    def __init__(self, serializer_factory=Serializer,
+                 description="Clustertool launcher"):
+        super().__init__(serializer_factory, description)
+        self.add_argument("--time", "-t", default="24:00:00",
+                          type=time_string,
+                          help='Maximum time; format "HH:MM:SS" '
+                               '(defaul: 24:00:00)')
+        self.add_argument("--memory", "-m", default=4000, type=positive_int,
+                          help="Maximum virtual memory in mega-bytes "
+                               "(defaul: 4000)")
+        self.add_argument("--shell", default="#!/bin/bash",
+                          help='The shell in which to launch the jobs')
+        self.add_argument("--partition", "-p", default=None,
+                          type=or_none(str),
+                          help='The partition on which to launch the job. '
+                               '(default: None; for the default partition')
+        self.add_argument("--n_proc", "-n", default=None, type=or_none(int),
+                          help='The number of computation unit. '
+                               '(default: None; for only one')
+        self.add_argument("--front-end", default=False, action="store_true",
+                          help="Whether to run the code on the front end. "
+                               "This is only provided for debugging purposes "
+                               "(default: False)")
 
-        return parser
+    def parse_unknown_args(self, unknown):
+        args, kwargs = [], {}
+        for arg in unknown:
+            s = arg.split("=")
+            if len(s) == 1:
+                args.extend(s)
+            elif len(s) == 2:
+                kwargs[s[0]] = s[1]
+            else:
+                raise ValueError("Cannot parse {}: there cannot be more than "
+                                 "one '='.".format(s))
+        return args, kwargs
 
     def parse(self, args=None, namespace=None):
-        parser = self.get_parser()
-        args = parser.parse_args(args=args, namespace=namespace)
-        environment = SlurmEnvironment(self.serializer_factory(),
-                                       args.time,
-                                       args.memory,
-                                       args.partition,
-                                       args.n_proc,
-                                       args.shell,
-                                       args.no_fail_fast)
+        args, other = self.parser.parse_known_args(args=args,
+                                                   namespace=namespace)
+        flags, options = self.parse_unknown_args(other)
+
+        if args.front_end:
+            environment = InSituEnvironment(fail_fast=args.no_fail_fast)
+        else:
+            environment = SlurmEnvironment(self.serializer_factory(),
+                                           args.time,
+                                           args.memory,
+                                           args.partition,
+                                           args.n_proc,
+                                           args.shell,
+                                           args.no_fail_fast,
+                                           other_flags=flags,
+                                           other_options=options)
         environment.run = partial(environment.run, start=args.start,
                                   capacity=args.capacity)
-        return environment, args.custom_option
+        return environment, args
