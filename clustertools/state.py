@@ -19,8 +19,7 @@ import getpass
 from datetime import datetime
 from collections import defaultdict
 
-from clusterlib.scheduler import queued_or_running_jobs
-
+from .config import get_default_environment
 from .storage import PickleStorage
 
 
@@ -245,22 +244,37 @@ class Monitor(object):
     operations
     """
     def __init__(self, exp_name, user=None,
-                 storage_factory=PickleStorage):
+                 storage_factory=PickleStorage,
+                 environment_cls=None):
         self.exp_name = exp_name
         self.states = []
         self.state_dict = {}
         self.user = getpass.getuser() if user is None else user
         self.storage = storage_factory(experiment_name=self.exp_name)
+        self.environment_cls = get_default_environment(environment_cls)
         self.refresh()
 
     def refresh(self):
+        up_jobs = self.environment_cls.list_up_jobs(self.user)
         states = self.storage.load_states()
-        queued = frozenset(queued_or_running_jobs(self.user))
+        if up_jobs is None:
+            self.states = states
+            return
+
         self.states = []
+        queued = frozenset(up_jobs)
         for state in states:
             if state.comp_name not in queued:
-                state = state.is_not_up()
+                state = state.is_not_up()  # The change is not in place
             self.states.append(state)
+
+    def __repr__(self):
+        return "{}(exp_name={}, user={}, storage_factory={}, " \
+               "environment_cls={})".format(self.__class__.__name__,
+                                            self.exp_name,
+                                            repr(self.user),
+                                            repr(self.storage),
+                                            repr(self.environment_cls))
 
     def __len__(self):
         return len(self.states)

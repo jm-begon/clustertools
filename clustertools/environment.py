@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import shutil
 import sys
 import os
 import subprocess
@@ -160,6 +160,36 @@ class Environment(object):
     """
     __metaclass__ = ABCMeta
 
+    @classmethod
+    def is_usable(cls):
+        """Return True if it possible to issue computation in this environment
+        (it is installed, and so on)
+        """
+        return False  # Abstract class
+
+    @classmethod
+    def list_up_jobs(cls, user=None):
+        """
+        List the jobs that are in the hands of the scheduler (queued or running)
+
+        Note that not all environment can provide this feature. If it is not the
+        case, there might be false running jobs (the process was killed and
+        the status was not updated).
+
+        Parameters
+        ----------
+        user: str (or None)
+            The name of the user who launched the jobs (Default: None)
+
+        Returns
+        -------
+        up_jobs: list or None
+            If the environment supports the monitoring of "up jobs" (queued
+            by the scheduler or running), then return the list of up jobs.
+            If the environment does not support this feature, return None
+        """
+        return None
+
     def __init__(self, fail_fast=True):
         self.fail_fast = fail_fast
 
@@ -228,6 +258,10 @@ class InSituEnvironment(Environment):
         to a log file. Setting False is the standard way for environment.
     fail_fast: boolean (default: True
     """
+    @classmethod
+    def is_usable(cls):
+        return True
+
     def __init__(self, stdout=False, fail_fast=True):
         super().__init__(fail_fast)
         self.stdout = stdout
@@ -258,6 +292,10 @@ class InSituEnvironment(Environment):
 class BashEnvironment(Environment):
     # For debugging purpose
 
+    @classmethod
+    def is_usable(cls):
+        return True
+
     def __init__(self, serializer=Serializer(), fail_fast=True):
         super(BashEnvironment, self).__init__(fail_fast)
         # Since Serializer is totally stateless, it can be shared among
@@ -285,6 +323,25 @@ class BashEnvironment(Environment):
 
 
 class SlurmEnvironment(Environment):
+
+    @classmethod
+    def is_usable(cls):
+        return shutil.which("sbatch") is not None
+
+    @classmethod
+    def list_up_jobs(cls, user=None):
+        # Taken from clusterlib (https://github.com/clusterlib/clusterlib)
+        command = ["squeue", "--noheader", "-o", "%j"]
+        if user is not None:
+            command.extend(["-u", user])
+
+        try:
+            with open(os.devnull, 'w') as shutup:
+                out = subprocess.check_output(command, stderr=shutup)
+                return out.decode('utf-8').splitlines()
+        except OSError:
+            # OSError is raised if the program is not installed
+            return None
 
     def __init__(self, serializer=Serializer(), time="1:00:00", memory=4000,
                  partition=None, n_proc=None, shell_script="#!/bin/bash",
@@ -371,3 +428,9 @@ class SlurmEnvironment(Environment):
                                                     stdout=stdout,
                                                     stderr=stderr)
 
+
+__CT_ENVIRONMENTS__ = (
+    ("slurm", SlurmEnvironment),
+    ("insitu", InSituEnvironment),
+    ("bash", BashEnvironment),
+)  # Note that order matters as it defines preference

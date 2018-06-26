@@ -44,12 +44,12 @@ from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
 from .parser import BaseParser, ClusterParser
 from .util import call_with
-from .config import get_ct_folder
+from .config import get_ct_folder, get_default_environment
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __date__ = "08 Oct. 2015"
 
 
@@ -57,7 +57,7 @@ __all__ = ["Monitor", "Computation", "PartialComputation", "ParameterSet",
            "ConstrainedParameterSet", "Result", "Experiment", "Serializer",
            "FileSerializer" "Datacube", "build_result_cube", "build_datacube",
            "BaseParser", "ClusterParser", "call_with", "set_stdout_logging",
-           "InSituEnvironment"]
+           "InSituEnvironment", "get_default_environment"]
 
 
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
