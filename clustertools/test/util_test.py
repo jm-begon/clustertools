@@ -78,9 +78,11 @@ def with_setup_(setup=None, teardown=None):
         def app(*args, **kwargs):
             if setup:
                 setup()
-            function(*args, **kwargs)
-            if teardown:
-                teardown()
+            try:
+                function(*args, **kwargs)
+            finally:
+                if teardown:
+                    teardown()
         return app
     return decorated
 
