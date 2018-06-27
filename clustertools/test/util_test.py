@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
+from unittest import SkipTest
+
+from nose import with_setup
 
 from clustertools.experiment import Result, Computation, PartialComputation
 from clustertools.storage import Storage, Architecture, PickleStorage
@@ -75,11 +78,23 @@ def with_setup_(setup=None, teardown=None):
         def app(*args, **kwargs):
             if setup:
                 setup()
-            function(*args, **kwargs)
-            if teardown:
-                teardown()
+            try:
+                function(*args, **kwargs)
+            finally:
+                if teardown:
+                    teardown()
         return app
     return decorated
+
+
+# Loosely based on clusterlib (https://github.com/clusterlib/clusterlib)
+def skip_if_usuable(environment_cls):
+    def skip_or_not():
+        if not environment_cls.is_usable():
+            raise SkipTest("Environment '{}' is not usable here"
+                           "".format(repr(environment_cls)))
+
+    return with_setup(skip_or_not)
 
 
 class TestComputation(Computation):

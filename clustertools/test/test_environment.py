@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-
+import shutil
 from functools import partial
 
 from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
     with_setup, assert_true, assert_false
+from nose.tools import assert_is_none
 
 from clustertools import ParameterSet, Experiment
 from clustertools.environment import InSituEnvironment, \
     BashEnvironment, SlurmEnvironment, Serializer, FileSerializer
 from clustertools.storage import PickleStorage
 
-from clusterlib._testing import skip_if_no_backend
-
 from .util_test import purge, prep, pickle_prep, pickle_purge, \
-    __EXP_NAME__, IntrospectStorage, TestComputation, with_setup_
+    __EXP_NAME__, IntrospectStorage, TestComputation, with_setup_, \
+    skip_if_usuable
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -42,6 +42,24 @@ def test_session():
     assert_raises(ValueError, partial(session.run, TestComputation()))
 
 
+# ----------------------------------------------------- Environment class method
+def test_usability():
+    assert_equal(InSituEnvironment.is_usable(), True)
+    assert_equal(BashEnvironment.is_usable(), True)
+    assert_equal(SlurmEnvironment.is_usable(),
+                 shutil.which("scontrol") is not None)
+
+
+def test_list_up_jobs():
+    assert_is_none(InSituEnvironment.list_up_jobs())
+    assert_is_none(BashEnvironment.list_up_jobs())
+
+    if not SlurmEnvironment.is_usable():
+        assert_is_none(SlurmEnvironment.list_up_jobs())
+
+    # TODO else case
+
+
 # ------------------------------------------------- Environment generated script
 @with_setup_(prep, purge)
 def script_evaluation(environment):
@@ -54,7 +72,7 @@ def test_bash_script():
     script_evaluation(BashEnvironment())
 
 
-@skip_if_no_backend
+@skip_if_usuable(SlurmEnvironment)
 def test_cluster_script():
     script_evaluation(SlurmEnvironment())
 
@@ -113,7 +131,7 @@ def test_bash_environment():
         environment_integration(environment)
 
 
-@skip_if_no_backend
+@skip_if_usuable(SlurmEnvironment)
 def test_slurm_environment():
     environment = SlurmEnvironment(time="0:20:00", memory="1000")
     environment_integration(environment)

@@ -4,8 +4,7 @@ ClusterTools
 [![Build Status](https://travis-ci.org/jm-begon/clustertools.svg?branch=master)](https://travis-ci.org/jm-begon/clustertools)
 [![Coverage Status](https://coveralls.io/repos/github/jm-begon/clustertools/badge.svg)](https://coveralls.io/github/jm-begon/clustertools)
 
-ClusterTools is a toolkit to run experiments on supercomputers. It is built on 
-top of clusterlib (https://github.com/clusterlib/clusterlib).
+ClusterTools is a toolkit to run experiments on supercomputers.
 
  * You need to run a given experiment with many different sets of parameters?
  * You don't fancy writing many files?
@@ -28,11 +27,13 @@ results and logs and helping greatly with the analyzis in a OLAP fashion.
 Learn more about clustertools on the 
 [wiki](https://github.com/jm-begon/clustertools/wiki)
 
+If you need something more lightweight, consider using 
+[!][clusterlib] (https://github.com/clusterlib/clusterlib).
+
 Dependencies
 ------------
 The following dependencies are necessary to use the toolkit
 
- * clusterlib >= 0.2.0
  * dill >= 0.2.7.1
  
 In order to test the code, there is an additional need for
@@ -40,13 +41,11 @@ In order to test the code, there is an additional need for
  * nose >= 1.3.7
  * coverage >= 4.4.2
  
-If you plan to use the `Datacube`class to analyze the results, you will also need
+If you plan to use the `Datacube` class to analyze the results, you will also need
 
  * numpy >= 1.11.1
  
-You may use `pip install -r requirements.txt` to install all requirements 
-except [clusterlib](https://github.com/arjoly/clusterlib) (the pip version is 
-not up to date).  
+You may use `pip install -r requirements.txt` to install all requirements.
  
 As for the app suite (`ct_count`, `ct_display`, `ct_remote`, `ct_sync`) they 
 rely on `ssh` and `rsync` programs. These are optional components and the 

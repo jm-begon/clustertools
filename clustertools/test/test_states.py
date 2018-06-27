@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 from nose.tools import assert_in, assert_not_in
 from nose.tools import assert_equal
 from nose.tools import with_setup
@@ -9,8 +7,10 @@ from nose.tools import assert_true, assert_false
 
 from clustertools.state import *
 from clustertools.storage import PickleStorage
+from clustertools.environment import BashEnvironment, SlurmEnvironment, \
+    InSituEnvironment
 
-from .util_test import pickle_prep, pickle_purge, __EXP_NAME__
+from .util_test import pickle_prep, pickle_purge, __EXP_NAME__, with_setup_
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -73,79 +73,141 @@ def test_partial_computation_state_routine():
 
 # ---------------------------------------------------------------------- MONITOR
 
-@with_setup(pickle_prep, pickle_purge)
-def test_monitor_refresh():
-    pending = PendingState(__EXP_NAME__, "test_pending")
-    running = RunningState(__EXP_NAME__, "test_running")
-    completed = CompletedState(__EXP_NAME__, "test_completed")
-    launchable = LaunchableState(__EXP_NAME__, "test_lauchable")
-    partial = PartialState(__EXP_NAME__, "test_partial")
-    first_critical = CriticalState(__EXP_NAME__, "test_first_critical",
-                                   first_critical=True)
-    not_first_critical = CriticalState(__EXP_NAME__, "test_not_first_critical",
-                                       first_critical=False)
-    aborted = AbortedState(__EXP_NAME__, "test_aborted",
-                           ManualInterruption("Test interruption"))
-    incomplete = IncompleteState(__EXP_NAME__, "incomplete")
+@with_setup_(pickle_prep, pickle_purge)
+def monitor_refresh(monitor, can_list):
+    print(monitor)
+    print("Can list?", can_list)
 
-    storage = PickleStorage(__EXP_NAME__)
+    pending = PendingState(monitor.exp_name, "test_pending")
+    running = RunningState(monitor.exp_name, "test_running")
+    completed = CompletedState(monitor.exp_name, "test_completed")
+    launchable = LaunchableState(monitor.exp_name, "test_lauchable")
+    partial = PartialState(monitor.exp_name, "test_partial")
+    first_critical = CriticalState(monitor.exp_name, "test_first_critical",
+                                   first_critical=True)
+    not_first_critical = CriticalState(monitor.exp_name, "test_not_first_critical",
+                                       first_critical=False)
+    aborted = AbortedState(monitor.exp_name, "test_aborted",
+                           ManualInterruption("Test interruption"))
+    incomplete = IncompleteState(monitor.exp_name, "incomplete")
+
+    storage = PickleStorage(monitor.exp_name)
     for state in pending, running, completed, launchable, partial, \
                  first_critical, not_first_critical, aborted, incomplete:
         storage.update_state(state)
 
-    monitor = Monitor(__EXP_NAME__)
+    monitor.refresh()
 
-    # Should be moved to launchable
-    assert_in(pending.comp_name, monitor.launchable_computations())
-    assert_in(running.comp_name, monitor.launchable_computations())
-    assert_in(first_critical.comp_name, monitor.launchable_computations())
+    if can_list:
 
-    # Should be moved to incomplete
-    assert_in(partial.comp_name, monitor.incomplete_computations())
-    assert_in(not_first_critical.comp_name, monitor.incomplete_computations())
+        # Should be moved to launchable
+        assert_in(pending.comp_name, monitor.launchable_computations())
+        assert_in(running.comp_name, monitor.launchable_computations())
+        assert_in(first_critical.comp_name, monitor.launchable_computations())
 
-    # At the right place
-    assert_in(launchable.comp_name, monitor.launchable_computations())
-    assert_in(completed.comp_name, monitor.computation_names(CompletedState))
-    assert_in(aborted.comp_name, monitor.aborted_computations())
-    assert_in(incomplete.comp_name, monitor.incomplete_computations())
+        # Should be moved to incomplete
+        assert_in(partial.comp_name, monitor.incomplete_computations())
+        assert_in(not_first_critical.comp_name, monitor.incomplete_computations())
 
-    # 4 types of states: launchable, completed, incomplete, aborted
-    assert_equal(len(monitor.count_by_state()), 4)
+        # At the right place
+        assert_in(launchable.comp_name, monitor.launchable_computations())
+        assert_in(completed.comp_name, monitor.computation_names(CompletedState))
+        assert_in(aborted.comp_name, monitor.aborted_computations())
+        assert_in(incomplete.comp_name, monitor.incomplete_computations())
+
+        # 4 types of states: launchable, completed, incomplete, aborted
+        print(monitor.count_by_state())
+        assert_equal(len(monitor.count_by_state()), 4)
+
+    else:
+        for state, cls in (pending, PendingState), (running, RunningState), \
+                          (completed, CompletedState), \
+                          (launchable, LaunchableState), \
+                          (partial, PartialState), \
+                          (first_critical, CriticalState), \
+                          (not_first_critical, CriticalState), \
+                          (aborted, AbortedState), \
+                          (incomplete, IncompleteState):
+            assert_in(state.comp_name, monitor.computation_names(cls))
 
 
-@with_setup(pickle_prep, pickle_purge)
-def test_monitor_incomplete_to_launchable():
-    incomplete = IncompleteState(__EXP_NAME__, "incomplete")
-    partial = PartialState(__EXP_NAME__, "test_partial")
-    not_first_critical = CriticalState(__EXP_NAME__, "test_not_first_critical",
+def test_monitor_refresh_can_list():
+    monitor = Monitor(__EXP_NAME__, environment_cls=SlurmEnvironment)
+    monitor_refresh(monitor, SlurmEnvironment.is_usable())
+
+
+def test_monitor_refresh_cannot_list():
+    for env_cls in InSituEnvironment, BashEnvironment:
+        monitor = Monitor(__EXP_NAME__, environment_cls=env_cls)
+        monitor_refresh(monitor, False)
+
+
+@with_setup_(pickle_prep, pickle_purge)
+def monitor_incomplete_to_launchable(monitor, can_list):
+    incomplete = IncompleteState(monitor.exp_name, "incomplete")
+    partial = PartialState(monitor.exp_name, "test_partial")
+    not_first_critical = CriticalState(monitor.exp_name, "test_not_first_critical",
                                        first_critical=False)
-    first_critical = CriticalState(__EXP_NAME__, "test_first_critical",
+    first_critical = CriticalState(monitor.exp_name, "test_first_critical",
                                    first_critical=True)
-    aborted = AbortedState(__EXP_NAME__, "test_aborted",
+    aborted = AbortedState(monitor.exp_name, "test_aborted",
                            ManualInterruption("Test interruption"))
 
-    storage = PickleStorage(__EXP_NAME__)
+    storage = PickleStorage(monitor.exp_name)
     for state in incomplete, partial, not_first_critical, aborted, \
             first_critical:
         storage.update_state(state)
 
-    monitor = Monitor(__EXP_NAME__)
+    monitor.refresh()
+    print("States:", monitor.states)
+    print(monitor.computation_names(CriticalState))
 
-    # partial and not_first_critical are incomplete
-    assert_in(partial.comp_name, monitor.incomplete_computations())
-    assert_in(not_first_critical.comp_name, monitor.incomplete_computations())
+    if can_list:
+        # partial and not_first_critical have switched to incomplete
+        assert_in(partial.comp_name, monitor.incomplete_computations())
+        assert_in(not_first_critical.comp_name, monitor.incomplete_computations())
+        # first_critical has become launchable
+        assert_in(first_critical.comp_name, monitor.launchable_computations())
+    else:
+        # partial and not_first_critical are the same
+        assert_in(partial.comp_name, monitor.computation_names(PartialState))
+        assert_in(not_first_critical.comp_name,
+                  monitor.computation_names(CriticalState))
+        # first_critical is still critical
+        assert_in(first_critical.comp_name,
+                  monitor.computation_names(CriticalState))
+
     assert_in(incomplete.comp_name, monitor.incomplete_computations())
-    assert_in(first_critical.comp_name, monitor.launchable_computations())
     assert_in(aborted.comp_name, monitor.aborted_computations())
 
     monitor.incomplete_to_launchable()
 
     assert_in(incomplete.comp_name, monitor.launchable_computations())
-    assert_in(partial.comp_name, monitor.launchable_computations())
-    assert_in(not_first_critical.comp_name, monitor.launchable_computations())
-    assert_in(first_critical.comp_name, monitor.launchable_computations())
+    if can_list:
+        assert_in(partial.comp_name, monitor.launchable_computations())
+        assert_in(not_first_critical.comp_name, monitor.launchable_computations())
+        assert_in(first_critical.comp_name, monitor.launchable_computations())
+    else:
+        # partial and not_first_critical are the same
+        assert_in(partial.comp_name, monitor.computation_names(PartialState))
+        assert_in(not_first_critical.comp_name,
+                  monitor.computation_names(CriticalState))
+        # first_critical is still critical
+        assert_in(first_critical.comp_name,
+                  monitor.computation_names(CriticalState))
+
     assert_in(aborted.comp_name, monitor.aborted_computations())
+
+
+def test_monitor_incomplete_to_launchable_can_list():
+    monitor = Monitor(__EXP_NAME__, environment_cls=SlurmEnvironment)
+    monitor_incomplete_to_launchable(monitor, SlurmEnvironment.is_usable())
+
+
+def test_monitor_incomplete_to_launchable_cannot_list():
+    for env_cls in InSituEnvironment, BashEnvironment:
+        monitor = Monitor(__EXP_NAME__, environment_cls=env_cls)
+        monitor_incomplete_to_launchable(monitor, False)
 
 
 @with_setup(pickle_prep, pickle_purge)
