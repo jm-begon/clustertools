@@ -51,6 +51,18 @@ class State(object):
     ==========
     State is which is a given computation
 
+    Constructor arguments
+    ---------------------
+    comp_name: str
+        The name of computation this state is linked to
+    progress: 0 <= float <= 1
+        The progress ratio of the task. 1 means it is finished (Default: 0)
+
+    Equality
+    --------
+    State 'A' is equal to State 'B' if 'B is an instance of 'A' class and both
+    'A' and 'B' have the same name
+
     Note
     ----
     The `State` object contains a datetime. This is purely informative and is
@@ -61,29 +73,44 @@ class State(object):
 
     @classmethod
     def from_(cls, state):
-        return cls(state.exp_name, state.comp_name)
+        return cls(state.comp_name, progress=state.progress)
 
-    def __init__(self, exp_name, comp_name):
-        self.exp_name = exp_name
+    @classmethod
+    def default_progress(cls):
+        return 0.
+
+    def __init__(self, comp_name, progress=0.):
         self.comp_name = comp_name
         self.date = datetime.now()
+        self.progress = progress
 
     def __repr__(self):
-        return "{cls}(exp_name={exp_name}, comp_name={comp_name})" \
+        return "{cls}(comp_name={comp_name}, progress={progress})" \
                "".format(cls=self.__class__.__name__,
-                         exp_name=self.exp_name,
-                         comp_name=self.comp_name)
+                         comp_name=self.comp_name,
+                         progress=self.progress)
 
     def __eq__(self, other):
         # Funny how the isinstance might break symmetry of equivalence
         return isinstance(other, self.__class__) and \
-               other.exp_name == self.exp_name and \
                other.comp_name == self.comp_name
 
     def __hash__(self):
         # This is technically not consistent with equality since we are looking
         # for the exact class
         return hash(repr(self))
+
+    def __setstate__(self, state):
+        # Ensure correct unpickling with respect to previous class definition
+        if "exp_name" in state:
+            # The field 'exp_name' has been suppressed, this is
+            # no longer the responsibility of the state to remember to which
+            # experiment it belongs
+            del state["exp_name"]
+        if "progress" not in state:
+            # The filed 'progress' has been added
+            state["progress"] = self.__class__.default_progress()
+        self.__dict__.update(state)
 
     @abstractmethod
     def get_name(self):
@@ -99,7 +126,7 @@ class State(object):
         """Return the `State` corresponding to this `State` if it were
         discovered it is actually neither waiting nor working"""
         # running not up = stopped --> launchable
-        # (rare)pending not in queued = has run and was stoppped --> launachable
+        # (rare)pending not in queued = has run and was stopped --> launchable
         # partial not up = incomplete
         # critical not in queued --> to check whether it was critical for the
         # first time
@@ -128,6 +155,10 @@ class LaunchableState(State):
 
 
 class CompletedState(State):
+    @classmethod
+    def default_progress(cls):
+        return 1.
+
     def get_name(self):
         return __COMPLETED__
 
@@ -135,20 +166,21 @@ class CompletedState(State):
 class AbortedState(State):
     @classmethod
     def from_(cls, state, exception):
-        return cls(state.exp_name, state.comp_name, exception)
+        return cls(state.comp_name, progress=state.progress,
+                   exception=exception)
 
-    def __init__(self, exp_name, comp_name, exception):
-        super(AbortedState, self).__init__(exp_name, comp_name)
+    def __init__(self, comp_name, exception, progress=0.):
+        super().__init__(comp_name, progress)
         self.exception = exception
 
     def get_name(self):
         return __ABORTED__
 
     def __repr__(self):
-        return "{cls}(exp_name={exp_name}, comp_name={comp_name}, " \
+        return "{cls}(comp_name={comp_name}, progress={progress}" \
                "exception={exception})".format(cls=self.__class__.__name__,
-                                               exp_name=self.exp_name,
                                                comp_name=self.comp_name,
+                                               progress=self.progress,
                                                exception=repr(self.exception))
 
 
@@ -182,10 +214,11 @@ class RunningState(State):
 class CriticalState(State):
     @classmethod
     def from_(cls, state, first_critical=False):
-        return cls(state.exp_name, state.comp_name, first_critical)
+        return cls(state.comp_name, progress=state.progress,
+                   first_critical=first_critical)
 
-    def __init__(self, exp_name, comp_name, first_critical=False):
-        super(CriticalState, self).__init__(exp_name, comp_name)
+    def __init__(self, comp_name, progress=0., first_critical=False):
+        super().__init__(comp_name, progress)
         self.first_critical = first_critical
 
     def get_name(self):
@@ -322,6 +355,11 @@ class Monitor(object):
 
     def count_by_state(self):
         return {k: len(v) for k, v in self.partition_by_state().items()}
+
+    def get_working_progress(self):
+        """Return a dict comp_name -> progress for Working state"""
+        workings = self._filter(state_cls=WorkingState)
+        return {s.comp_name: s.progress for s in workings}
 
     def to_launchables(self, indices=None):
         if indices is None:

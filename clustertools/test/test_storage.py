@@ -49,9 +49,9 @@ def test_save_then_load_result_and_params():
 @with_setup(pickle_prep, pickle_purge)
 def test_save_then_load_state():
     storage = PickleStorage(__EXP_NAME__)
-    pending = PendingState(__EXP_NAME__, "pending")
+    pending = PendingState("pending")
     abort_exp = ManualInterruption("Test")
-    aborted = AbortedState(__EXP_NAME__, "aborted", abort_exp)
+    aborted = AbortedState("aborted", abort_exp)
     # First storage
     storage.update_state(pending)
     storage.update_state(aborted)

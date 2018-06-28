@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from functools import partial
-
 from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
     with_setup, assert_true
 
@@ -11,7 +9,7 @@ from clustertools.state import RunningState, CompletedState, AbortedState, \
     CriticalState, PartialState
 
 from .util_test import purge, prep, __EXP_NAME__, IntrospectStorage, \
-    TestComputation, TestPartialComputation
+    TestComputation
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -156,18 +154,19 @@ def test_correct_computation():
     result1 = computation(x1=5, x2=2, x3=50)
     result2 = intro_storage.load_result(computation.comp_name)
     for result in result1, result2:
-        assert_equal(len(result), 1)  # Only one metric
+        assert_equal(len(result), 2)  # One real metric + repr
         assert_equal(result["mult"], 2 * 5)
 
     assert_equal(len(intro_storage.result_history), 1)  # Only one computation
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
     states = list(intro_storage.state_history.values())[0]
     # If correct, state should have followed the sequence:
-    # Running, Critical, Completed
-    assert_equal(len(states), 3)
+    # Running, Critical, Partial, Completed
+    assert_equal(len(states), 4)
     assert_true(isinstance(states[0], RunningState))
     assert_true(isinstance(states[1], CriticalState))
-    assert_true(isinstance(states[2], CompletedState))
+    assert_true(isinstance(states[2], PartialState))
+    assert_true(isinstance(states[3], CompletedState))
     repr(computation)
 
 
@@ -185,52 +184,6 @@ def test_error_computation():
     assert_equal(len(states), 2)
     assert_true(isinstance(states[0], RunningState))
     assert_true(isinstance(states[1], AbortedState))
-
-
-@with_setup(prep, purge)
-def test_correct_partial_computation():
-    computation = TestPartialComputation()
-    intro_storage = computation.storage
-    result1 = computation(n=3)  # i=0, 1, 2
-    result2 = intro_storage.load_result(computation.comp_name)
-    for result in result1, result2:
-        assert_equal(len(result), 1)  # Only one metric
-        assert_equal(result["i"], 2)  # Last one is 2
-
-    assert_equal(len(intro_storage.result_history), 1)  # Only one computation
-    assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = list(intro_storage.state_history.values())[0]
-    # If correct, state should have evolved as:
-    # Running, (Critical, Partial) x3, Completed
-    assert_equal(len(states), 8)
-    expected = [RunningState] + [CriticalState, PartialState] * 3 + \
-               [CompletedState]
-    for state, cls in zip(states, expected):
-        assert_true(isinstance(state, cls))
-
-
-@with_setup(prep, purge)
-def test_error_partial_computation():
-    computation = TestPartialComputation()
-    intro_storage = computation.storage
-    computation = computation.lazyfy(n=10)
-    assert_raises(ValueError, computation)  # [0, 1, 2] only
-    # |-> Result
-    # last saved should be i=2
-    result = intro_storage.load_result(computation.comp_name)
-    assert_equal(result["i"], 2)  # Last one is 2
-    # |-> State
-    assert_equal(len(intro_storage.result_history), 1)  # Only one computation
-    assert_equal(len(intro_storage.state_history), 1)  # Only one computation
-    states = list(intro_storage.state_history.values())[0]
-    # If correct, state should have evolved as:
-    # Running, (Critical, Partial) x3, Aborted
-    assert_equal(len(states), 8)
-    expected = [RunningState] + [CriticalState, PartialState] * 3 + \
-               [AbortedState]
-    for state, cls in zip(states, expected):
-        assert_true(isinstance(state, cls))
-
 
 # ------------------------------------------------------------------- Experiment
 

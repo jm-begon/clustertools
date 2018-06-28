@@ -145,7 +145,8 @@ def serializer_evaluation(serializer):
     computation = TestComputation().lazyfy(x1=5, x2=10)
     computation = serializer.deserialize(serializer.serialize(computation))
     result = computation()
-    assert_equal(len(result), 1)  # only one metric
+    print(repr(result))
+    assert_equal(len(result), 2)  # One real metric + repr
     assert_equal(result.mult, 5*10)  #  correct result
 
 
