@@ -88,7 +88,7 @@ class Architecture(object):
         except OSError as error:
             logger.warning("Trouble erasing the databases: {}"
                            "".format(repr(error)),
-                           exc_info=True)
+                           exc_info=error)
 
 
 # ============================== STORAGE MANAGER ============================= #

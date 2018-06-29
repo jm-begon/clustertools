@@ -6,10 +6,10 @@ from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
 from clustertools import ParameterSet, ConstrainedParameterSet, Result, \
     Experiment
 from clustertools.state import RunningState, CompletedState, AbortedState, \
-    CriticalState, PartialState
+    CriticalState, PartialState, LaunchableState
 
 from .util_test import purge, prep, __EXP_NAME__, IntrospectStorage, \
-    TestComputation
+    TestComputation, InterruptedComputation
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -184,6 +184,20 @@ def test_error_computation():
     assert_equal(len(states), 2)
     assert_true(isinstance(states[0], RunningState))
     assert_true(isinstance(states[1], AbortedState))
+
+
+@with_setup(prep, purge)
+def test_interrupted_computation():
+    computation = InterruptedComputation()
+    intro_storage = computation.storage
+    assert_raises(KeyboardInterrupt, computation)
+    assert_equal(len(intro_storage.result_history[computation.comp_name]), 0)
+    state_history = intro_storage.state_history[computation.comp_name]
+    # Running -> Launchable
+    assert_equal(len(state_history), 2)
+    assert_true(isinstance(state_history[0], RunningState))
+    assert_true(isinstance(state_history[1], LaunchableState))
+
 
 # ------------------------------------------------------------------- Experiment
 

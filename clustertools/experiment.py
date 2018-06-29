@@ -14,6 +14,9 @@ from abc import ABCMeta, abstractmethod
 from itertools import product as cartesian_product
 from collections import defaultdict
 
+import logging
+
+from clustertools.util import SigHandler
 from .storage import PickleStorage
 from .state import LaunchableState, RunningState, Monitor
 
@@ -112,20 +115,27 @@ class Computation(object):
                                  self.context)
         self.current_state = self.storage.update_state(self.current_state.to_partial())
 
+    def _interrupt_handler(self, exception):
+        self.storage.update_state(self.current_state.is_not_up())
+        logging.getLogger("clustertools").warning("Job got interrupted: {}"
+                                                  "".format(repr(exception)),
+                                                  exc_info=exception)
+
     def __call__(self, **parameters):
         actual_parameters = {k: v for k, v in self.parameters.items()}
         actual_parameters.update(parameters)
-        self.current_state = self.storage.update_state(RunningState(self.comp_name))
-        if self.result is None:
-            self.result = Result(repr=repr(self))
-        try:
-            self.run(self.result, **actual_parameters)
-            self.save_result(self.result)
-            self.current_state = self.storage.update_state(self.current_state.to_completed())
-
-        except Exception as exception:
-            self.storage.update_state(self.current_state.abort(exception))
-            raise
+        with SigHandler(self._interrupt_handler):
+            self.current_state = self.storage.update_state(RunningState(self.comp_name))
+            if self.result is None:
+                self.result = Result(repr=repr(self))
+            try:
+                self.run(self.result, **actual_parameters)
+                self.notify_progress(1.)
+                self.save_result(self.result)
+                self.current_state = self.storage.update_state(self.current_state.to_completed())
+            except Exception as exception:
+                self.storage.update_state(self.current_state.abort(exception))
+                raise
         return self.result
 
     def lazyfy(self, **parameters):
