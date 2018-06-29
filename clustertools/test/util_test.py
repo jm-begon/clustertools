@@ -5,7 +5,7 @@ from unittest import SkipTest
 
 from nose import with_setup
 
-from clustertools.experiment import Result, Computation, PartialComputation
+from clustertools.experiment import Computation
 from clustertools.storage import Storage, Architecture, PickleStorage
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -105,24 +105,5 @@ class TestComputation(Computation):
                                               context=context,
                                               storage_factory=storage_factory)
 
-    def run(self, x1, x2, **ignored):
-        result = Result("mult")
-        result.mult = x1*x2
-        return result
-
-
-class TestPartialComputation(PartialComputation):
-    def __init__(self, exp_name=__EXP_NAME__, comp_name="TestComp",
-                 context="n/a", storage_factory=IntrospectStorage):
-        super(TestPartialComputation, self).__init__(exp_name=exp_name,
-                                                     comp_name=comp_name,
-                                                     context=context,
-                                                     storage_factory=storage_factory)
-
-    def run(self, n, **ignored):
-        result = Result("i")
-        for i in range(n):
-            if i >= 3:
-                raise ValueError("Parameter n cannot be greater than 3.")
-            result.i = i
-            yield result
+    def run(self, result, x1, x2, **ignored):
+        result["mult"] = x1 * x2

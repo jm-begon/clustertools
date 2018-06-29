@@ -23,23 +23,19 @@ class BasicComputation(Computation):
     Inherit from `Computation` and redefine the `run` method as you which
     """
 
-    def run(self, x, z, w, y=2, **parameters):
+    def run(self, result, x, z, w, y=2, **parameters):
         # For dill, import must be in the scope of the serialized object
-        from clustertools import Result
         import time
         from random import randint
         # Create the result object which will holds the actual results of the
         # computation
-        results = Result("multiply", "sum")
-
         # Do some heavy number crunching
-        results.multiply = x * y
-        results["sum"] = z + w
+        result["multiply"] = x * y
+        result["sum"] = z + w
         time.sleep(randint(1, 10))
 
-        # Return the result. Everything (saving, updating status, etc.) is
-        # taken care of
-        return results
+        # Result is automatically collected.
+        # Everything (saving, updating status, etc.) is taken care of
 
 
 if __name__ == "__main__":

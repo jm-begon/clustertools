@@ -15,7 +15,7 @@ from itertools import product as cartesian_product
 from collections import defaultdict
 
 from .storage import PickleStorage
-from .state import RunningState, Monitor
+from .state import LaunchableState, RunningState, Monitor
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -81,6 +81,8 @@ class Computation(object):
         self.comp_name = comp_name
         self.context = context
         self.storage = storage_factory(experiment_name=self.exp_name)
+        self.current_state = LaunchableState(self.comp_name)
+        self.result = None
         self.parameters = {}
 
     def __repr__(self):
@@ -95,54 +97,40 @@ class Computation(object):
                          parameters=repr(self.parameters))
 
     @abstractmethod
-    def run(self, **parameters):
+    def run(self, result, **parameters):
         pass
+
+    def notify_progress(self, progress):
+        self.current_state.progress = progress
+
+    def save_result(self, result=None):
+        if result is not None:
+            self.result = result
+
+        self.current_state = self.storage.update_state(self.current_state.to_critical())
+        self.storage.save_result(self.comp_name, self.parameters, self.result,
+                                 self.context)
+        self.current_state = self.storage.update_state(self.current_state.to_partial())
 
     def __call__(self, **parameters):
         actual_parameters = {k: v for k, v in self.parameters.items()}
         actual_parameters.update(parameters)
-        state = RunningState(self.exp_name, self.comp_name)
-        self.storage.update_state(state)
+        self.current_state = self.storage.update_state(RunningState(self.comp_name))
+        if self.result is None:
+            self.result = Result(repr=repr(self))
         try:
-            result = self.run(**actual_parameters)
-            state = self.storage.update_state(state.to_critical())
-            self.storage.save_result(self.comp_name, actual_parameters, result,
-                                     self.context)
+            self.run(self.result, **actual_parameters)
+            self.save_result(self.result)
+            self.current_state = self.storage.update_state(self.current_state.to_completed())
 
-            state = self.storage.update_state(state.to_completed())
         except Exception as exception:
-            self.storage.update_state(state.abort(exception))
+            self.storage.update_state(self.current_state.abort(exception))
             raise
-        return result
+        return self.result
 
     def lazyfy(self, **parameters):
         self.parameters = parameters
         return self
-
-
-class PartialComputation(Computation):
-    """
-    Expect the run method to be a generator
-    """
-    __metaclass__ = ABCMeta
-
-    def __call__(self, **parameters):
-        actual_parameters = {k: v for k, v in self.parameters.items()}
-        actual_parameters.update(parameters)
-        state = RunningState(self.exp_name, self.comp_name)
-        self.storage.update_state(state)
-        partial_result = Result()
-        try:
-            for partial_result in self.run(**actual_parameters):
-                state = self.storage.update_state(state.to_critical())
-                self.storage.save_result(self.comp_name, actual_parameters,
-                                         partial_result, self.context)
-                state = self.storage.update_state(state.to_partial())
-            state = self.storage.update_state(state.to_completed())
-        except Exception as exception:
-            self.storage.update_state(state.abort(exception))
-            raise
-        return partial_result
 
 
 class ParameterSet(object):

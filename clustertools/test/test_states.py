@@ -22,10 +22,10 @@ __copyright__ = "3-clause BSD License"
 def test_reset_state():
     for state_cls in PendingState, RunningState, CompletedState, \
                      IncompleteState, CriticalState, PartialState:
-        state = state_cls(__EXP_NAME__, "test_comp")
+        state = state_cls("test_comp")
         assert_true(isinstance(state.reset(), LaunchableState))
-    state = AbortedState(__EXP_NAME__, "test_comp",
-                         ManualInterruption("Test interruption"))
+    state = AbortedState("test_comp",
+                         exception=ManualInterruption("Test interruption"))
     assert_true(isinstance(state.reset(), LaunchableState))
 
 
@@ -33,14 +33,14 @@ def test_abort_state():
     for state_cls in PendingState, RunningState, CompletedState, \
                      IncompleteState, CriticalState, PartialState, \
                      LaunchableState:
-        state = state_cls(__EXP_NAME__, "test_comp")
+        state = state_cls("test_comp")
         state = state.abort(ManualInterruption("Test interruption"))
         assert_true(isinstance(state, AbortedState))
 
 
 def test_computation_state_routine():
     # Is this routine working ?
-    state = PendingState(__EXP_NAME__, "test_comp")
+    state = PendingState("test_comp")
     state = state.to_running()
     state = state.to_critical()
     assert_true(state.first_critical)
@@ -50,7 +50,7 @@ def test_computation_state_routine():
 
 def test_computation_state_failed_routine():
     # Is this routine working ?
-    state = PendingState(__EXP_NAME__, "test_comp")
+    state = PendingState("test_comp")
     state = state.to_running()
     state = state.abort(ManualInterruption("Test interruption"))
     assert_true(isinstance(state, AbortedState))
@@ -58,7 +58,7 @@ def test_computation_state_failed_routine():
 
 def test_partial_computation_state_routine():
     # Is this routine working ?
-    state = PendingState(__EXP_NAME__, "test_comp")
+    state = PendingState("test_comp")
     state = state.to_running()
     state = state.to_critical()
     assert_true(state.first_critical)
@@ -78,18 +78,18 @@ def monitor_refresh(monitor, can_list):
     print(monitor)
     print("Can list?", can_list)
 
-    pending = PendingState(monitor.exp_name, "test_pending")
-    running = RunningState(monitor.exp_name, "test_running")
-    completed = CompletedState(monitor.exp_name, "test_completed")
-    launchable = LaunchableState(monitor.exp_name, "test_lauchable")
-    partial = PartialState(monitor.exp_name, "test_partial")
-    first_critical = CriticalState(monitor.exp_name, "test_first_critical",
+    pending = PendingState("test_pending")
+    running = RunningState("test_running")
+    completed = CompletedState("test_completed")
+    launchable = LaunchableState("test_lauchable")
+    partial = PartialState("test_partial")
+    first_critical = CriticalState("test_first_critical",
                                    first_critical=True)
-    not_first_critical = CriticalState(monitor.exp_name, "test_not_first_critical",
+    not_first_critical = CriticalState("test_not_first_critical",
                                        first_critical=False)
-    aborted = AbortedState(monitor.exp_name, "test_aborted",
-                           ManualInterruption("Test interruption"))
-    incomplete = IncompleteState(monitor.exp_name, "incomplete")
+    aborted = AbortedState("test_aborted",
+                           exception=ManualInterruption("Test interruption"))
+    incomplete = IncompleteState("incomplete")
 
     storage = PickleStorage(monitor.exp_name)
     for state in pending, running, completed, launchable, partial, \
@@ -144,13 +144,13 @@ def test_monitor_refresh_cannot_list():
 
 @with_setup_(pickle_prep, pickle_purge)
 def monitor_incomplete_to_launchable(monitor, can_list):
-    incomplete = IncompleteState(monitor.exp_name, "incomplete")
-    partial = PartialState(monitor.exp_name, "test_partial")
-    not_first_critical = CriticalState(monitor.exp_name, "test_not_first_critical",
+    incomplete = IncompleteState("incomplete")
+    partial = PartialState("test_partial")
+    not_first_critical = CriticalState("test_not_first_critical",
                                        first_critical=False)
-    first_critical = CriticalState(monitor.exp_name, "test_first_critical",
+    first_critical = CriticalState("test_first_critical",
                                    first_critical=True)
-    aborted = AbortedState(monitor.exp_name, "test_aborted",
+    aborted = AbortedState("test_aborted",
                            ManualInterruption("Test interruption"))
 
     storage = PickleStorage(monitor.exp_name)
@@ -212,9 +212,9 @@ def test_monitor_incomplete_to_launchable_cannot_list():
 
 @with_setup(pickle_prep, pickle_purge)
 def test_monitor_aborted_to_launchable():
-    incomplete = IncompleteState(__EXP_NAME__, "incomplete")
-    completed = CompletedState(__EXP_NAME__, "completed")
-    aborted = AbortedState(__EXP_NAME__, "test_aborted",
+    incomplete = IncompleteState("incomplete")
+    completed = CompletedState("completed")
+    aborted = AbortedState("test_aborted",
                            ManualInterruption("Test interruption"))
 
     storage = PickleStorage(__EXP_NAME__)
