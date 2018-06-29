@@ -107,3 +107,19 @@ class TestComputation(Computation):
 
     def run(self, result, x1, x2, **ignored):
         result["mult"] = x1 * x2
+
+
+class InterruptedComputation(Computation):
+    def __init__(self, exp_name=__EXP_NAME__, comp_name="TestComp",
+                 context="n/a", storage_factory=IntrospectStorage):
+        super().__init__(exp_name=exp_name,
+                         comp_name=comp_name,
+                         context=context,
+                         storage_factory=storage_factory)
+
+    def run(self, result, **parameters):
+        raise KeyboardInterrupt()
+
+
+
+
