@@ -129,6 +129,9 @@ class ClusterParser(BaseParser):
                           help="Whether to run the code on the front end. "
                                "This is only provided for debugging purposes "
                                "(default: False)")
+        self.add_argument("--gpu", default=None, type=or_none(int),
+                          help="Request GPUs. Do not specify it for no GPU "
+                               "(default: None)")
 
     def parse_unknown_args(self, unknown):
         args, kwargs = [], {}

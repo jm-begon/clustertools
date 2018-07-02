@@ -46,25 +46,20 @@ machine 'deathstar' where your id is 'vador'. Use a dot '.' for localhost."""
     source_info = args.source.split(":")
     dest_info = args.destination.split(":")
 
-    if len(source_info) == len(dest_info):
-        if len(source_info) == 1:
-            raise ValueError("Either the source or the destination must "
-                             "specify an experiment.")
-        elif len(source_info) == 2:
-            raise ValueError("Only one of the source or the destination "
-                             "can specify an experiment.")
-
-    source = source_info[0].strip()
-    destination = dest_info[0].strip()
     experiment = None
-    if source == destination:
-        raise ValueError("Source and destination must be different.")
-    if len(source_info) == 2:
-        experiment = source_info[1].strip()
-    if len(dest_info) == 2:
-        experiment = dest_info[1].strip()
-    if experiment is None:
-        raise ValueError("The experiment is not specified.")
+    if len(source_info) == 1:
+        source = "."
+        experiment = source_info[0]
+    else:
+        source, experiment = source_info
+
+    if len(dest_info) == 1 or (len(dest_info) == 2 and len(dest_info[1]) == 0):
+        destination = dest_info[0]
+    elif experiment is not None:
+        raise ValueError("Only the source can specify an experiment.")
+
+    print("Transferring {} from {} to {}".format(experiment, source,
+                                                 destination))
 
     if source == ".":
         source = __CT_FOLDER__
