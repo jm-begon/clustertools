@@ -61,7 +61,7 @@ class Architecture(object):
                                                   folder=repr(self.ct_folder))
 
     def get_basedir(self, exp_name):
-        return os.path.join(self.ct_folder, "exp_%s"%exp_name)
+        return os.path.join(self.ct_folder, "exp_{}".format(exp_name))
 
     def load_experiment_names(self):
         res = []
@@ -301,8 +301,9 @@ class PickleStorage(Storage):
             logger.error("End of file encountered in '{}'".format(fpath))
             return {}
         except Exception as exception:
-            logging.exception("Error while loading file '{}'. Reason: {}"
-                              .format(fpath, repr(exception)))
+            logger = logging.getLogger("clustertools.storage")
+            logger.exception("Error while loading file '{}'. Reason: {}"
+                             "".format(fpath, repr(exception)))
             return {}
         return rtn
 

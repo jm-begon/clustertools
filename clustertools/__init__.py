@@ -63,6 +63,10 @@ __all__ = ["Monitor", "Computation", "ParameterSet", "ConstrainedParameterSet",
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
 
 
+def shutup_logger():
+    logging.getLogger("clustertools").addHandler(logging.NullHandler())
+
+
 def set_stdout_logging(architecture=Architecture()):
     """
     Sets stdout as default logging facility

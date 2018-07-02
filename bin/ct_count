@@ -10,9 +10,10 @@ import os
 import socket
 import sys
 from collections import defaultdict
-from clustertools import Monitor, Architecture
+import re
 
-#TODO regular expression style
+from clustertools import Monitor, Architecture, shutup_logger
+
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -35,6 +36,8 @@ host are sent as once. By default, all the local experiment are listed
                         help="Number of minute to wait between two "
                              "refreshment. Set to negative (default) for no "
                              "refreshment.")
+
+    shutup_logger()
 
     # =========== Preprocessing ============= #
 
@@ -62,23 +65,27 @@ host are sent as once. By default, all the local experiment are listed
         except:
             hostname = "Unknown host"
         if __LH__ in sorted_queries:
-            for exp_name in sorted_queries[__LH__]:
-                if exp_name == __WC__:
-                    print(hostname, ":")
-                    for name in Architecture().load_experiment_names():
-                        monitor = Monitor(name)
-                        for comp_name, progress in monitor.get_working_progress().items():
-                            print("\t", comp_name, progress)
-                        print("\t", name, monitor.count_by_state())
-                else:
-                    print(hostname, ":", exp_name,
-                          Monitor(exp_name).count_by_state())
-            del sorted_queries[__LH__]
+            print(hostname, ":")
+            for query in sorted_queries[__LH__]:
+                if query == __WC__:
+                    query = r".*"
+                regex = re.compile(query)
+                for name in Architecture().load_experiment_names():
+                    if regex.search(name) is not None:
+                        try:
+                            monitor = Monitor(name)
+                            for comp_name, progress in monitor.get_working_progress().items():
+                                print("\t", comp_name, progress)
+                            print("\t", name, monitor.count_by_state())
+                        except Exception as e:
+                            print("\t {} ??? ({})".format(name, repr(e)))
 
         # Remote queries
         cmd = "ssh {host} {prog} {exp}"
         prog = os.path.basename(sys.argv[0])
         for host, exp_names in sorted_queries.items():
+            if host == __LH__:
+                continue
             exp_string = " ".join(exp_names)
             act_cmd = cmd.format(host=host, exp=exp_string, prog=prog)
             subprocess.call(act_cmd, shell=True)
