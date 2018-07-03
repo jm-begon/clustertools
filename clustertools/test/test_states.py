@@ -119,6 +119,8 @@ def monitor_refresh(monitor, can_list):
         print(monitor.count_by_state())
         assert_equal(len(monitor.count_by_state()), 4)
 
+        # Nothing is running
+        assert_equal(len(monitor.get_working_progress()), 0)
     else:
         for state, cls in (pending, PendingState), (running, RunningState), \
                           (completed, CompletedState), \
@@ -129,6 +131,12 @@ def monitor_refresh(monitor, can_list):
                           (aborted, AbortedState), \
                           (incomplete, IncompleteState):
             assert_in(state.comp_name, monitor.computation_names(cls))
+
+        # Running, Partial, Critical (first and not first) are Working jobs
+        working_jobs = monitor.get_working_progress()
+        assert_equal(len(working_jobs), 4)
+        for state in running, partial, first_critical, not_first_critical:
+            assert_in(state.comp_name, working_jobs)
 
 
 def test_monitor_refresh_can_list():
@@ -168,6 +176,8 @@ def monitor_incomplete_to_launchable(monitor, can_list):
         assert_in(not_first_critical.comp_name, monitor.incomplete_computations())
         # first_critical has become launchable
         assert_in(first_critical.comp_name, monitor.launchable_computations())
+        # Nothing is running
+        assert_equal(len(monitor.get_working_progress()), 0)
     else:
         # partial and not_first_critical are the same
         assert_in(partial.comp_name, monitor.computation_names(PartialState))

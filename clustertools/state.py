@@ -243,7 +243,7 @@ class CriticalState(WorkingState):
             return IncompleteState.from_(self)
 
 
-class PartialState(State):
+class PartialState(WorkingState):
     def get_name(self):
         return __PARTIAL__
 
