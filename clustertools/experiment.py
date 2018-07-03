@@ -104,7 +104,7 @@ class Computation(object):
         pass
 
     def notify_progress(self, progress):
-        self.current_state.progress = progress
+        self.current_state = self.storage.update_state(self.current_state.update_progress(progress))
 
     def save_result(self, result=None):
         if result is not None:
