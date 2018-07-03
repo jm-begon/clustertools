@@ -161,13 +161,15 @@ def test_correct_computation():
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
     states = list(intro_storage.state_history.values())[0]
     # If correct, state should have followed the sequence:
-    # Running, Critical, Partial, Completed
-    assert_equal(len(states), 4)
+    # Running (p=0), Running (p=1), Critical, Partial, Completed
+    assert_equal(len(states), 5)
     assert_true(isinstance(states[0], RunningState))
-    assert_true(isinstance(states[1], CriticalState))
-    assert_true(isinstance(states[2], PartialState))
-    assert_true(isinstance(states[3], CompletedState))
-    repr(computation)
+    assert_true(isinstance(states[1], RunningState))
+    assert_true(isinstance(states[2], CriticalState))
+    assert_true(isinstance(states[3], PartialState))
+    assert_true(isinstance(states[4], CompletedState))
+    assert_equal(states[0].progress, 0.)
+    assert_equal(states[1].progress, 1.)
 
 
 @with_setup(prep, purge)

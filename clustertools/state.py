@@ -199,8 +199,13 @@ class WorkingState(State):
     def to_aborted(self, exception):
         return AbortedState.from_(self, exception)
 
+    def update_progress(self, progress):
+        new_state = self.__class__.from_(self)
+        new_state.progress = progress
+        return new_state
 
-class RunningState(State):
+
+class RunningState(WorkingState):
     def get_name(self):
         return __RUNNING__
 
@@ -211,7 +216,7 @@ class RunningState(State):
         return LaunchableState.from_(self)
 
 
-class CriticalState(State):
+class CriticalState(WorkingState):
     @classmethod
     def from_(cls, state, first_critical=False):
         return cls(state.comp_name, progress=state.progress,
@@ -238,7 +243,7 @@ class CriticalState(State):
             return IncompleteState.from_(self)
 
 
-class PartialState(State):
+class PartialState(WorkingState):
     def get_name(self):
         return __PARTIAL__
 
