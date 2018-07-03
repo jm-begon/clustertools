@@ -74,9 +74,10 @@ host are sent as once. By default, all the local experiment are listed
                     if regex.search(name) is not None:
                         try:
                             monitor = Monitor(name)
-                            for comp_name, progress in monitor.get_working_progress().items():
-                                print("\t", comp_name, progress)
                             print("\t", name, monitor.count_by_state())
+                            for comp_name, progress in monitor.get_working_progress().items():
+                                print("\t\t{} - {:.2f} %".format(comp_name,
+                                                                 progress*100))
                         except Exception as e:
                             print("\t {} ??? ({})".format(name, repr(e)))
 
