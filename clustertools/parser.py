@@ -154,13 +154,14 @@ class ClusterParser(BaseParser):
         if args.front_end:
             environment = InSituEnvironment(fail_fast=args.no_fail_fast)
         else:
-            environment = SlurmEnvironment(self.serializer_factory(),
-                                           args.time,
-                                           args.memory,
-                                           args.partition,
-                                           args.n_proc,
-                                           args.shell,
-                                           args.no_fail_fast,
+            environment = SlurmEnvironment(serializer=self.serializer_factory(),
+                                           time=args.time,
+                                           memory=args.memory,
+                                           partition=args.partition,
+                                           n_proc=args.n_proc,
+                                           gpu=args.gpu,
+                                           shell_script=args.shell,
+                                           fail_fast=args.no_fail_fast,
                                            other_flags=flags,
                                            other_options=options)
         environment.run = partial(environment.run, start=args.start,

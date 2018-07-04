@@ -108,7 +108,7 @@ class State(object):
             # experiment it belongs
             del state["exp_name"]
         if "progress" not in state:
-            # The filed 'progress' has been added
+            # The field 'progress' has been added
             state["progress"] = self.__class__.default_progress()
         self.__dict__.update(state)
 

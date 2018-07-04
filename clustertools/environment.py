@@ -117,15 +117,13 @@ class Session(object):
         if not self.is_open():
             raise ValueError("The session has not been opened.")
         try:
-            self.storage.update_state(PendingState(lazy_computation.exp_name,
-                                                   lazy_computation.comp_name))
+            self.storage.update_state(PendingState(lazy_computation.comp_name))
             self.environment.issue(lazy_computation)
             self.n_launch += 1
             self.logger.debug("Launching '{}'".format(repr(lazy_computation)))
         except Exception as exception:
-            self.storage.update_state(AbortedState(lazy_computation.exp_name,
-                                                   lazy_computation.comp_name,
-                                                   exception))
+            self.storage.update_state(AbortedState(lazy_computation.comp_name,
+                                                   exception=exception))
             self.logger.warning("Could not launch '{}'. Reason: {}"
                                 "".format(repr(lazy_computation),
                                           repr(exception)))

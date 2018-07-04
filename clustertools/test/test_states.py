@@ -10,7 +10,8 @@ from clustertools.storage import PickleStorage
 from clustertools.environment import BashEnvironment, SlurmEnvironment, \
     InSituEnvironment
 
-from .util_test import pickle_prep, pickle_purge, __EXP_NAME__, with_setup_
+from .util_test import pickle_prep, pickle_purge, __EXP_NAME__, with_setup_, \
+    ListUpJobs, prep, purge, IntrospectStorage
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -72,6 +73,24 @@ def test_partial_computation_state_routine():
 
 
 # ---------------------------------------------------------------------- MONITOR
+@with_setup(prep, purge)
+def test_monitor_refresh_with_non_empty_list():
+    monitor = Monitor(__EXP_NAME__, storage_factory=IntrospectStorage,
+                      user=ListUpJobs.user,
+                      environment_cls=ListUpJobs)
+
+    storage = monitor.storage
+    good_state = PendingState("save_galaxy")
+    storage.update_state(good_state)
+
+    wrong_state = PendingState("kiss_leia")
+    storage.update_state(wrong_state)
+
+    monitor.refresh()
+
+    assert_in(good_state.comp_name, monitor.computation_names(PendingState))
+    assert_in(wrong_state.comp_name, monitor.computation_names(LaunchableState))
+
 
 @with_setup_(pickle_prep, pickle_purge)
 def monitor_refresh(monitor, can_list):
@@ -218,6 +237,7 @@ def test_monitor_incomplete_to_launchable_cannot_list():
     for env_cls in InSituEnvironment, BashEnvironment:
         monitor = Monitor(__EXP_NAME__, environment_cls=env_cls)
         monitor_incomplete_to_launchable(monitor, False)
+
 
 
 @with_setup(pickle_prep, pickle_purge)

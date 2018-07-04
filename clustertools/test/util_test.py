@@ -5,6 +5,7 @@ from unittest import SkipTest
 
 from nose import with_setup
 
+from clustertools.environment import Environment
 from clustertools.experiment import Computation
 from clustertools.storage import Storage, Architecture, PickleStorage
 
@@ -119,6 +120,22 @@ class InterruptedComputation(Computation):
 
     def run(self, result, **parameters):
         raise KeyboardInterrupt()
+
+
+class ListUpJobs(Environment):
+
+    user = "skywalker"
+    jobs = ["save_galaxy"]
+
+    @classmethod
+    def is_usable(cls):
+        return True
+
+    @classmethod
+    def list_up_jobs(cls, user=None):
+        if user == cls.user:
+            return [x for x in cls.jobs]
+        return []
 
 
 
