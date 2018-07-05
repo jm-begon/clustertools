@@ -445,14 +445,14 @@ class PrioritizedParamSet(AbstractParameterSet):
     the multidimensional parameters are yielded (but not their actual indices)
 
     See :meth:`prioritize`. For instance,
-    >>> ps = ParameterSet()
-    >>> ps.add_parameters(p1=[1, 2, 3, 4], p2=["a", "b", "c"])
-    >>> pps = PrioritizedParamSet(ps)
-    >>> pps.prioritize("p2", "b")
-    >>> pps.prioritize("p1", 2)
-    >>> pps.prioritize("p1", 3)
-    >>> pps.prioritize("p2", "c")
-    >>> list(pps)
+    >>> ps = ParameterSet()  # doctest: +SKIP
+    >>> ps.add_parameters(p1=[1, 2, 3, 4], p2=["a", "b", "c"])  # doctest: +SKIP
+    >>> pps = PrioritizedParamSet(ps)  # doctest: +SKIP
+    >>> pps.prioritize("p2", "b")  # doctest: +SKIP
+    >>> pps.prioritize("p1", 2)  # doctest: +SKIP
+    >>> pps.prioritize("p1", 3)  # doctest: +SKIP
+    >>> pps.prioritize("p2", "c")  # doctest: +SKIP
+    >>> list(pps)  # doctest: +SKIP
 
     will list all the parameters with p2=b first, then all those with p1=2
     from the remaining once, then all those with p1=3 from the remaining ones,
