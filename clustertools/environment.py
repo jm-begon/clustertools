@@ -426,10 +426,10 @@ class SlurmEnvironment(Environment):
             if len(stderr) > 0:
                 logger.error(stderr)
             if process.returncode != 0:
-                logger.error("Return code:", process.returncode)
+                logger.error("Return code: {}".format(process.returncode))
                 raise subprocess.CalledProcessError(process.returncode,
                                                     cmd=slurm_cmd,
-                                                    stdout=stdout,
+                                                    output=stdout,
                                                     stderr=stderr)
 
 
