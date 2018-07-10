@@ -36,6 +36,9 @@ host are sent as once. By default, all the local experiment are listed
                         help="Number of minute to wait between two "
                              "refreshment. Set to negative (default) for no "
                              "refreshment.")
+    parser.add_argument("-n", "--n-progress", default=10, type=int,
+                        help="Number of lines of progress to show per "
+                             "experiment")
 
     shutup_logger()
 
@@ -59,13 +62,14 @@ host are sent as once. By default, all the local experiment are listed
     # =========== Main ============= #
 
     def main():
-        # Local queries
-        try:
-            hostname = socket.gethostname()
-        except:
-            hostname = "Unknown host"
         if __LH__ in sorted_queries:
+            # Local queries
+            try:
+                hostname = socket.gethostname()
+            except Exception:
+                hostname = "Unknown host"
             print(hostname, ":")
+
             for query in sorted_queries[__LH__]:
                 if query == __WC__:
                     query = r".*"
@@ -75,20 +79,24 @@ host are sent as once. By default, all the local experiment are listed
                         try:
                             monitor = Monitor(name)
                             print("\t", name, monitor.count_by_state())
-                            for comp_name, progress in monitor.get_working_progress().items():
+                            for i, (comp_name, progress) in enumerate(monitor.get_working_progress().items()):
                                 print("\t\t{} - {:.2f} %".format(comp_name,
                                                                  progress*100))
+                                if i >= args.n_progress:
+                                    print("...")
+                                    break
                         except Exception as e:
                             print("\t {} ??? ({})".format(name, repr(e)))
 
         # Remote queries
-        cmd = "ssh {host} {prog} {exp}"
+        cmd = "ssh {host} {prog} -n {n_progress} {exp}"
         prog = os.path.basename(sys.argv[0])
         for host, exp_names in sorted_queries.items():
             if host == __LH__:
                 continue
             exp_string = " ".join(exp_names)
-            act_cmd = cmd.format(host=host, exp=exp_string, prog=prog)
+            act_cmd = cmd.format(host=host, prog=prog,
+                                 n_progress=args.n_progress, exp=exp_string)
             subprocess.call(act_cmd, shell=True)
 
     if args.loop < 0:
