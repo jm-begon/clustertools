@@ -27,8 +27,6 @@ class BasicComputation(Computation):
         # For dill, import must be in the scope of the serialized object
         import time
         from random import randint
-        # Create the result object which will holds the actual results of the
-        # computation
         # Do some heavy number crunching
         result["multiply"] = x * y
         result["sum"] = z + w

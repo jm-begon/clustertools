@@ -39,7 +39,7 @@ import logging
 from .storage import Architecture
 from .state import Monitor
 from .experiment import Computation, ParameterSet, ConstrainedParameterSet, \
-    Result, Experiment
+    PrioritizedParamSet, Result, Experiment
 from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
 from .parser import BaseParser, ClusterParser

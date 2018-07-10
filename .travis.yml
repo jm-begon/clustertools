@@ -4,19 +4,19 @@ python:
   - "3.5"
   - "3.6"
 
+sudo: required
+
 install:
-  - sudo apt-get install unzip
-  - wget https://github.com/clusterlib/clusterlib/archive/master.zip
-  - unzip master.zip
-  - pushd clusterlib-master && python setup.py install && popd
   - pip install -r requirements.txt
   - pip install python-coveralls
+  - source continuous_integration/install.sh
 
 env:
   matrix:
     - SCHEDULER="SLURM"
-
+    - SCHEDULER="NONE"
 
 script: make test
 
 after_success: coveralls
+cache: apt

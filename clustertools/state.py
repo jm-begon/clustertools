@@ -87,8 +87,8 @@ class State(object):
     def __repr__(self):
         return "{cls}(comp_name={comp_name}, progress={progress})" \
                "".format(cls=self.__class__.__name__,
-                         comp_name=self.comp_name,
-                         progress=self.progress)
+                         comp_name=repr(self.comp_name),
+                         progress=repr(self.progress))
 
     def __eq__(self, other):
         # Funny how the isinstance might break symmetry of equivalence
@@ -177,10 +177,10 @@ class AbortedState(State):
         return __ABORTED__
 
     def __repr__(self):
-        return "{cls}(comp_name={comp_name}, progress={progress}" \
+        return "{cls}(comp_name={comp_name}, progress={progress}, " \
                "exception={exception})".format(cls=self.__class__.__name__,
-                                               comp_name=self.comp_name,
-                                               progress=self.progress,
+                                               comp_name=repr(self.comp_name),
+                                               progress=repr(self.progress),
                                                exception=repr(self.exception))
 
 
