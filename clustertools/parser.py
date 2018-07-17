@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import warnings
 from functools import partial
 
 from .environment import SlurmEnvironment, BashEnvironment, Serializer, \
@@ -129,6 +130,9 @@ class ClusterParser(BaseParser):
                           help="Whether to run the code on the front end. "
                                "This is only provided for debugging purposes "
                                "(default: False)")
+        self.add_argument("--stdout", action="store_true", default=False,
+                          help="Display log on stdout (only available with "
+                               "--front-end. (default: False)")
         self.add_argument("--gpu", default=None, type=or_none(int),
                           help="Request GPUs. Do not specify it for no GPU "
                                "(default: None)")
@@ -151,8 +155,12 @@ class ClusterParser(BaseParser):
                                                    namespace=namespace)
         flags, options = self.parse_unknown_args(other)
 
+        if args.stdout and not args.front_end:
+            warnings.warn("Parameter '--stdout' works only with '--front-end'")
+
         if args.front_end:
-            environment = InSituEnvironment(fail_fast=args.no_fail_fast)
+            environment = InSituEnvironment(fail_fast=args.no_fail_fast,
+                                            stdout=args.stdout)
         else:
             environment = SlurmEnvironment(serializer=self.serializer_factory(),
                                            time=args.time,
