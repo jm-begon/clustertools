@@ -242,9 +242,11 @@ class Storage(object):
 
     def get_last_log_file(self, comp_name):
         """Return the most recent (ctime) matching file"""
+        prefix = self.get_log_prefix(comp_name)
+        log_files = list(glob.iglob("{}.*".format(prefix)))
+        log_files.extend(glob.iglob("{}-*".format(prefix)))
         try:
-            return max(glob.iglob("%s.*" % self.get_log_prefix(comp_name)),
-                       key=os.path.getctime)
+            return max(log_files, key=os.path.getctime)
         except ValueError:
             return None
 

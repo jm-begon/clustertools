@@ -277,7 +277,7 @@ class InSituEnvironment(Environment):
 
         storage = lazy_computation.storage
         log_file = storage.get_log_prefix(lazy_computation.comp_name,
-                                          "-{}".format(str(epoch())))
+                                          ".{}".format(str(epoch())))
         sys_backup = sys.stdout, sys.stderr
         try:
             with open(log_file, "w") as hdl:
