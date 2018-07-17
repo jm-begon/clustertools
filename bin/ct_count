@@ -83,7 +83,7 @@ host are sent as once. By default, all the local experiment are listed
                                 print("\t\t{} - {:.2f} %".format(comp_name,
                                                                  progress*100))
                                 if i >= args.n_progress:
-                                    print("...")
+                                    print("\t\t...")
                                     break
                         except Exception as e:
                             print("\t {} ??? ({})".format(name, repr(e)))
