@@ -135,7 +135,7 @@ class SubProg(object, metaclass=ABCMeta):
                 query()
             else:
                 # Remote query
-                subprocess.call(query.craft_remote_query())
+                subprocess.call(query.craft_remote_query(), shell=True)
 
 
 class Counter(SubProg):
@@ -146,11 +146,11 @@ class Counter(SubProg):
             self.n_progress = n_progress
 
         def craft_remote_query(self):
-            return "ssh {host} {prog} {subprog} -n {n_progress} {exp}" \
+            return "ssh {host} '{prog} {subprog} -n {n_progress} {exp}'" \
                    "".format(
                         host=self.host if self.host is not None else __LH__,
                         prog=get_prog(),
-                        subprog=self.subprog_name,
+                        subprog=self.subprog,
                         n_progress=self.n_progress,
                         exp=" ".join(self.exp_names))
 
@@ -182,7 +182,7 @@ class Counter(SubProg):
 
     @classmethod
     def fill_in_subparser(cls, parser):
-        parser_count = subparsers.add_parser(cls.subprog_name())
+        parser_count = parser.add_parser(cls.subprog_name())
         parser_count.add_argument("queries", help=queries_doc, nargs="*")
         parser_count.add_argument("-l", "--loop", default=-1, type=int,
                                   help="Number of minute to wait between two "
@@ -196,6 +196,9 @@ class Counter(SubProg):
 
     @classmethod
     def to_queries(cls, queries, n_progress, **kwargs):
+        if len(queries) == 0:
+            yield cls.CounterQuery(None, cls.subprog_name(), n_progress,
+                                   __WC__)
         for host, exp_names in rearrange_queries(queries).items():
             yield cls.CounterQuery(host, cls.subprog_name(),
                                    n_progress, *exp_names)
@@ -215,63 +218,6 @@ class Counter(SubProg):
             except (KeyboardInterrupt, SystemExit):
                 print("")
                 sys.exit(0)
-
-
-class LogPrinter(SubProg):
-    class LogQuery(Query):
-        def __init__(self, host, subprog, exp_name, comp_name, last_lines):
-            super().__init__(host, subprog)
-            self.exp_name = exp_name
-            self.comp_name = comp_name
-            self.last_lines = last_lines
-
-        def craft_remote_query(self):
-            return 'ssh {host} "{prog} {subprog} --last-line {last_lines} ' \
-                   '{exp_name} {comp_name}"' \
-                   ''.format(
-                        host=self.host if self.host is not None else __LH__,
-                        prog=get_prog(),
-                        subprog=self.subprog,
-                        last_lines=self.last_lines,
-                        exp_name=self.exp_name,
-                        comp_name=self.comp_name)
-
-        def __call__(self):
-            # Local query
-            storage = PickleStorage(self.exp_name)
-            storage.print_log(self.comp_name, last_lines=self.last_lines)
-
-    @classmethod
-    def subprog_name(cls):
-        return "log"
-
-    @classmethod
-    def fill_in_subparser(cls, subparser):
-        # Print log
-        parser_log = subparsers.add_parser(cls.subprog_name())
-        parser_log.add_argument("query", help=query_doc)
-        parser_log.add_argument("computation",
-                                help="Computation name or number")
-        parser_log.add_argument("--last-line",
-                                help="Number of line to print or "
-                                     "None (default: None)",
-                                type=or_none(int), default=None)
-        parser_log.set_defaults(func=cls.run)
-        return parser_log
-
-    @classmethod
-    def to_queries(cls, query, computation, last_lines=None, **kwargs):
-        host, exp_name = split_host_and_exp(query)
-
-        comp_name = computation
-        try:
-            comp_num = int(comp_name)
-            comp_name = Experiment.name_computation(exp_name, comp_num)
-        except ValueError:
-            pass
-
-        return [cls.LogQuery(host, cls.subprog_name(), exp_name,
-                             comp_name, last_lines)]
 
 
 class Displayer(SubProg):
@@ -418,7 +364,7 @@ if __name__ == '__main__':
     shutup_logger()
     parser = argparse.ArgumentParser(
         description="General command line utility for Clustertools. The purpose"
-                    " is to ease frequent task and to do so without a Python "
+                    " is to ease frequent tasks and to do so without a Python "
                     "interpreter."
     )
     subparsers = parser.add_subparsers(title="Subcommands",
@@ -426,9 +372,6 @@ if __name__ == '__main__':
 
     # Count by state
     Counter.fill_in_subparser(subparsers)
-
-    # Print log
-    LogPrinter.fill_in_subparser(subparsers)
 
     # Display
     Displayer.fill_in_subparser(subparsers)
@@ -440,4 +383,7 @@ if __name__ == '__main__':
     ResetProg.fill_in_subparser(subparsers)
 
     args = parser.parse_args()
-    args.func(args)
+    if not hasattr(args, "func"):
+        parser.print_help()
+    else:
+        args.func(args)
