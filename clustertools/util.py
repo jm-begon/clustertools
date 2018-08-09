@@ -6,12 +6,16 @@ Module :mod:`util` is a set of misc. functions
 import inspect
 import os
 import signal
+from contextlib import contextmanager
 from inspect import getargspec
 from copy import copy
 from hashlib import sha256
 import warnings
 import functools
 
+import logging
+
+import sys
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -151,3 +155,26 @@ class SigHandler(object):
 
         self._restore()
 
+
+@contextmanager
+def catch_logging():
+    # Memo
+    logger = logging.getLogger("clustertools")
+    handlers = logger.handlers
+    level = logger.level
+    # New stuff
+    logger.handlers = []
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    logger.addHandler()
+    formatter = logging.Formatter("%(asctime)s - %(name)s - "
+                                  "%(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    logger.setLevel(logging.DEBUG)
+
+    try:
+        yield
+    finally:
+        logger.handlers = handlers
+        logger.level = level
