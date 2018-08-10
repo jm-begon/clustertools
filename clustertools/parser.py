@@ -288,8 +288,9 @@ class CTParser(AbstractParser):
         if not hasattr(namespace, "create_environment"):
             self.parser.print_help()
         else:
-            return namespace.create_environmnet(namespace=namespace,
+            return namespace.create_environment(namespace=namespace,
                                                 other_args=other_args)
 
     def create_environment(self, namespace, other_args):
+        # Changing the start/capacity will be done by the EnvParser
         return self.create_environment_(namespace, other_args)
