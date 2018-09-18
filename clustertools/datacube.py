@@ -30,6 +30,9 @@ class Hasher(object):
         last_stride = 1
         self.strides = {}
         for name, vals in domain.items():
+            if len(vals) == 0:
+                raise ValueError("Domain of '{}' is empty. "
+                                 "If it is not useful remove it.".format(name))
             inv = {p: i for i, p in enumerate(vals)}
             self.dom_inv[name] = inv
             self.strides[name] = last_stride
@@ -39,7 +42,7 @@ class Hasher(object):
         if metadata is not None:
             for name, val in metadata.items():
                 self.strides[name] = 0
-                self.dom_inv[name] = {val:0}
+                self.dom_inv[name] = {val: 0}
 
     def get_cons_args(self):
         metrics = Hasher.sort_back(self.metric_inv)
@@ -109,8 +112,22 @@ class Hasher(object):
 
 class Datacube(Mapping):
     """
-    parameterss : iterable of mappings param_name -> value
-    resultss : iterable of mappings metric_name -> value
+    parameters_ls : iterable of mappings param_name -> value
+        The parameters of the experiment. The indexing must be coherent with
+        `results_ls`
+
+    results_ls: iterable of mappings metric_name -> value
+        The metric of the experiment. The indexing must be coherent with
+        `parameters_ls`
+
+    exp_name: str (default: '')
+        The name of the experiment
+
+    force: boolean (default: True)
+        Whether to force the building of the cube. If False, will raise
+        exception for ill-formed cube (e.g. a parameter with no value). If True,
+        will try to enforce the building of the cube -- possibly by droping some
+        parameters
 
     Instance variables
     ------------------
@@ -122,7 +139,7 @@ class Datacube(Mapping):
         A dictionary containing, for each domain name, the iterable of possible
         values
     parameters: iterable of str
-        The name of each axis (with correspind index)
+        The name of each axis (with corresponding index)
     metrics: iterable of str
         The name of each metric. The metric is the last axis. Each index in that
         axis correspond to a metric in the order of `metrics`
@@ -134,28 +151,41 @@ class Datacube(Mapping):
         The shape of the result cube. The N-1 first axis are linked to the
         parameters and the last one to the metrics
     """
-    def __init__(self, parameters_ls, results_ls, exp_name=""):
+    def __init__(self, parameters_ls, results_ls, exp_name="", force=True):
         param_tmp = {}
         # Build back the parameters domain
+        if not force and len(parameters_ls) == 0:
+            raise ValueError("Empty cube. Use 'force=True' to ignore this "
+                             "issue.")
         for parameters in parameters_ls:
-            for k, v in parameters.items():
-                _set = param_tmp.get(k)
+            if not force and len(parameters) == 0:
+                raise ValueError("Parameter '{}' has an empty domain. "
+                                 "Use 'force=True' to ignore this issue."
+                                 "".format(name))
+            for name, v in parameters.items():
+                _set = param_tmp.get(name)
                 if _set is None:
                     _set = set()
-                    param_tmp[k] = _set
+                    param_tmp[name] = _set
                 _set.add(v)
         # Sort metadata from parameters
         metadata = {}
         parameter_list = []
         domain = {}
-        for k, v in param_tmp.items():
+        for name, v in param_tmp.items():
             ls = [vi for vi in v]
             if len(ls) > 1:
                 ls.sort()
-                domain[k] = [str(x) for x in ls]
-                parameter_list.append(k)
+                domain[name] = [str(x) for x in ls]
+                parameter_list.append(name)
+            elif len(ls) == 1:
+                metadata[name] = str(ls[0])
             else:
-                metadata[k] = str(ls[0])
+                # len(ls) <= 0: This should be handled by the previous stage
+                if not force:
+                    raise ValueError("Parameter '{}' has an empty domain. If "
+                                     "it is not useful, remove it".format(name))
+                # else: drop that axis
         parameter_list.sort()
 
         # Build back the metric list
@@ -519,6 +549,9 @@ class Datacube(Mapping):
     def _missing_ratio(self, ood=None):
         if ood is None:
             ood = self.out_of_domain()
+        size = self.size()
+        if size == 0:
+            raise AttributeError("Cannot do this operation: the cube is empty")
         return float(len(ood))/self.size()
 
     def _some_miss_vs_all_there(self, ood=None):
@@ -594,12 +627,13 @@ def build_result_cube(exp_name):
     return build_datacube(exp_name)
 
 
-def build_datacube(exp_name, storage_factory=PickleStorage, **default_meta):
+def build_datacube(exp_name, storage_factory=PickleStorage, force=True, **default_meta):
     """
     default_meta: mapping str -> str
         The (potientially) missing metadata
     """
     storage = storage_factory(experiment_name=exp_name)
     parameters_ls, results_ls = storage.load_params_and_results(**default_meta)
-    return Datacube(parameters_ls, results_ls, exp_name)
+    return Datacube(parameters_ls, results_ls, exp_name, force=force)
+        #
 
