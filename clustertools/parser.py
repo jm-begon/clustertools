@@ -253,36 +253,52 @@ class CTParser(AbstractParser):
                                           description="Choice of backend")
 
         # Debug
-        debug_parser = subparser.add_parser("debug")
+        debug_parser = subparser.add_parser(
+            "debug",
+            description="This will produce a debugging environment. "
+                        "It will launch nothing but will show what would be "
+                        "launched in other enviroments."
+        )
         debug_ct_parser = DebugParser(debug_parser)
         debug_parser.set_defaults(
             create_environment=debug_ct_parser.create_environment
         )
 
         # InSitu
-        insitu_parser = subparser.add_parser("front-end")
+        insitu_parser = subparser.add_parser(
+            "front-end",
+            description="This will produce an environment in which all "
+                        "computations will be run sequentially in the process' "
+                        "main thread."
+        )
         insitu_ct_parser = InSituParser(insitu_parser)
         insitu_parser.set_defaults(
             create_environment=insitu_ct_parser.create_environment
         )
 
         # Bash
-        bash_parser = subparser.add_parser("bash")
+        bash_parser = subparser.add_parser(
+            "bash",
+            description="This will produce an environment in which all "
+                        "computations will the launched in its child process."
+        )
         bash_ct_parser = BashParser(bash_parser, serializer_factory)
         bash_parser.set_defaults(
             create_environment=bash_ct_parser.create_environment
         )
 
         # Slurm
-        slurm_parser = subparser.add_parser("slurm")
+        slurm_parser = subparser.add_parser(
+            "slurm",
+            description="This will produce an environment in which the "
+                        "computations will be launched through Slurm. "
+        )
         slurm_ct_parser = SlurmParser(slurm_parser, serializer_factory)
         slurm_parser.set_defaults(
             create_environment=slurm_ct_parser.create_environment
         )
 
     def create_environment_(self, namespace, other_args):
-        print(namespace)
-        print(other_args)
         if not hasattr(namespace, "create_environment"):
             self.parser.print_help()
         else:

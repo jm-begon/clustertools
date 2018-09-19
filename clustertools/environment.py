@@ -224,6 +224,9 @@ class Environment(object, metaclass=ABCMeta):
         error_count: int >= 0
             The number of computations that could not be launched
         """
+        if not self.__class__.is_usable():
+            raise AttributeError('{} is not usable in this setting'
+                                 ''.format(self.__class__.__name__))
         error_count = 0
         with self.create_session(experiment) as session:
             for lazy_comp in experiment.yield_computations(repr(self),

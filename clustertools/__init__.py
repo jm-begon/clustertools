@@ -42,7 +42,7 @@ from .experiment import Computation, ParameterSet, ConstrainedParameterSet, \
     PrioritizedParamSet, Result, Experiment
 from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
-from .parser import BaseParser, ClusterParser
+from .parser import BaseParser, ClusterParser, CTParser
 from .util import call_with
 from .config import get_ct_folder, get_default_environment
 
@@ -57,7 +57,7 @@ __all__ = ["Monitor", "Computation", "ParameterSet", "ConstrainedParameterSet",
            "Result", "Experiment", "Serializer", "FileSerializer" "Datacube",
            "build_result_cube", "build_datacube", "BaseParser", "ClusterParser",
            "call_with", "set_stdout_logging", "InSituEnvironment",
-           "get_default_environment"]
+           "get_default_environment", "CTParser"]
 
 
 logging.getLogger("clustertools").addHandler(logging.NullHandler())

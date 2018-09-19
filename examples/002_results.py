@@ -2,37 +2,49 @@
 #!/usr/bin/env python
 
 """
-This minimum working examples illustrate the use of `Clustertools` `Datacube`.
-You should have run the `basic_bash.py` example BEFOREHAND, otherwise there will
-be no data to analyze.
+Go through `001_basic_usage.py` before running this example.
 
-The experiment consisted in computing the multiplication and addition of
-several numbers. More specifically, we will compute x*y and z+w
-for x in [1, 2, 3], y = 2, z = 4, w in [5, 6].
+If you did so, you computed the x*y and z+w
+for x in [1, 2, 3], y = 2, z = 4, w in [5, 6] in a experiment called
+`BasicUsage`. Under the hood, Clustertools generated the individual
+computations, managed their states and logging and saved the results.
+
+We are now ready to load all the results and analyze them. Clustertools provides
+a `Datacube` class, easily built throught the function `build_datacube` which
+expects the name of the experiment.
+
+`Datacube` is built around two main concepts. On the one hand, we have the
+inputs of the computations, which are called variables. On the other, we have
+the results, which are called -- drum roll -- results.
+
+We can further distinguish between two types of variables. When a variable has
+the same value throughout the whole experiment, it is a constant or as we call
+it, a metadata. If it is not a metadata, it is a paremeter. The different values
+it can take form the domain of that parameter.
 """
 import sys
 
 from clustertools import build_datacube
 
 if __name__ == '__main__':
-    # Load the data of experiment `BasicBash` (from `basic_bash.py`) and
+    # Load the data of experiment `BasicUsage` (from `001_basic_usage.py`) and
     # create a datacube with it.
-    cube = build_datacube("BasicBash")
+    cube = build_datacube("BasicUsage")
     if len(cube) == 0:
-        print("Results of experiment 'BasicBash' not found.")
+        print("Results of experiment 'BasicUsage' not found.")
         sys.exit(1)
 
-    # First we can look at the repr of the cube to see the variables, their
-    # domains and the metaparameters
+    # First we can look at the repr of the cube to see the parameters, their
+    # domains and the metadata
     print("Representation of the cube:\n", repr(cube), "\n")
 
-    # We can make a diagnosis of the cube to see if there is missing data
+    # We can make a diagnosis of the cube to see if some data is missing
     print("Diagnose:\n", cube.diagnose(), "\n")
 
     print()
     print("---------------------------- INDEXING ----------------------------")
-    # The preferred way to access is through the application call where we
-    # can named both the variables and metrics
+    # `Datacube` is a callable, which accepts an optional metric name and
+    # pairs of parameter name-parameter value. This is the preferred access way
     print("Value of 'sum' for x=1 and w=5", cube("sum", x='1', w='5'), "\n")
     # Notice how the actual values are string. This is a constraint enforced
     # to ensure a consistent use (domain values could be string)
@@ -51,8 +63,8 @@ if __name__ == '__main__':
     print()
     print("------------------- SLICING, DICING, INDEXING ---------------------")
     # As long as there is one variable which is not set or there is more than
-    # one metric, the application call will return a new cube object. If this
-    # is not the case, the base object is returned like an indexing.
+    # one metric, the application call will return a new `Datacube` object.
+    # If this is not the case, the base object is returned like an indexing.
     cube_x_1 = cube(x='1')
     print("First slicing (x=1):", repr(cube_x_1), "\n")
     cube_x_1_sum = cube_x_1("sum")
@@ -80,7 +92,10 @@ if __name__ == '__main__':
 
     print()
     # -------------------------- ROLL UP/DRILL DOWN -------------------------- #
-    # Coming soon (implementation not there yet)
+    # Coming soon (implementation not there yet). However, when the metric
+    # is numeric, is it easy to cast the datacube as NumPy array with the
+    # :meth:`numpyfy` method.
+    # NumPy arrays have a built-in support for those kind of operations
     try:
         import numpy as np
         np_array = cube("sum", x='1').numpyfy()
