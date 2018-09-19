@@ -180,7 +180,6 @@ def test_debug_parser():
 def test_debug_run():
     exp_name = "TestDebugParserRun"
     monitor = Monitor(exp_name)
-    print(monitor.partition_by_state())  # TODO
     assert_equal(len(monitor), 0)
 
     parser = DebugParser()
@@ -191,7 +190,6 @@ def test_debug_run():
     environment.run(experiment)
 
     monitor.refresh()
-    print(monitor.partition_by_state())  # TODO
     assert_equal(len(monitor), 0)
 
 

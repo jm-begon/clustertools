@@ -29,7 +29,6 @@ class BasicComputation(Computation):
         result["multiply"] = x * y
         result["sum"] = z + w
         time.sleep(randint(1, 10))
-        print("HARRY POTTER !")
 
         # Result is automatically collected.
         # Everything (saving, updating status, etc.) is taken care of
