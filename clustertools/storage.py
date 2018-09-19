@@ -334,11 +334,12 @@ class PickleStorage(Storage):
         return state
 
     def load_states(self):
+        from .state import State
         res = []
         for fpath in glob.glob(os.path.join(self._get_notif_db(), "*.pkl")):
             loaded = self._load(fpath)
             try:
-                if len(loaded) > 0:
+                if isinstance(loaded, State) or len(loaded) > 0:
                     res.append(loaded)
             except (AttributeError, TypeError, ValueError):
                 # If `loaded` has no length (should be a type error)
