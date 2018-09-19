@@ -340,9 +340,9 @@ class PickleStorage(Storage):
             try:
                 if len(loaded) > 0:
                     res.append(loaded)
-            except:
+            except (AttributeError, TypeError, ValueError):
+                # If `loaded` has no length (should be a type error)
                 pass
-            res.append(loaded)
         return res
 
     # |---------------------------- Results -----------------------------> #
