@@ -193,9 +193,6 @@ def test_debug_run():
     assert_equal(len(monitor), 0)
 
 
-
-
-
 # ================================================================= InSituParser
 def test_insitu_parser_create_env():
     parser = InSituParser()
