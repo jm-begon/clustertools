@@ -69,8 +69,7 @@ class UniversalParser(argparse.ArgumentParser):
                  fromfile_prefix_chars=None,
                  argument_default=None,
                  conflict_handler='error',
-                 add_help=True,
-                 allow_abbrev=True):
+                 add_help=True):
         super().__init__(prog=prog,
                          usage=usage,
                          description=description,
@@ -81,8 +80,7 @@ class UniversalParser(argparse.ArgumentParser):
                          fromfile_prefix_chars=fromfile_prefix_chars,
                          argument_default=argument_default,
                          conflict_handler=conflict_handler,
-                         add_help=add_help,
-                         allow_abbrev=allow_abbrev)
+                         add_help=add_help)
 
         self.add_argument("--capacity", "-c", default=sys.maxsize,
                           type=positive_int,
