@@ -3,10 +3,15 @@
 from argparse import Namespace
 from inspect import getfullargspec
 
-from nose.tools import assert_equal, assert_raises
+from clustertools import Experiment
+from clustertools import Monitor
+from clustertools.test.util_test import TestComputation, __EXP_NAME__, prep, \
+    purge
+from nose.tools import assert_equal, assert_raises, with_setup
 from nose.tools import assert_is_none
 from nose.tools import assert_true
 
+from clustertools import ParameterSet
 from clustertools.parser import *
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -141,7 +146,6 @@ def test_cluster_parser():
     assert_equal(environment.other_options, {"--other-option": "opt-value"})
 
 
-
 # ================================================================== DebugParser
 def test_debug_parser_create_env():
     parser = DebugParser()
@@ -154,6 +158,7 @@ def test_debug_parser_create_env():
 
     assert_equal(get_default(env.run, "capacity"), 2)
     assert_equal(get_default(env.run, "start"), 0)
+
 
 def test_debug_parser():
         parser = DebugParser()
@@ -169,6 +174,28 @@ def test_debug_parser():
 
         assert_equal(get_default(env.run, "capacity"), 2)
         assert_equal(get_default(env.run, "start"), 0)
+
+
+@with_setup(prep, purge)
+def test_debug_run():
+    exp_name = "TestDebugParserRun"
+    monitor = Monitor(exp_name)
+    print(monitor.partition_by_state())  # TODO
+    assert_equal(len(monitor), 0)
+
+    parser = DebugParser()
+    environment, _ = parser.parse(["--verbose"])
+    parameter_set = ParameterSet()
+    parameter_set.add_parameters(x1=range(3), x2=range(3))
+    experiment = Experiment(exp_name, parameter_set, TestComputation)
+    environment.run(experiment)
+
+    monitor.refresh()
+    print(monitor.partition_by_state())  # TODO
+    assert_equal(len(monitor), 0)
+
+
+
 
 
 # ================================================================= InSituParser

@@ -166,7 +166,6 @@ def catch_logging():
     logger.handlers = []
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
-    logger.addHandler()
     formatter = logging.Formatter("%(asctime)s - %(name)s - "
                                   "%(levelname)s - %(message)s")
     ch.setFormatter(formatter)

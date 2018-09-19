@@ -84,6 +84,10 @@ class Session(object):
         self.fail_fast = parent_environment.fail_fast
         self.logger = logging.getLogger("clustertools")
 
+    @property
+    def update_state(self):
+        return True
+
     def init(self, exp_len, storage):
         self.exp_len = exp_len
         self.storage = storage
@@ -118,13 +122,17 @@ class Session(object):
         if not self.is_open():
             raise ValueError("The session has not been opened.")
         try:
-            self.storage.update_state(PendingState(lazy_computation.comp_name))
+            if self.update_state:
+                self.storage.update_state(PendingState(
+                    lazy_computation.comp_name))
             self.logger.debug("Launching '{}'""".format(repr(lazy_computation)))
             self.environment.issue(lazy_computation)
             self.n_launch += 1
         except Exception as exception:
-            self.storage.update_state(AbortedState(lazy_computation.comp_name,
-                                                   exception=exception))
+            if self.update_state:
+                self.storage.update_state(AbortedState(
+                    lazy_computation.comp_name,
+                    exception=exception))
             self.logger.warning("Could not launch '{}'. Reason: {}"
                                 "".format(repr(lazy_computation),
                                           repr(exception)))
@@ -140,6 +148,12 @@ class Session(object):
                                                  n_launch=str(self.n_launch),
                                                  exp_len=str(self.exp_len)))
         self.opened = False
+
+
+class DebugSession(Session):
+    @property
+    def update_state(self):
+        return False
 
 
 class Environment(object, metaclass=ABCMeta):
@@ -279,6 +293,9 @@ class DebugEnvironment(Environment):
                "".format(cls=self.__class__.__name__,
                          print_all_parameters=repr(self.print_all_parameters),
                          fail_fast=repr(self.fail_fast))
+
+    def create_session(self, experiment):
+        return DebugSession(self).init(len(experiment), experiment.storage)
 
 
 class InSituEnvironment(Environment):
