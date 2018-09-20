@@ -46,7 +46,7 @@ class MyComputation(Computation):
 
 
 if __name__ == "__main__":
-    # Configure logging to debug on stdout
+    # Configure logging to debug on stdout (the verbosity level can be adapted)
     set_stdout_logging()
 
     # Create the command line parser. It allows you to specify the backend,

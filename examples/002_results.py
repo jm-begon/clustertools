@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-"""
+import sys
+import argparse
+
+from clustertools import build_datacube
+
+__DOC__ = """
 Go through `001_basic_usage.py` before running this example.
 
 If you did so, you computed the x*y and z+w
-for x in [1, 2, 3], y = 2, z = 4, w in [5, 6] in a experiment called
+for x in [1, 2, 3], y = 2, z = 4, w in [5, 6] in an experiment called
 `BasicUsage`. Under the hood, Clustertools generated the individual
 computations, managed their states and logging and saved the results.
 
@@ -21,15 +26,22 @@ We can further distinguish between two types of variables. When a variable has
 the same value throughout the whole experiment, it is a constant or as we call
 it, a metadata. If it is not a metadata, it is a paremeter. The different values
 it can take form the domain of that parameter.
-"""
-import sys
 
-from clustertools import build_datacube
+To see the content of that datacube, run `python 002_results.py`
+"""
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__DOC__,
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-s', '--suffix', default='',
+                        help='A suffix to name the experiment '
+                             '(will be added to \'Basic usage\'')
+    args = parser.parse_args()
+    exp_name = "BasicUsage{}".format(args.suffix)
+
     # Load the data of experiment `BasicUsage` (from `001_basic_usage.py`) and
     # create a datacube with it.
-    cube = build_datacube("BasicUsage")
+    cube = build_datacube(exp_name)
     if len(cube) == 0:
         print("Results of experiment 'BasicUsage' not found.")
         sys.exit(1)
@@ -40,6 +52,12 @@ if __name__ == '__main__':
 
     # We can make a diagnosis of the cube to see if some data is missing
     print("Diagnose:\n", cube.diagnose(), "\n")
+    # Note that the cube has no knowledge of the experiment: it only sees
+    # what was computed. As a consequence:
+    #  1. If there is a whole parameter value missing (say x=3), it will assume
+    #     that the cube is complete.
+    #  2. The cube cannot say which computations are missing. Run the experiment
+    #     script in debug mode with full verbosity to get that information
 
     print()
     print("---------------------------- INDEXING ----------------------------")

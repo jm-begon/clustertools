@@ -67,7 +67,7 @@ def shutup_logger():
     logging.getLogger("clustertools").addHandler(logging.NullHandler())
 
 
-def set_stdout_logging(architecture=Architecture()):
+def set_stdout_logging(log_level=logging.DEBUG, architecture=Architecture()):
     """
     Sets stdout as default logging facility
     """
@@ -86,4 +86,4 @@ def set_stdout_logging(architecture=Architecture()):
     logger = logging.getLogger("clustertools")
     logger.addHandler(ch)
     logger.addHandler(fh)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)

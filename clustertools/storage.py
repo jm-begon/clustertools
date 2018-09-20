@@ -82,9 +82,12 @@ class Architecture(object):
     def erase_experiment(self, exp_name):
         logger = logging.getLogger("clustertools")
         try:
+            logger.info('Erasing experiment permanently \'{}\'...'
+                        ''.format(exp_name))
             path = self.get_basedir(exp_name)
             if os.path.exists(path):
                 shutil.rmtree(path)
+            logger.info('Experiment \'{}\' permanently erased'.format(exp_name))
         except OSError as error:
             logger.warning("Trouble erasing the databases: {}"
                            "".format(repr(error)),
