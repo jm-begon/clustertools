@@ -265,6 +265,11 @@ class DebugEnvironment(Environment):
     ==================
     An `Environment` that do not run code. It only prints the messages.
     """
+
+    @classmethod
+    def is_usable(cls):
+        return True
+
     def __init__(self, print_all_parameters=False, fail_fast=True):
         super().__init__(fail_fast)
         self.print_all_parameters = print_all_parameters
