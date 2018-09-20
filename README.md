@@ -60,17 +60,16 @@ clone this repository and use
 
     python setup.py install
     
-Examples
+Clustertools howto
 --------
-The examples folder contains a couple of scripts demonstrating the use of 
-`Clustertools`
+Want to know more about Clustertools? See the [wiki](https://github.com/jm-begon/clustertools/wiki). 
 
 Environments
 ------------
-So far, only Slurm (https://slurm.schedmd.com/) is covered. 
+So far, only Slurm (https://slurm.schedmd.com/) is covered as super-computer backend.
 SGE (http://gridscheduler.sourceforge.net/) could be covered with minimal effort 
 
 License
 -------
-BSD 3
+[BSD 3](https://github.com/jm-begon/clustertools/blob/master/LICENSE)
 

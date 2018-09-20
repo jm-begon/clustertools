@@ -19,6 +19,6 @@ features of the analysis part.
 
 The headers and comments of those files should help you master Clustertools.
 
-[comment]: # (link to help)
+For more information and howtos see the [wiki](https://github.com/jm-begon/clustertools/wiki)
 
 Lost? Start by `001_basic_usage.py`.
