@@ -71,6 +71,108 @@ def filter_experiment(pattern=__WC__, architecture=Architecture()):
 
 
 # ================================== SUBPROG ================================= #
+# ----------------------------- Vanilla subprog ------------------------------ #
+class SubProg(object, metaclass=ABCMeta):
+
+    @property
+    @abstractmethod
+    def subprog_name(self):
+        """Return the program name"""
+        pass
+
+    @abstractmethod
+    def fill_in_subparser_(self, sub_parser):
+        """Fill the given sub_parser with the program arguments"""
+        pass
+
+    def fill_in_subparser(self, main_parser):
+        sub_parser = main_parser.add_parser(self.subprog_name)
+        self.fill_in_subparser_(sub_parser)
+        sub_parser.set_defaults(func=self.run)
+        return sub_parser
+
+    @abstractmethod
+    def run(self, namespace):
+        pass
+
+
+class Syncher(SubProg):
+    @property
+    def subprog_name(self):
+        return "sync"
+
+    def fill_in_subparser_(self, sub_parser):
+        source_doc = """The source.
+        Use scp-like syntax: 'luke@skywalker:exp_about_the_force' to specify
+        that you are targeting experiment 'exp_about_the_force' on machine
+        'skywalker' where your id is 'luke'. Use a dot '.' for localhost."""
+        dest_doc = """The destination.
+        Use the syntax: 'vador@deathstar' to specify that you the destination is
+        machine 'deathstar' where your id is 'vador'. Use a dot '.' for
+        localhost."""
+
+        sub_parser.add_argument("source", help=source_doc)
+        sub_parser.add_argument("destination", help=dest_doc)
+        sub_parser.add_argument("--quiet", "-q", default=False,
+                                action="store_true",
+                                help="Runs in quiet mode.")
+        sub_parser.add_argument("--test", "-t", default=False,
+                                action="store_true",
+                                help="print the command instead of running it.")
+
+    def run(self, namespace):
+        # Getting source and destination
+        source_info = namespace.source.split(":")
+        dest_info = namespace.destination.split(":")
+
+        destination_machine = ''
+        if len(source_info) == 1:
+            source_machine = "."
+            experiment = source_info[0]
+        else:
+            source_machine, experiment = source_info
+
+        if len(dest_info) == 1 or (
+                len(dest_info) == 2 and len(dest_info[1]) == 0):
+            destination_machine = dest_info[0]
+        elif experiment is not None:
+            raise ValueError("Only the source can specify an experiment.")
+
+        print("Transferring {} from {} to {}".format(experiment, source_machine,
+                                                     destination_machine))
+
+        if source_machine == '.':
+            source_prefix = ''
+        else:
+            source_prefix = source_machine + ':'
+        if destination_machine == '.':
+            destination_prefix = ''
+        else:
+            destination_prefix = destination_machine + ':'
+
+        # TODO do something more portable
+        ct_folder = 'clustertools_data'
+        source_str = source_prefix + \
+                     Architecture(ct_folder).get_basedir(experiment) + '/'
+        destination_str = destination_prefix + \
+                          Architecture(ct_folder).get_basedir(experiment)
+
+        if namespace.quiet:
+            r_args = "-az"
+        else:
+            r_args = "-azP"
+
+        cmd = "rsync {r_args} {source} {dest}".format(r_args=r_args,
+                                                      source=source_str,
+                                                      dest=destination_str)
+
+        if namespace.test:
+            print(cmd)
+        else:
+            subprocess.call(cmd, shell=True)
+
+
+# --------------------------- MultiQuery subprog ----------------------------- #
 class Query(object):
     def __init__(self, host, subprog):
         self._host = host
@@ -93,43 +195,14 @@ class Query(object):
         pass
 
 
-class SimpleQuery(Query):
-    def __init__(self, host, subprog, exp_name, func):
-        super().__init__(host, subprog)
-        self._exp_name = exp_name
-        self._func = func
+class MultiQuerySubProg(SubProg, metaclass=ABCMeta):
 
-    @property
-    def exp_name(self):
-        return self._exp_name
-
-    def craft_remote_query(self):
-        return 'ssh {host} "{prog} {subprog} {exp_name}"' \
-               ''.format(host=self.host if self.host is not None else __LH__,
-                         prog=get_prog(),
-                         subprog=self.subprog,
-                         exp_name=self.exp_name)
-
-    def __call__(self):
-        self._func(self._exp_name)
-
-
-class SubProg(object, metaclass=ABCMeta):
-    @abstractclassmethod
-    def subprog_name(cls):
+    @abstractmethod
+    def to_queries(self, **kwargs):
         pass
 
-    @abstractclassmethod
-    def fill_in_subparser(cls, parser):
-        pass
-
-    @abstractclassmethod
-    def to_queries(cls, **kwargs):
-        pass
-
-    @classmethod
-    def run(cls, namespace):
-        for query in cls.to_queries(**vars(namespace)):
+    def run(self, namespace):
+        for query in self.to_queries(**vars(namespace)):
             if query.host is None:
                 # Local query
                 query()
@@ -138,7 +211,7 @@ class SubProg(object, metaclass=ABCMeta):
                 subprocess.call(query.craft_remote_query(), shell=True)
 
 
-class Counter(SubProg):
+class Counter(MultiQuerySubProg):
     class CounterQuery(Query):
         def __init__(self, host, subprog, n_progress, exp_name, *exp_names):
             super().__init__(host, subprog)
@@ -176,35 +249,29 @@ class Counter(SubProg):
                     except Exception as e:
                         print("\t {} ??? ({})".format(name, repr(e)))
 
-    @classmethod
-    def subprog_name(cls):
+    @property
+    def subprog_name(self):
         return "count"
 
-    @classmethod
-    def fill_in_subparser(cls, parser):
-        parser_count = parser.add_parser(cls.subprog_name())
-        parser_count.add_argument("queries", help=queries_doc, nargs="*")
-        parser_count.add_argument("-l", "--loop", default=-1, type=int,
-                                  help="Number of minute to wait between two "
-                                       "refreshment. Set to negative (default) for "
-                                       "no refreshment.")
-        parser_count.add_argument("-n", "--n-progress", default=10, type=int,
-                                  help="Number of lines of progress to show per "
-                                       "experiment")
-        parser_count.set_defaults(func=cls.run)
-        return parser_count
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help=queries_doc, nargs="*")
+        sub_parser.add_argument("-l", "--loop", default=-1, type=int,
+                                help="Number of minute to wait between two "
+                                     "refreshment. Set to negative (default) "
+                                     "for no refreshment.")
+        sub_parser.add_argument("-n", "--n-progress", default=10, type=int,
+                                help="Number of lines of progress to show per "
+                                     "experiment")
 
-    @classmethod
-    def to_queries(cls, queries, n_progress, **kwargs):
+    def to_queries(self, queries, n_progress, **kwargs):
         if len(queries) == 0:
-            yield cls.CounterQuery(None, cls.subprog_name(), n_progress,
-                                   __WC__)
+            yield self.CounterQuery(None, self.subprog_name, n_progress,
+                                    __WC__)
         for host, exp_names in rearrange_queries(queries).items():
-            yield cls.CounterQuery(host, cls.subprog_name(),
-                                   n_progress, *exp_names)
+            yield self.CounterQuery(host, self.subprog_name,
+                                    n_progress, *exp_names)
 
-    @classmethod
-    def run(cls, namespace):
+    def run(self, namespace):
         if namespace.loop < 0:
             super().run(namespace)
         else:
@@ -220,7 +287,7 @@ class Counter(SubProg):
                 sys.exit(0)
 
 
-class Displayer(SubProg):
+class Displayer(MultiQuerySubProg):
     class PrintQuery(Query):
         def __init__(self, host, subprog, type, exp_name, comp_name,
                      last_lines):
@@ -278,26 +345,21 @@ class Displayer(SubProg):
                         raw = dill.load(handle)
                     print(repr(raw))
 
-    @classmethod
-    def subprog_name(cls):
+    @property
+    def subprog_name(self):
         return "display"
 
-    @classmethod
-    def fill_in_subparser(cls, subparser):
-        parser = subparsers.add_parser(cls.subprog_name())
-        parser.add_argument("type", choices=["result", "state", "log"])
-        parser.add_argument("query", help=query_doc)
-        parser.add_argument("computation",
-                            help="Computation name or number")
-        parser.add_argument("--last-lines",
-                            help="Number of line to print or "
-                                 "None (default: None)",
-                            type=or_none(int), default=None)
-        parser.set_defaults(func=cls.run)
-        return parser
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("type", choices=["result", "state", "log"])
+        sub_parser.add_argument("query", help=query_doc)
+        sub_parser.add_argument("computation",
+                                help="Computation name or number")
+        sub_parser.add_argument("--last-lines",
+                                help="Number of line to print or "
+                                     "None (default: None)",
+                                type=or_none(int), default=None)
 
-    @classmethod
-    def to_queries(cls, type, query, computation, last_lines=None, **kwargs):
+    def to_queries(self, type, query, computation, last_lines=None, **kwargs):
         host, exp_name = split_host_and_exp(query)
 
         comp_name = computation
@@ -307,57 +369,69 @@ class Displayer(SubProg):
         except ValueError:
             pass
 
-        return [cls.PrintQuery(host, cls.subprog_name(), type, exp_name,
+        return [self.PrintQuery(host, self.subprog_name, type, exp_name,
                                comp_name, last_lines)]
 
 
-def simple_subprog_factory(cls_name, prog_name, action):
-    def fill_in_subparser(cls, subparser):
-        parser = subparser.add_parser(prog_name)
-        parser.add_argument("query", help=query_doc)
-        parser.set_defaults(func=cls.run)
-        return parser
+# ---------------------------- Monitor Action Jobs --------------------------- #
+class MonitorActionSubProg(MultiQuerySubProg):
+    class ActionQuery(Query):
+        def __init__(self, host, subprog, func, exp_name, *exp_names):
+            super().__init__(host, subprog)
+            self.exp_names = [exp_name] + list(exp_names)
+            self._func = func
 
-    def to_queries(cls, query, **kwargs):
-        host, exp_name = split_host_and_exp(query)
-        return [SimpleQuery(host, prog_name, exp_name, action)]
+        def craft_remote_query(self):
+            return 'ssh {host} "{prog} {subprog} {exp_names}"' \
+                   ''.format(
+                host=self.host if self.host is not None else __LH__,
+                prog=get_prog(),
+                subprog=self.subprog,
+                exp_names=' '.join(self.exp_names)
+            )
 
-    return type(cls_name, (SubProg,),
-                {
-                    "subprog_name": classmethod(lambda cls: prog_name),
-                    "fill_in_subparser": classmethod(fill_in_subparser),
-                    "to_queries": classmethod(to_queries)
-                })
+        def __call__(self):
+            # Local
+            try:
+                hostname = socket.gethostname()
+            except Exception:
+                hostname = "Unknown host"
+
+            for exp_name in self.exp_names:
+                try:
+                    monitor = Monitor(exp_name)
+                    print(hostname, ":", exp_name, monitor.count_by_state(),
+                          end=" ")
+                    self._func(monitor)
+                    monitor.refresh()
+                    print("-->", monitor.count_by_state())
+                except Exception:
+                    print("No such experiment")
+
+    def __init__(self, prog_name, action):
+        self._prog_name = prog_name
+        self._action = action
+
+    @property
+    def subprog_name(self):
+        return self._prog_name
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help=query_doc, nargs="*")
+
+    def to_queries(self, queries, **kwargs):
+        for host, exp_names in rearrange_queries(queries).items():
+            yield self.ActionQuery(host, self.subprog_name,
+                                   self._action, *exp_names)
 
 
-def monitor_wrapper(func):
-    def action(exp_name):
-        try:
-            hostname = socket.gethostname()
-        except Exception:
-            hostname = "Unknown host"
-        try:
-            monitor = Monitor(exp_name)
-            print(hostname, ":", exp_name, monitor.count_by_state(), end=" ")
-            func(monitor)
-            monitor.refresh()
-            print("-->", monitor.count_by_state())
-        except Exception:
-            print("No such experiment")
+def aborted_2_launchable_prog_factory():
+    return MonitorActionSubProg('abr2lch',
+                                lambda monitor: monitor.aborted_to_launchable())
 
-    return action
 
-Aborted2LaunchableProg = simple_subprog_factory(
-    "Abr2LchProg",
-    "abr2lch",
-    monitor_wrapper(lambda monitor: monitor.aborted_to_launchable())
-)
-
-ResetProg = simple_subprog_factory(
-    "ResetProg",
-    "reset",
-    monitor_wrapper(lambda monitor: monitor.reset())
-)
+def reset_prog_factory():
+    return MonitorActionSubProg('reset', lambda monitor: monitor.reset())
 
 
 if __name__ == '__main__':
@@ -371,16 +445,19 @@ if __name__ == '__main__':
                                        description="Valid subcommands")
 
     # Count by state
-    Counter.fill_in_subparser(subparsers)
+    Counter().fill_in_subparser(subparsers)
+
+    # Sync
+    Syncher().fill_in_subparser(subparsers)
 
     # Display
-    Displayer.fill_in_subparser(subparsers)
+    Displayer().fill_in_subparser(subparsers)
 
     # Aborted to launchable
-    Aborted2LaunchableProg.fill_in_subparser(subparsers)
+    aborted_2_launchable_prog_factory().fill_in_subparser(subparsers)
 
     # Reset
-    ResetProg.fill_in_subparser(subparsers)
+    reset_prog_factory().fill_in_subparser(subparsers)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):
