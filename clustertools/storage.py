@@ -82,9 +82,12 @@ class Architecture(object):
     def erase_experiment(self, exp_name):
         logger = logging.getLogger("clustertools")
         try:
+            logger.info('Erasing experiment permanently \'{}\'...'
+                        ''.format(exp_name))
             path = self.get_basedir(exp_name)
             if os.path.exists(path):
                 shutil.rmtree(path)
+            logger.info('Experiment \'{}\' permanently erased'.format(exp_name))
         except OSError as error:
             logger.warning("Trouble erasing the databases: {}"
                            "".format(repr(error)),
@@ -242,9 +245,11 @@ class Storage(object):
 
     def get_last_log_file(self, comp_name):
         """Return the most recent (ctime) matching file"""
+        prefix = self.get_log_prefix(comp_name)
+        log_files = list(glob.iglob("{}.*".format(prefix)))
+        log_files.extend(glob.iglob("{}-*".format(prefix)))
         try:
-            return max(glob.iglob("%s.*" % self.get_log_prefix(comp_name)),
-                       key=os.path.getctime)
+            return max(log_files, key=os.path.getctime)
         except ValueError:
             return None
 
@@ -332,15 +337,16 @@ class PickleStorage(Storage):
         return state
 
     def load_states(self):
+        from .state import State
         res = []
         for fpath in glob.glob(os.path.join(self._get_notif_db(), "*.pkl")):
             loaded = self._load(fpath)
             try:
-                if len(loaded) > 0:
+                if isinstance(loaded, State) or len(loaded) > 0:
                     res.append(loaded)
-            except:
+            except (AttributeError, TypeError, ValueError):
+                # If `loaded` has no length (should be a type error)
                 pass
-            res.append(loaded)
         return res
 
     # |---------------------------- Results -----------------------------> #

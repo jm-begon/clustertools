@@ -10,6 +10,7 @@ from shlex import quote as escape
 
 import dill
 
+from clustertools.util import catch_logging
 from .state import PendingState, AbortedState
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -83,6 +84,10 @@ class Session(object):
         self.fail_fast = parent_environment.fail_fast
         self.logger = logging.getLogger("clustertools")
 
+    @property
+    def update_state(self):
+        return True
+
     def init(self, exp_len, storage):
         self.exp_len = exp_len
         self.storage = storage
@@ -117,13 +122,17 @@ class Session(object):
         if not self.is_open():
             raise ValueError("The session has not been opened.")
         try:
-            self.storage.update_state(PendingState(lazy_computation.comp_name))
+            if self.update_state:
+                self.storage.update_state(PendingState(
+                    lazy_computation.comp_name))
+            self.logger.debug("Launching '{}'""".format(repr(lazy_computation)))
             self.environment.issue(lazy_computation)
             self.n_launch += 1
-            self.logger.debug("Launching '{}'".format(repr(lazy_computation)))
         except Exception as exception:
-            self.storage.update_state(AbortedState(lazy_computation.comp_name,
-                                                   exception=exception))
+            if self.update_state:
+                self.storage.update_state(AbortedState(
+                    lazy_computation.comp_name,
+                    exception=exception))
             self.logger.warning("Could not launch '{}'. Reason: {}"
                                 "".format(repr(lazy_computation),
                                           repr(exception)))
@@ -141,7 +150,13 @@ class Session(object):
         self.opened = False
 
 
-class Environment(object):
+class DebugSession(Session):
+    @property
+    def update_state(self):
+        return False
+
+
+class Environment(object, metaclass=ABCMeta):
     """
     `Environment`
     =============
@@ -156,7 +171,6 @@ class Environment(object):
     A `Session` should not be created directly.
     Finally, the `Session` issues the computation through the `Environment`.
     """
-    __metaclass__ = ABCMeta
 
     @classmethod
     def is_usable(cls):
@@ -210,6 +224,9 @@ class Environment(object):
         error_count: int >= 0
             The number of computations that could not be launched
         """
+        if not self.__class__.is_usable():
+            raise AttributeError('{} is not usable in this setting'
+                                 ''.format(self.__class__.__name__))
         error_count = 0
         with self.create_session(experiment) as session:
             for lazy_comp in experiment.yield_computations(repr(self),
@@ -240,6 +257,53 @@ class Environment(object):
 
     def create_session(self, experiment):
         return Session(self).init(len(experiment), experiment.storage)
+
+
+class DebugEnvironment(Environment):
+    """
+    `DebugEnvironment`
+    ==================
+    An `Environment` that do not run code. It only prints the messages.
+    """
+
+    @classmethod
+    def is_usable(cls):
+        return True
+
+    def __init__(self, print_all_parameters=False, fail_fast=True):
+        super().__init__(fail_fast)
+        self.print_all_parameters = print_all_parameters
+
+    def log(self, msg, *args, **kwargs):
+        logger = logging.getLogger("clustertools")
+        logger.debug(msg, *args, **kwargs)
+
+    def run(self, experiment, start=0, capacity=None):
+        with catch_logging():
+            self.log("From start={}, with capacity={}, "
+                     "running experiment '{}': "
+                     "{}".format(start, capacity, experiment.exp_name,
+                                 repr(experiment)))
+            if self.print_all_parameters:
+                print("Parameters are:")
+                for x in experiment.parameter_set:
+                    print(x)
+                print()
+            super().run(experiment, start, capacity)
+
+    def issue(self, lazy_computation):
+        self.log("Pseudo issuing computation '{}': {}"
+                 "".format(lazy_computation.comp_name, repr(lazy_computation)))
+
+    def __repr__(self):
+        return "{cls}(print_all_parameters={print_all_parameters}, " \
+               "fail_fast={fail_fast})"\
+               "".format(cls=self.__class__.__name__,
+                         print_all_parameters=repr(self.print_all_parameters),
+                         fail_fast=repr(self.fail_fast))
+
+    def create_session(self, experiment):
+        return DebugSession(self).init(len(experiment), experiment.storage)
 
 
 class InSituEnvironment(Environment):
@@ -277,7 +341,7 @@ class InSituEnvironment(Environment):
 
         storage = lazy_computation.storage
         log_file = storage.get_log_prefix(lazy_computation.comp_name,
-                                          "-{}".format(str(epoch())))
+                                          ".{}".format(str(epoch())))
         sys_backup = sys.stdout, sys.stderr
         try:
             with open(log_file, "w") as hdl:

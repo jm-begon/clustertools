@@ -2,10 +2,12 @@
 
 import argparse
 import sys
+import warnings
+from abc import ABCMeta, abstractmethod
 from functools import partial
 
 from .environment import SlurmEnvironment, BashEnvironment, Serializer, \
-    InSituEnvironment
+    InSituEnvironment, FileSerializer, DebugEnvironment
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -55,7 +57,44 @@ def or_none(function):
     return convert
 
 
-class BaseParser(object):
+class UniversalParser(argparse.ArgumentParser):
+    def __init__(self,
+                 prog=None,
+                 usage=None,
+                 description=None,
+                 epilog=None,
+                 parents=[],
+                 formatter_class=argparse.HelpFormatter,
+                 prefix_chars='-',
+                 fromfile_prefix_chars=None,
+                 argument_default=None,
+                 conflict_handler='error',
+                 add_help=True):
+        super().__init__(prog=prog,
+                         usage=usage,
+                         description=description,
+                         epilog=epilog,
+                         parents=parents,
+                         formatter_class=formatter_class,
+                         prefix_chars=prefix_chars,
+                         fromfile_prefix_chars=fromfile_prefix_chars,
+                         argument_default=argument_default,
+                         conflict_handler=conflict_handler,
+                         add_help=add_help)
+
+        self.add_argument("--capacity", "-c", default=sys.maxsize,
+                          type=positive_int,
+                          help="The maximum number of job to launch "
+                               "(default: as much as possible)")
+        self.add_argument("--start", "-s", default=0, type=positive_int,
+                          help="The index from which to start the "
+                               "computations (default: 0)")
+        self.add_argument("--no_fail_fast", action="store_false",
+                          default=True, help="If set, do not stop at the"
+                                             "first error.")
+
+
+class AbstractParser(object, metaclass=ABCMeta):
     """
     `BaseParser`
     ============
@@ -64,51 +103,66 @@ class BaseParser(object):
 
     Constructor parameters
     ----------------------
-    serializer_factory: callable () --> Serializer instance
-        A factory method to create the serializer
-
-    description: str
-        Description of the parser
+    parser: an instance of argparse.Parser or None (default: None)
 
     Note
     ----
     You can use the :meth:`add_argument` method which works the same way as its
     argparse homonym to add specific arguments
     """
-    def __init__(self, serializer_factory=Serializer,
-                 description="Clustertool launcher"):
-        self.serializer_factory = serializer_factory
-        parser = argparse.ArgumentParser(description=description)
-        parser.add_argument("--capacity", "-c", default=sys.maxsize,
-                            type=positive_int,
-                            help="""The maximum number of job to launch
-                                        (default: as much as possible)""")
-        parser.add_argument("--start", "-s", default=0, type=positive_int,
-                            help="""The index from which to start the computations
-                                        (default: 0)""")
-        parser.add_argument("--no_fail_fast", action="store_false",
-                            default=True, help="If set, do not stop at the"
-                                               "first error.")
-        self.parser = parser
+    def __init__(self, parser=None):
+        if parser is None:
+            parser = UniversalParser()
+        self._parser = parser
 
-    def add_argument(self, *args, **kwargs):
-        self.parser.add_argument(*args, **kwargs)
+    @property
+    def parser(self):
+        return self._parser
 
     def parse(self, args=None, namespace=None):
-        args = self.parser.parse_args(args=args, namespace=namespace)
+        namespace, other = self.parser.parse_known_args(args=args,
+                                                        namespace=namespace)
+        return self.create_environment(namespace, other), namespace
+
+    @abstractmethod
+    def create_environment_(self, namespace, other_args):
+        pass
+
+    def create_environment(self, namespace, other_args):
+        environment = self.create_environment_(namespace, other_args)
+        environment.run = partial(environment.run, start=namespace.start,
+                                  capacity=namespace.capacity)
+        return environment
+
+    def add_argument(self, *args, **kwargs):
+        # Shortcut
+        self.parser.add_argument(*args, **kwargs)
+
+
+class BashParser(AbstractParser):
+    def __init__(self, parser=None, serializer_factory=Serializer):
+        super().__init__(parser)
+        self.serializer_factory = serializer_factory
+
+    def create_environment_(self, namespace, other_args):
         environment = BashEnvironment(self.serializer_factory(),
-                                      args.no_fail_fast)
-        environment.run = partial(environment.run, start=args.start,
-                                  capacity=args.capacity)
+                                      namespace.no_fail_fast)
 
-        return environment, args
+        return environment
 
 
-class ClusterParser(BaseParser):
-
+class BaseParser(BashParser):
     def __init__(self, serializer_factory=Serializer,
                  description="Clustertool launcher"):
-        super().__init__(serializer_factory, description)
+        parser = UniversalParser(description=description)
+        super().__init__(parser, serializer_factory)
+
+
+class SlurmParser(AbstractParser):
+    def __init__(self, parser=None, serializer_factory=Serializer):
+        super().__init__(parser)
+        self.serializer_factory = serializer_factory
+
         self.add_argument("--time", "-t", default="24:00:00",
                           type=time_string,
                           help='Maximum time; format "HH:MM:SS" '
@@ -125,10 +179,6 @@ class ClusterParser(BaseParser):
         self.add_argument("--n_proc", "-n", default=None, type=or_none(int),
                           help='The number of computation unit. '
                                '(default: None; for only one')
-        self.add_argument("--front-end", default=False, action="store_true",
-                          help="Whether to run the code on the front end. "
-                               "This is only provided for debugging purposes "
-                               "(default: False)")
         self.add_argument("--gpu", default=None, type=or_none(int),
                           help="Request GPUs. Do not specify it for no GPU "
                                "(default: None)")
@@ -146,24 +196,115 @@ class ClusterParser(BaseParser):
                                  "one '='.".format(s))
         return args, kwargs
 
-    def parse(self, args=None, namespace=None):
-        args, other = self.parser.parse_known_args(args=args,
-                                                   namespace=namespace)
-        flags, options = self.parse_unknown_args(other)
+    def create_environment_(self, namespace, other_args):
+        flags, options = self.parse_unknown_args(other_args)
 
-        if args.front_end:
-            environment = InSituEnvironment(fail_fast=args.no_fail_fast)
+        return SlurmEnvironment(serializer=self.serializer_factory(),
+                                time=namespace.time,
+                                memory=namespace.memory,
+                                partition=namespace.partition,
+                                n_proc=namespace.n_proc,
+                                gpu=namespace.gpu,
+                                shell_script=namespace.shell,
+                                fail_fast=namespace.no_fail_fast,
+                                other_flags=flags,
+                                other_options=options)
+
+
+class ClusterParser(SlurmParser):
+    def __init__(self, serializer_factory=Serializer,
+                 description="Clustertool launcher"):
+        parser = UniversalParser(description=description)
+        super().__init__(parser, serializer_factory)
+
+
+class DebugParser(AbstractParser):
+    def __init__(self, parser=None):
+        super().__init__(parser)
+        self.add_argument("--verbose", action="store_true", default=False,
+                          help="Whether to print more information "
+                               "(default: False)")
+
+    def create_environment_(self, namespace, other_args):
+        return DebugEnvironment(print_all_parameters=namespace.verbose,
+                                fail_fast=namespace.no_fail_fast)
+
+
+class InSituParser(AbstractParser):
+    def __init__(self, parser=None):
+        super().__init__(parser)
+        self.add_argument("--stdout", action="store_true", default=False,
+                          help="Whether to print the log of the experiment "
+                               "(not of clustertools) directly in the standard "
+                               "output (default: False)")
+
+    def create_environment_(self, namespace, other_args):
+        return InSituEnvironment(stdout=namespace.stdout,
+                                 fail_fast=namespace.no_fail_fast)
+
+
+class CTParser(AbstractParser):
+    def __init__(self, serializer_factory=FileSerializer,
+                 description="Clustertool launcher"):
+        parser = UniversalParser(description=description)
+        super().__init__(parser)
+
+        subparser = parser.add_subparsers(title="Backend",
+                                          description="Choice of backend")
+
+        # Debug
+        debug_parser = subparser.add_parser(
+            "debug",
+            description="This will produce a debugging environment. "
+                        "It will launch nothing but will show what would be "
+                        "launched in other enviroments."
+        )
+        debug_ct_parser = DebugParser(debug_parser)
+        debug_parser.set_defaults(
+            create_environment=debug_ct_parser.create_environment
+        )
+
+        # InSitu
+        insitu_parser = subparser.add_parser(
+            "front-end",
+            description="This will produce an environment in which all "
+                        "computations will be run sequentially in the process' "
+                        "main thread."
+        )
+        insitu_ct_parser = InSituParser(insitu_parser)
+        insitu_parser.set_defaults(
+            create_environment=insitu_ct_parser.create_environment
+        )
+
+        # Bash
+        bash_parser = subparser.add_parser(
+            "bash",
+            description="This will produce an environment in which all "
+                        "computations will the launched in its child process."
+        )
+        bash_ct_parser = BashParser(bash_parser, serializer_factory)
+        bash_parser.set_defaults(
+            create_environment=bash_ct_parser.create_environment
+        )
+
+        # Slurm
+        slurm_parser = subparser.add_parser(
+            "slurm",
+            description="This will produce an environment in which the "
+                        "computations will be launched through Slurm. "
+        )
+        slurm_ct_parser = SlurmParser(slurm_parser, serializer_factory)
+        slurm_parser.set_defaults(
+            create_environment=slurm_ct_parser.create_environment
+        )
+
+    def create_environment_(self, namespace, other_args):
+        if not hasattr(namespace, "create_environment"):
+            self.parser.print_help()
         else:
-            environment = SlurmEnvironment(serializer=self.serializer_factory(),
-                                           time=args.time,
-                                           memory=args.memory,
-                                           partition=args.partition,
-                                           n_proc=args.n_proc,
-                                           gpu=args.gpu,
-                                           shell_script=args.shell,
-                                           fail_fast=args.no_fail_fast,
-                                           other_flags=flags,
-                                           other_options=options)
-        environment.run = partial(environment.run, start=args.start,
-                                  capacity=args.capacity)
-        return environment, args
+            return namespace.create_environment(namespace=namespace,
+                                                other_args=other_args)
+
+    def create_environment(self, namespace, other_args):
+        # Changing the start/capacity will be done by the EnvParser
+        return self.create_environment_(namespace, other_args)

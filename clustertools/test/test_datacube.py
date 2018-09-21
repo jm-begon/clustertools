@@ -4,8 +4,7 @@
 from nose.tools import assert_dict_equal, assert_not_in, assert_equal, \
     assert_not_equal, assert_in, assert_true, assert_raises
 
-from clustertools.datacube import Datacube, Hasher
-
+from clustertools.datacube import Datacube, Hasher, build_datacube
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -243,6 +242,7 @@ def test_call():
     name, metadata, params, dom, metrics, d = basic()
     cube = build_cube(name, d)
     assert_equal(id(cube), id(cube()))
+
 
 def test_indexing():
     name, metadata, params, dom, metrics, d = alldiff()
@@ -527,5 +527,18 @@ def test_iter_dimensions():
         assert_equal(cube_i("f1"), exp_res)
 
 
+def test_truly_empty_cube():
+    # Force = False
+    assert_raises(ValueError, build_datacube,
+                  "This_is_a_mock_exp2423R43RFDSBNET", force=False)
 
+    # Froce true
+    try:
+        cube = build_datacube("This_is_a_mock_exp2423R43RFDSBNET", force=True)
+        assert_true(True, "Datacube creation circumvent empty parameters when "
+                          "force=True")
+    except ValueError:
+        assert_true(False, "Datacube creation did not circumvent empty "
+                           "parameters when force=True")
 
+    assert_raises(AttributeError, cube.diagnose)

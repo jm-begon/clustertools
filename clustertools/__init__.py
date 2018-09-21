@@ -42,14 +42,14 @@ from .experiment import Computation, ParameterSet, ConstrainedParameterSet, \
     PrioritizedParamSet, Result, Experiment
 from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
-from .parser import BaseParser, ClusterParser
+from .parser import BaseParser, ClusterParser, CTParser
 from .util import call_with
 from .config import get_ct_folder, get_default_environment
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __date__ = "08 Oct. 2015"
 
 
@@ -57,7 +57,7 @@ __all__ = ["Monitor", "Computation", "ParameterSet", "ConstrainedParameterSet",
            "Result", "Experiment", "Serializer", "FileSerializer" "Datacube",
            "build_result_cube", "build_datacube", "BaseParser", "ClusterParser",
            "call_with", "set_stdout_logging", "InSituEnvironment",
-           "get_default_environment"]
+           "get_default_environment", "CTParser"]
 
 
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
@@ -67,7 +67,7 @@ def shutup_logger():
     logging.getLogger("clustertools").addHandler(logging.NullHandler())
 
 
-def set_stdout_logging(architecture=Architecture()):
+def set_stdout_logging(log_level=logging.DEBUG, architecture=Architecture()):
     """
     Sets stdout as default logging facility
     """
@@ -86,4 +86,4 @@ def set_stdout_logging(architecture=Architecture()):
     logger = logging.getLogger("clustertools")
     logger.addHandler(ch)
     logger.addHandler(fh)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)
