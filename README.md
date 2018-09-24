@@ -22,7 +22,7 @@ Stop where you are, 'cause you are there!
 
 Clustertools offers "1 file experiment" environment, managing easily the
 (cartesian product) of the parameters, tracking the state of your tasks, saving
-results and logs and helping greatly with the analyzis in a OLAP fashion.
+results and logs and helping greatly with the analysis in a OLAP fashion.
 
 Learn more about clustertools on the 
 [wiki](https://github.com/jm-begon/clustertools/wiki)
@@ -46,9 +46,10 @@ If you plan to use the `Datacube` class to analyze the results, you will also ne
  * numpy >= 1.11.1
  
 You may use `pip install -r requirements.txt` to install all requirements.
- 
-As for the app suite (`ct_count`, `ct_display`, `ct_remote`, `ct_sync`) they 
-rely on `ssh` and `rsync` programs. These are optional components and the 
+
+Clustertools comes with a command-line app named `clustertools`. This app can 
+query remotely the computer on which your code is running. It relies on 
+`ssh` and `rsync` unix programs. These are optional components and the 
 main toolkit runs on Windows environment seamlessly (as far as I am aware at 
 least).
 

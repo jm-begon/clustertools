@@ -12,3 +12,4 @@ New in version 0.1.2
  - Better state management in case of interruption
  - Support for GPU (not exhaustively tested)
  - Learn by example approach
+ - Drop `clusterlib` requirements
