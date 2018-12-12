@@ -565,3 +565,8 @@ def test_autopacking():
     cube = build_cube(name, d, autopacking=True)(w="5")  # x=2 disappears
     assert_equal(cube.size(), 4)  # (x=1 and x=3) (f1 and f2)
     assert_equal(cube.diagnose()["Missing ratio"], 0)
+
+    # Test for scalar
+    cube2 = cube(x="1")
+    assert_equal(cube2("f1"), 15)
+

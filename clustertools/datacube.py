@@ -456,7 +456,8 @@ class Datacube(Mapping):
         slices.append(metric)
 
         res = self[tuple(slices)]
-        return res if not self.autopacking else res.minimal_hypercube()
+        return res if (not self.autopacking or not isinstance(res, Datacube)) \
+            else res.minimal_hypercube()
 
     def __getslice__(self, start, stop) :
         """This solves a subtle bug, where __getitem__ is not called, and all
