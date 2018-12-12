@@ -141,7 +141,7 @@ def some_ood():
     parameters.sort()
     metrics = ["f1", "f2"]
     metrics.sort()
-    exp_name = "alldiff"
+    exp_name = "some_ood"
     return exp_name, metadata, parameters, domain, metrics, res
 
 
@@ -190,13 +190,13 @@ def some_meta():
     return exp_name, metadata, parameters, domain, metrics, res
 
 
-def build_cube(exp_name, res):
+def build_cube(exp_name, res, autopacking=False):
     parameterss = []
     resultss = []
     for d in res.values():
         parameterss.append(d["Parameters"])
         resultss.append(d["Results"])
-    return Datacube(parameterss, resultss, exp_name)
+    return Datacube(parameterss, resultss, exp_name, autopacking=autopacking)
 
 
 def test_info():
@@ -532,7 +532,7 @@ def test_truly_empty_cube():
     assert_raises(ValueError, build_datacube,
                   "This_is_a_mock_exp2423R43RFDSBNET", force=False)
 
-    # Froce true
+    # Force true
     try:
         cube = build_datacube("This_is_a_mock_exp2423R43RFDSBNET", force=True)
         assert_true(True, "Datacube creation circumvent empty parameters when "
@@ -542,3 +542,26 @@ def test_truly_empty_cube():
                            "parameters when force=True")
 
     assert_raises(AttributeError, cube.diagnose)
+
+
+def test_dicing_in_metadata():
+    name, metadata, params, dom, metrics, d = alldiff()
+    cube = build_cube(name, d)
+    try:
+        assert_equal(cube("f1", x="1", w="5", z="4"), 15)
+    except IndexError:
+        assert_true(False, "Raised IndexError")
+
+
+def test_packing():
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d)(w="5").minimal_hypercube()  # x=2 disappears
+    assert_equal(cube.size(), 4)  # (x=1 and x=3) (f1 and f2)
+    assert_equal(cube.diagnose()["Missing ratio"], 0)
+
+
+def test_autopacking():
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d, autopacking=True)(w="5")  # x=2 disappears
+    assert_equal(cube.size(), 4)  # (x=1 and x=3) (f1 and f2)
+    assert_equal(cube.diagnose()["Missing ratio"], 0)
