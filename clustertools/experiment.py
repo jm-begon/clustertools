@@ -80,6 +80,10 @@ class Computation(object):
 
     def __init__(self, exp_name, comp_name, context="n/a",
                  storage_factory=PickleStorage):
+        if storage_factory is None:
+            storage_factory = PickleStorage
+        if context is None:
+            context = "n/a"
         self.exp_name = exp_name
         self.comp_name = comp_name
         self.context = context
