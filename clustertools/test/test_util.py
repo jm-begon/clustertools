@@ -124,3 +124,7 @@ def test_sig_handler():
             signal.signal(sig_num, handler_bu)
 
 
+def test_sort_per_type():
+    assert_equal(sort_per_type([None, "ba", "ab", 0.01, 0.02]), [None, 0.01, 0.02, 'ab', 'ba'])
+    assert_equal(sort_per_type([1, None, 0.01, 0.02]), [None, 0.01, 0.02, 1])
+    assert_equal(sort_per_type([0.02, None, 0.01, 0.033, "ab", 18, "ccfc"]), [None, 0.01, 0.02, 0.033, 18, 'ab', 'ccfc'])
