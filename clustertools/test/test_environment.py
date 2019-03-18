@@ -4,11 +4,13 @@ from functools import partial
 
 from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
     with_setup, assert_true, assert_false
+from nose.tools import assert_is_instance
 from nose.tools import assert_is_none
 
 from clustertools import ParameterSet, Experiment
 from clustertools.environment import InSituEnvironment, \
-    BashEnvironment, SlurmEnvironment, Serializer, FileSerializer
+    BashEnvironment, SlurmEnvironment, Serializer, FileSerializer, \
+    DebugEnvironment
 from clustertools.storage import PickleStorage
 
 from .util_test import purge, prep, pickle_prep, pickle_purge, \
@@ -58,6 +60,19 @@ def test_list_up_jobs():
         assert_is_none(SlurmEnvironment.list_up_jobs())
 
     # TODO else case
+
+
+# ---------------------------------------------------------- Environment methods
+def test_in_situ_autorefresh():
+    env = InSituEnvironment(fail_fast=True)
+    assert_true(env.auto_refresh)
+
+
+def test_context_is_str():
+    for env_cls in DebugEnvironment, InSituEnvironment, BashEnvironment, \
+                   SlurmEnvironment:
+        env = env_cls()
+        assert_is_instance(env.context(), str)
 
 
 # ------------------------------------------------- Environment generated script
