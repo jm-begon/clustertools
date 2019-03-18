@@ -1,6 +1,18 @@
 Changelog
 =========
 
+New in verison 0.1.3
+--------------------
+ - Three new sub-pograms in the `clustertools` program
+   - `version` prints the version of Clustertools
+   - `launchable` makes a single `Computation` launchable
+   - `diagnose` loads a datacube and prints its diagnosis
+ - `InSituEnvironment` will refresh automatically before launching a new 
+ computation
+ - More context information have been added (timestamp and hostname)
+ - A few fixes
+ - Refactoring of the `ParameterSet` hierachy
+ - Multi-type parameter values (Thanks to @Waliens)
 
 New in version 0.1.2
 --------------------
