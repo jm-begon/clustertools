@@ -18,6 +18,7 @@ import dill
 
 from clustertools import Experiment
 from clustertools import Monitor
+from clustertools import build_datacube
 from clustertools import shutup_logger
 from clustertools.parser import or_none
 from clustertools.storage import PickleStorage, Architecture
@@ -209,6 +210,68 @@ class MultiQuerySubProg(SubProg, metaclass=ABCMeta):
             else:
                 # Remote query
                 subprocess.call(query.craft_remote_query(), shell=True)
+
+
+class Version(MultiQuerySubProg):
+    class VersionQuery(Query):
+        def craft_remote_query(self):
+            return "ssh {host} '{prog} {subprog}'" \
+                   "".format(
+                host=self.host if self.host is not None else __LH__,
+                prog=get_prog(),
+                subprog=self.subprog)
+
+        def __call__(self):
+            import clustertools
+            print(clustertools.__version__)
+
+    @property
+    def subprog_name(self):
+        return "version"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help="Hostnames to get the version "
+                                                "(leave empty for localhost)",
+                                nargs="*")
+
+    def to_queries(self, queries, **kwargs):
+        if len(queries) == 0:
+            # Localhost
+            yield self.VersionQuery(None, self.subprog_name)
+        else:
+            for host, exp_names in rearrange_queries(queries).items():
+                yield self.VersionQuery(host, self.subprog_name)
+
+
+class Diagnoser(MultiQuerySubProg):
+    class DiagnoseQuery(Query):
+        def __init__(self, host, subprog, *exp_names):
+            super().__init__(host, subprog)
+            self.exp_names = exp_names
+
+        def craft_remote_query(self):
+            return "ssh {host} '{prog} {subprog} {exp}'" \
+                   "".format(host=self.host if self.host is not None
+                                  else __LH__,
+                             prog=get_prog(),
+                             subprog=self.subprog,
+                             exp=" ".join(self.exp_names))
+
+        def __call__(self):
+            for exp_name in self.exp_names:
+                cube = build_datacube(exp_name)
+                print("{} -- {}".format(cube.name, cube.diagnose()))
+
+    @property
+    def subprog_name(self):
+        return "diagnose"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help=queries_doc, nargs="*")
+
+    def to_queries(self, queries, **kwargs):
+        for host, exp_names in rearrange_queries(queries).items():
+            yield self.DiagnoseQuery(host, self.subprog_name, *exp_names)
 
 
 class Counter(MultiQuerySubProg):
@@ -444,20 +507,10 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(title="Subcommands",
                                        description="Valid subcommands")
 
-    # Count by state
-    Counter().fill_in_subparser(subparsers)
-
-    # Sync
-    Syncher().fill_in_subparser(subparsers)
-
-    # Display
-    Displayer().fill_in_subparser(subparsers)
-
-    # Aborted to launchable
-    aborted_2_launchable_prog_factory().fill_in_subparser(subparsers)
-
-    # Reset
-    reset_prog_factory().fill_in_subparser(subparsers)
+    for subprog in Counter(), Syncher(), Displayer(), \
+                   aborted_2_launchable_prog_factory(), reset_prog_factory(), \
+                   Version(), Diagnoser():
+        subprog.fill_in_subparser(subparsers)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):
