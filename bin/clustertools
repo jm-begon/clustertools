@@ -239,7 +239,7 @@ class Version(MultiQuerySubProg):
             # Localhost
             yield self.VersionQuery(None, self.subprog_name)
         else:
-            for host, exp_names in rearrange_queries(queries).items():
+            for host in queries:
                 yield self.VersionQuery(host, self.subprog_name)
 
 
@@ -272,6 +272,12 @@ class Diagnoser(MultiQuerySubProg):
     def to_queries(self, queries, **kwargs):
         for host, exp_names in rearrange_queries(queries).items():
             yield self.DiagnoseQuery(host, self.subprog_name, *exp_names)
+
+
+# class ToLaunchable(MultiQuerySubProg):
+#     class ToLaunchableQuery(Query):
+#         def __init__(self, host, subprog, exp_name):
+#             pass
 
 
 class Counter(MultiQuerySubProg):
