@@ -177,3 +177,17 @@ def catch_logging():
     finally:
         logger.handlers = handlers
         logger.level = level
+
+
+def sort_per_type(l):
+    """Sort list l by sorting independtly elements of different types."""
+    per_type = dict()
+    for item in l:
+        class_name = item.__class__.__name__
+        per_type[class_name] = per_type.get(class_name, []) + [item]
+    for class_name, class_list in per_type.items():
+        if class_name != "NoneType":
+            class_list.sort()
+    # sort keys to have a reproducible order for contactenated items
+    sorted_keys = sorted(list(per_type.keys()))
+    return reduce(lambda l1, l2: l1 + l2, [per_type[k] for k in sorted_keys])

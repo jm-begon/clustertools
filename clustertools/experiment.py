@@ -19,6 +19,7 @@ import logging
 from clustertools.util import SigHandler
 from .storage import PickleStorage
 from .state import LaunchableState, RunningState, Monitor
+from .util import sort_per_type
 
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
@@ -333,7 +334,7 @@ class ParameterSet(AbstractParameterSet):
         param_map = self.param_map_seq[0]
         for name in parameter_names:
             ls = list(param_map[name])
-            ls.sort()
+            ls = sort_per_type(ls)
             domains.append(ls)
 
         for param_tuple in cartesian_product(*domains):
