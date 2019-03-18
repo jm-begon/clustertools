@@ -528,7 +528,8 @@ class Experiment(object):
     def storage(self):
         return self.monitor.storage
 
-    def yield_computations(self, context="n/a", start=0, capacity=None):
+    def yield_computations(self, context="n/a", start=0, capacity=None,
+                           auto_refresh=False):
         if capacity is None:
             capacity = sys.maxsize
 
@@ -545,6 +546,12 @@ class Experiment(object):
                 continue
             if i >= capacity:
                 break
+            if auto_refresh:
+                self.monitor.refresh()
+                unlaunchable = self.monitor.unlaunchable_comp_names()
+
+            print(auto_refresh, unlaunchable)
+
             label = Experiment.name_computation(self.exp_name, j)
             if label in unlaunchable:
                 continue

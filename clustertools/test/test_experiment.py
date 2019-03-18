@@ -7,9 +7,11 @@ from clustertools import ParameterSet, ConstrainedParameterSet, Result, \
     Experiment, PrioritizedParamSet
 from clustertools.state import RunningState, CompletedState, AbortedState, \
     CriticalState, PartialState, LaunchableState
+from clustertools.storage import PickleStorage
 
 from .util_test import purge, prep, __EXP_NAME__, IntrospectStorage, \
-    TestComputation, InterruptedComputation
+    TestComputation, InterruptedComputation, pickle_prep, pickle_purge, \
+    with_setup_
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -247,3 +249,33 @@ def test_experiment():
     assert_equal(len(list(experiment.yield_computations(start=3))), 6)
     # capacity=6 : skip 6, 7, 8
     assert_equal(len(list(experiment.yield_computations(capacity=6))), 6)
+
+
+@with_setup_(pickle_prep, pickle_purge)
+def do_auto_refresh(auto_refresh):
+
+    parameter_set = ParameterSet()
+    parameter_set.add_parameters(x1=range(3), x2=range(3))
+    experiment = Experiment(__EXP_NAME__, parameter_set, TestComputation)
+
+    # There should be 9 computations
+    assert_equal(len(experiment), 9)
+    count = 0
+    for i, _ in enumerate(experiment.yield_computations(auto_refresh=auto_refresh)):
+        if i == 0:
+            state = CompletedState(
+                Experiment.name_computation(experiment.exp_name, 6)
+            )
+            PickleStorage(experiment.exp_name).update_state(state)
+        count += 1
+
+    print("Auto refresh?", auto_refresh, "--", count)
+    assert_equal(count, 8 if auto_refresh else 9)
+
+
+def test_auto_refresh():
+    do_auto_refresh(True)
+    do_auto_refresh(False)
+
+
+
