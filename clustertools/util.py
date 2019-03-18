@@ -7,7 +7,6 @@ import inspect
 import os
 import signal
 from contextlib import contextmanager
-from inspect import getargspec
 from copy import copy
 from hashlib import sha256
 import warnings
