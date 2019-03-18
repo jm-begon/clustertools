@@ -12,7 +12,7 @@ from copy import copy
 from hashlib import sha256
 import warnings
 import functools
-
+from functools import reduce
 import logging
 
 import sys

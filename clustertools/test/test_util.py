@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 import signal
-
 import time
+
 from nose.tools import assert_equal, assert_not_equal
 from nose.tools import assert_raises
 from nose.tools import assert_true
 
 from clustertools.util import reorder, escape, SigHandler, SignalExecption, \
-    call_with, hashlist, deprecated
+    call_with, hashlist, deprecated, sort_per_type
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
