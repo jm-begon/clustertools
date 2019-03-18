@@ -75,14 +75,13 @@ class ExplicitParameterSet(AbstractParameterSet):
      >>> ps = ExplicitParameterSet()  # doctest: +SKIP
      ExplicitParameterSet(queue=[])
      >>> ps.add_parameter_tuple(p1=1, p2=2, p3="param")  # doctest: +SKIP
-     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}])
+     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}])  # doctest: +SKIP
      >>> ps.add_parameter_tuple(p1=1, p2=3, p3="param")  # doctest: +SKIP
-     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}])
+     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}])  # doctest: +SKIP
      >>> ps.add_parameter_tuple(p1=1, p2=5, p3="param")  # doctest: +SKIP
-     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}, {'p3': 'param', 'p2': 5, 'p1': 1}])
+     ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}, {'p3': 'param', 'p2': 5, 'p1': 1}])  # doctest: +SKIP
      >>> ps.add_parameter_tuple(p1=4, p2=2, p3="param")  # doctest: +SKIP
-    ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}, {'p3': 'param', 'p2': 5, 'p1': 1}, {'p3': 'param', 'p2': 2, 'p1': 4}])
-
+    ExplicitParameterSet(queue=[{'p3': 'param', 'p2': 2, 'p1': 1}, {'p3': 'param', 'p2': 3, 'p1': 1}, {'p3': 'param', 'p2': 5, 'p1': 1}, {'p3': 'param', 'p2': 2, 'p1': 4}])  # doctest: +SKIP
     """
     def __init__(self, queue=None):
         self.queue = queue if queue is not None else []
