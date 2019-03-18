@@ -11,7 +11,7 @@ set -xe # Exit on first error
 
 
 if [[ "$SCHEDULER" == "SLURM" ]]; then
-    apt-cache search slurm-llnl
+    sudo apt-get update
     sudo apt-get install slurm-llnl
     sudo apt-get install munge
     sudo /usr/sbin/create-munge-key
