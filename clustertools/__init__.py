@@ -38,8 +38,9 @@ import logging
 # Clustertools visibility
 from .storage import Architecture
 from .state import Monitor
-from .experiment import Computation, ParameterSet, ConstrainedParameterSet, \
-    PrioritizedParamSet, Result, Experiment
+from .experiment import Computation, Result, Experiment
+from .parameterset import ParameterSet, ConstrainedParameterSet, \
+    PrioritizedParamSet, CartesianParameterSet, ExplicitParameterSet
 from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
 from .parser import BaseParser, ClusterParser, CTParser
