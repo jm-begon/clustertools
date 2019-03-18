@@ -7,10 +7,8 @@
 
 from distutils.core import setup
 
-import clustertools
-
 NAME = 'clustertools'
-VERSION = clustertools.__version__
+VERSION = '0.1.2'
 AUTHOR = "Jean-Michel Begon"
 AUTHOR_EMAIL = "jm.begon@gmail.com"
 URL = 'https://github.com/jm-begon/clustertools/'
