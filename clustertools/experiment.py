@@ -187,13 +187,6 @@ class Experiment(object):
                 unlaunchable = self.monitor.unlaunchable_comp_names()
 
             label = Experiment.name_computation(self.exp_name, j)
-
-            print(label)
-            print(auto_refresh, unlaunchable)  # TODO remove
-            print(self.monitor.states)
-            print("-"*80, "\n")
-
-
             if label in unlaunchable:
                 continue
 

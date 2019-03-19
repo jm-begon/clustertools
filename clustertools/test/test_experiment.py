@@ -129,7 +129,6 @@ def do_auto_refresh(auto_refresh):
 
     print("Auto refresh?", auto_refresh, "--", count)
     assert_equal(count, 8 if auto_refresh else 9)
-    assert_true(False)
 
 
 def test_auto_refresh():
