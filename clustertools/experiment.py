@@ -186,7 +186,8 @@ class Experiment(object):
                 self.monitor.refresh()
                 unlaunchable = self.monitor.unlaunchable_comp_names()
 
-            print(auto_refresh, unlaunchable)
+            print(auto_refresh, unlaunchable)  # TODO remove
+            print(self.monitor.states)
 
             label = Experiment.name_computation(self.exp_name, j)
             if label in unlaunchable:
