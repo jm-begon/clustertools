@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from functools import partial
 
 from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
     with_setup, assert_true
@@ -106,12 +107,14 @@ def test_experiment():
     assert_equal(len(list(experiment.yield_computations(capacity=6))), 6)
 
 
-@with_setup_(pickle_prep, pickle_purge)
+@with_setup_(partial(pickle_prep, exp_name="{}_1".format(__EXP_NAME__)),
+             partial(pickle_purge, exp_name="{}_1".format(__EXP_NAME__)))
 def do_auto_refresh(auto_refresh):
 
     parameter_set = ParameterSet()
     parameter_set.add_parameters(x1=range(3), x2=range(3))
-    experiment = Experiment(__EXP_NAME__, parameter_set, TestComputation)
+    experiment = Experiment("{}_1".format(__EXP_NAME__), parameter_set,
+                            TestComputation)
 
     # There should be 9 computations
     assert_equal(len(experiment), 9)
@@ -126,6 +129,7 @@ def do_auto_refresh(auto_refresh):
 
     print("Auto refresh?", auto_refresh, "--", count)
     assert_equal(count, 8 if auto_refresh else 9)
+    assert_true(False)
 
 
 def test_auto_refresh():
