@@ -5,6 +5,7 @@ import os
 import subprocess
 import logging
 from time import time as epoch
+from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from shlex import quote as escape
 
@@ -210,6 +211,27 @@ class Environment(object, metaclass=ABCMeta):
                "".format(cls=self.__class__.__name__,
                          fail_fast=str(self.fail_fast))
 
+    def context(self):
+        try:
+            import socket
+            machine_name = socket.gethostname()
+        except Exception:
+            machine_name = "???"
+
+        return "{} @{} -- {}".format(str(datetime.now()),
+                                     machine_name,
+                                     repr(self))
+
+    @property
+    def auto_refresh(self):
+        """
+        Returns
+        -------
+            Whether to refresh the list of unlaunchable computations before
+            each launch
+        """
+        return False
+
     def run(self, experiment, start=0, capacity=None):
         """
 
@@ -229,9 +251,10 @@ class Environment(object, metaclass=ABCMeta):
                                  ''.format(self.__class__.__name__))
         error_count = 0
         with self.create_session(experiment) as session:
-            for lazy_comp in experiment.yield_computations(repr(self),
+            for lazy_comp in experiment.yield_computations(self.context(),
                                                            start,
-                                                           capacity):
+                                                           capacity,
+                                                           self.auto_refresh):
                 # a lazy_comp (lazy_computation) is a callable which runs
                 # the computation
                 if not session.run(lazy_comp):
@@ -322,6 +345,10 @@ class InSituEnvironment(Environment):
     """
     @classmethod
     def is_usable(cls):
+        return True
+
+    @property
+    def auto_refresh(self):
         return True
 
     def __init__(self, stdout=False, fail_fast=True):

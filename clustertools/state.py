@@ -376,8 +376,11 @@ class Monitor(object):
             self.states[index] = new_state
 
     def to_launchable(self, comp_name):
-        indices = self._indices(predicate=(lambda s: s.comp_name == comp_name))
-        self.to_launchables(indices)
+        index = self._indices(predicate=(lambda s: s.comp_name == comp_name))[0]
+        before = self.states[index].get_name()
+        self.to_launchables([index])
+        after = self.states[index].get_name()
+        return before, after
 
     def reset(self, from_state=State, predicate=lambda x: True):
         self.to_launchables(self._indices(from_state, predicate))

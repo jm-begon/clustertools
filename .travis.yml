@@ -1,3 +1,5 @@
+dist: xenial
+
 language: python
 python:
   - "3.4"
@@ -8,7 +10,7 @@ sudo: required
 
 install:
   - pip install -r requirements.txt
-  - pip install python-coveralls
+  - pip install coverage python-coveralls
   - source continuous_integration/install.sh
 
 env:

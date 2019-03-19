@@ -151,7 +151,9 @@ class Datacube(Mapping):
         The shape of the result cube. The N-1 first axis are linked to the
         parameters and the last one to the metrics
     """
-    def __init__(self, parameters_ls, results_ls, exp_name="", force=True):
+    def __init__(self, parameters_ls, results_ls, exp_name="", force=True,
+                 autopacking=False):
+        self.autopacking = autopacking
         param_tmp = {}
         # Build back the parameters domain
         if not force and len(parameters_ls) == 0:
@@ -431,23 +433,31 @@ class Datacube(Mapping):
         if len(kwargs) == 0 and metric is None:
             return self
 
+        # Checking the kwargs are known
+        filtered = {}
+        for k, v in kwargs.items():
+            if k in self.parameters:
+                filtered[k] = v
+            elif k in self.metadata and v == self.metadata[k]:
+                filtered[k] = None
+            else:
+                raise IndexError("Parameter '{}' does not exist".format(k))
+
         # Computing the slices
         slices = []
         for p in self.parameters:
-            v = kwargs.get(p)
+            v = filtered.get(p)
             if v is None:
                 v = slice(None)
             slices.append(v)
-
-        for k in kwargs.keys():
-            if k not in self.parameters:
-                raise IndexError("Parameter '%s' does not exist"%str(k))
 
         if metric is None:
             metric = slice(None)
         slices.append(metric)
 
-        return self[tuple(slices)]
+        res = self[tuple(slices)]
+        return res if (not self.autopacking or not isinstance(res, Datacube)) \
+            else res.minimal_hypercube()
 
     def __getslice__(self, start, stop) :
         """This solves a subtle bug, where __getitem__ is not called, and all
@@ -593,7 +603,9 @@ class Datacube(Mapping):
 
     def minimal_hypercube(self, metric=None):
         cube = self if metric is None else self(metric=metric)
-        _, all_there = cube._some_miss_vs_all_there()
+        some_missings, all_there = cube._some_miss_vs_all_there()
+        if sum([len(x) for x in some_missings.values()]) == 0:
+            return self
         slicing = {k:v for k,v in all_there.items() if len(v) > 0}
         return cube(**slicing)
 
@@ -627,13 +639,14 @@ def build_result_cube(exp_name):
     return build_datacube(exp_name)
 
 
-def build_datacube(exp_name, storage_factory=PickleStorage, force=True, **default_meta):
+def build_datacube(exp_name, storage_factory=PickleStorage, force=True,
+                   autopacking=False, **default_meta):
     """
     default_meta: mapping str -> str
         The (potientially) missing metadata
     """
     storage = storage_factory(experiment_name=exp_name)
     parameters_ls, results_ls = storage.load_params_and_results(**default_meta)
-    return Datacube(parameters_ls, results_ls, exp_name, force=force)
-        #
+    return Datacube(parameters_ls, results_ls, exp_name, force=force,
+                    autopacking=autopacking)
 

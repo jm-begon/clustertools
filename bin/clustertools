@@ -18,6 +18,7 @@ import dill
 
 from clustertools import Experiment
 from clustertools import Monitor
+from clustertools import build_datacube
 from clustertools import shutup_logger
 from clustertools.parser import or_none
 from clustertools.storage import PickleStorage, Architecture
@@ -68,6 +69,15 @@ def filter_experiment(pattern=__WC__, architecture=Architecture()):
     for name in Architecture().load_experiment_names():
         if regex.search(name) is not None:
             yield name
+
+
+def comp_num_to_name(exp_name, comp_name):
+    try:
+        comp_num = int(comp_name)
+        comp_name = Experiment.name_computation(exp_name, comp_num)
+    except ValueError:
+        pass
+    return comp_name
 
 
 # ================================== SUBPROG ================================= #
@@ -172,8 +182,20 @@ class Syncher(SubProg):
             subprocess.call(cmd, shell=True)
 
 
-# --------------------------- MultiQuery subprog ----------------------------- #
-class Query(object):
+# ------------------------------ Remote subprog ------------------------------ #
+class Routine(object):
+    """
+    `Routine`
+    ==========
+    A `Routine` represents a subprogram and its command line variables. The
+    routine can be local or can be run across the network.
+
+    Its responsibility is to
+        1. store the relevant parameters (in their final form)
+        2. run the subroutine it resprents
+        3. craft a remote query
+
+    """
     def __init__(self, host, subprog):
         self._host = host
         self._subporg = subprog
@@ -186,16 +208,49 @@ class Query(object):
     def subprog(self):
         return self._subporg
 
-    @abstractmethod
     def craft_remote_query(self):
-        pass
+        """
+        Returns
+        -------
+        query: str
+            The string corresponding to the remote query of this routine
+        """
+        return "ssh {host} '{str}'" \
+               "".format(host=self.host if self.host is not None else __LH__,
+                         str=str(self))
+
+    def __str__(self):
+        return "{} {}".format(get_prog(), self.subprog)
+
+    def run(self):
+        if self.host is None:
+            # Local routine
+            self()
+        else:
+            # Remote routine
+            remote_query = self.craft_remote_query()
+            # print(remote_query)
+            subprocess.call(remote_query, shell=True)
 
     @abstractmethod
     def __call__(self):
         pass
 
 
-class MultiQuerySubProg(SubProg, metaclass=ABCMeta):
+class RemotableSubProg(SubProg, metaclass=ABCMeta):
+    """
+    `RemotableSubProg`
+    ==================
+    A `RemotableSubProg` instance represents a sub program which can be run
+    locally or remotely.
+
+    Its responsibility is to offer a subprogram with an interface in agreement
+    with the :meth:`crate_remote_query` method of the `Routine` class it is
+    working with, to handle appropriate parsing and to run the `Routine`
+    instances.
+
+    A Program might handle several queries but this is not necessarily the case.
+    """
 
     @abstractmethod
     def to_queries(self, **kwargs):
@@ -203,92 +258,49 @@ class MultiQuerySubProg(SubProg, metaclass=ABCMeta):
 
     def run(self, namespace):
         for query in self.to_queries(**vars(namespace)):
-            if query.host is None:
-                # Local query
-                query()
-            else:
-                # Remote query
-                subprocess.call(query.craft_remote_query(), shell=True)
+            query.run()
 
 
-class Counter(MultiQuerySubProg):
-    class CounterQuery(Query):
-        def __init__(self, host, subprog, n_progress, exp_name, *exp_names):
+# ----------------------------------------------------------------- Single query
+
+class ToLaunchable(RemotableSubProg):
+    class ToLaunchableRoutine(Routine):
+        def __init__(self, host, subprog, exp_name, comp_name):
             super().__init__(host, subprog)
-            self.exp_names = [exp_name] + list(exp_names)
-            self.n_progress = n_progress
+            self.exp_name = exp_name
+            self.comp_name = comp_name
 
-        def craft_remote_query(self):
-            return "ssh {host} '{prog} {subprog} -n {n_progress} {exp}'" \
-                   "".format(
-                        host=self.host if self.host is not None else __LH__,
-                        prog=get_prog(),
-                        subprog=self.subprog,
-                        n_progress=self.n_progress,
-                        exp=" ".join(self.exp_names))
+        def __str__(self):
+            return "{prog} {subprog} {exp_name} {comp_name}" \
+                   "".format(prog=get_prog(),
+                             subprog=self.subprog,
+                             exp_name=self.exp_name,
+                             comp_name=self.comp_name)
 
         def __call__(self):
-            try:
-                hostname = socket.gethostname()
-            except Exception:
-                hostname = "Unknown host"
-            print(hostname, ":")
-
-            for exp_name in self.exp_names:
-                for name in filter_experiment(exp_name):
-                    try:
-                        monitor = Monitor(name)
-                        print("\t", name, monitor.count_by_state())
-                        for i, (comp_name, progress) in enumerate(
-                                monitor.get_working_progress().items()):
-                            print("\t\t{} - {:.2f} %".format(comp_name,
-                                                             progress * 100))
-                            if i >= args.n_progress:
-                                print("\t\t...")
-                                break
-                    except Exception as e:
-                        print("\t {} ??? ({})".format(name, repr(e)))
+            before, after = Monitor(self.exp_name).to_launchable(self.comp_name)
+            print("{}: {} --> {}".format(self.comp_name, before, after))
 
     @property
     def subprog_name(self):
-        return "count"
+        return "launchable"
 
     def fill_in_subparser_(self, sub_parser):
-        sub_parser.add_argument("queries", help=queries_doc, nargs="*")
-        sub_parser.add_argument("-l", "--loop", default=-1, type=int,
-                                help="Number of minute to wait between two "
-                                     "refreshment. Set to negative (default) "
-                                     "for no refreshment.")
-        sub_parser.add_argument("-n", "--n-progress", default=10, type=int,
-                                help="Number of lines of progress to show per "
-                                     "experiment")
+        sub_parser.add_argument("query", help=query_doc)
+        sub_parser.add_argument("computation",
+                                help="Computation name or number")
 
-    def to_queries(self, queries, n_progress, **kwargs):
-        if len(queries) == 0:
-            yield self.CounterQuery(None, self.subprog_name, n_progress,
-                                    __WC__)
-        for host, exp_names in rearrange_queries(queries).items():
-            yield self.CounterQuery(host, self.subprog_name,
-                                    n_progress, *exp_names)
+    def to_queries(self, query, computation, **kwargs):
+        host, exp_name = split_host_and_exp(query)
 
-    def run(self, namespace):
-        if namespace.loop < 0:
-            super().run(namespace)
-        else:
-            try:
-                while True:
-                    os.system("clear")
-                    print(datetime.datetime.now().strftime(
-                        "%A %d %h %Y %H:%M:%S"))
-                    super().run(namespace)
-                    time.sleep(args.loop * 60)
-            except (KeyboardInterrupt, SystemExit):
-                print("")
-                sys.exit(0)
+        comp_name = comp_num_to_name(exp_name, computation)
+
+        return [self.ToLaunchableRoutine(host, self.subprog_name, exp_name,
+                                         comp_name)]
 
 
-class Displayer(MultiQuerySubProg):
-    class PrintQuery(Query):
+class Displayer(RemotableSubProg):
+    class PrintRoutine(Routine):
         def __init__(self, host, subprog, type, exp_name, comp_name,
                      last_lines):
             super().__init__(host, subprog)
@@ -309,17 +321,18 @@ class Displayer(MultiQuerySubProg):
                              comp_name=repr(self.comp_name),
                              last_lines=repr(self.last_lines))
 
-        def craft_remote_query(self):
-            return 'ssh {host} "{prog} {subprog} --last-line {last_lines} ' \
-                   '{type} {exp_name} {comp_name}"' \
-                   ''.format(
-                        host=self.host if self.host is not None else __LH__,
-                        prog=get_prog(),
-                        subprog=self.subprog,
-                        last_lines=self.last_lines,
-                        type=self.type,
-                        exp_name=self.exp_name,
-                        comp_name=self.comp_name)
+        def __str__(self):
+            last_lines = ""
+            if self.last_lines is not None:
+                last_lines = "--last-line {}".format(self.last_lines)
+            return '{prog} {subprog} {last_lines} ' \
+                   '{type} {exp_name} {comp_name}' \
+                   ''.format(prog=get_prog(),
+                             subprog=self.subprog,
+                             last_lines=last_lines,
+                             type=self.type,
+                             exp_name=self.exp_name,
+                             comp_name=self.comp_name)
 
         def __call__(self):
             storage = PickleStorage(self.exp_name)
@@ -362,33 +375,153 @@ class Displayer(MultiQuerySubProg):
     def to_queries(self, type, query, computation, last_lines=None, **kwargs):
         host, exp_name = split_host_and_exp(query)
 
-        comp_name = computation
-        try:
-            comp_num = int(comp_name)
-            comp_name = Experiment.name_computation(exp_name, comp_num)
-        except ValueError:
-            pass
+        comp_name = comp_num_to_name(exp_name, computation)
 
-        return [self.PrintQuery(host, self.subprog_name, type, exp_name,
-                               comp_name, last_lines)]
+        return [self.PrintRoutine(host, self.subprog_name, type, exp_name,
+                                  comp_name, last_lines)]
 
 
-# ---------------------------- Monitor Action Jobs --------------------------- #
-class MonitorActionSubProg(MultiQuerySubProg):
-    class ActionQuery(Query):
+# ------------------------------------------------------------- Multiple queries
+class Version(RemotableSubProg):
+    class VersionRoutine(Routine):
+        def __call__(self):
+            import clustertools
+            print(clustertools.__version__)
+
+    @property
+    def subprog_name(self):
+        return "version"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help="Hostnames to get the version "
+                                                "(leave empty for localhost)",
+                                nargs="*")
+
+    def to_queries(self, queries, **kwargs):
+        if len(queries) == 0:
+            # Localhost
+            yield self.VersionRoutine(None, self.subprog_name)
+        else:
+            for host in queries:
+                yield self.VersionRoutine(host, self.subprog_name)
+
+
+class Diagnoser(RemotableSubProg):
+    class DiagnoseRoutine(Routine):
+        def __init__(self, host, subprog, *exp_names):
+            super().__init__(host, subprog)
+            self.exp_names = exp_names
+
+        def __str__(self):
+            return "{prog} {subprog} {exp}" \
+                   "".format(prog=get_prog(),
+                             subprog=self.subprog,
+                             exp=" ".join(self.exp_names))
+
+        def __call__(self):
+            for exp_name in self.exp_names:
+                cube = build_datacube(exp_name)
+                print("{} -- {}".format(cube.name, cube.diagnose()))
+
+    @property
+    def subprog_name(self):
+        return "diagnose"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help=queries_doc, nargs="*")
+
+    def to_queries(self, queries, **kwargs):
+        for host, exp_names in rearrange_queries(queries).items():
+            yield self.DiagnoseRoutine(host, self.subprog_name, *exp_names)
+
+
+class Counter(RemotableSubProg):
+    class CounterRoutine(Routine):
+        def __init__(self, host, subprog, n_progress, exp_name, *exp_names):
+            super().__init__(host, subprog)
+            self.exp_names = [exp_name] + list(exp_names)
+            self.n_progress = n_progress
+
+        def __str__(self):
+            return "{prog} {subprog} -n {n_progress} {exp}" \
+                   "".format(prog=get_prog(),
+                             subprog=self.subprog,
+                             n_progress=self.n_progress,
+                             exp=" ".join(self.exp_names))
+
+        def __call__(self):
+            try:
+                hostname = socket.gethostname()
+            except Exception:
+                hostname = "Unknown host"
+            print(hostname, ":")
+
+            for exp_name in self.exp_names:
+                for name in filter_experiment(exp_name):
+                    try:
+                        monitor = Monitor(name)
+                        print("\t", name, monitor.count_by_state())
+                        for i, (comp_name, progress) in enumerate(
+                                monitor.get_working_progress().items()):
+                            print("\t\t{} - {:.2f} %".format(comp_name,
+                                                             progress * 100))
+                            if i >= args.n_progress:
+                                print("\t\t...")
+                                break
+                    except Exception as e:
+                        print("\t {} ??? ({})".format(name, repr(e)))
+
+    @property
+    def subprog_name(self):
+        return "count"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("queries", help=queries_doc, nargs="*")
+        sub_parser.add_argument("-l", "--loop", default=-1, type=int,
+                                help="Number of minute to wait between two "
+                                     "refreshment. Set to negative (default) "
+                                     "for no refreshment.")
+        sub_parser.add_argument("-n", "--n-progress", default=10, type=int,
+                                help="Number of lines of progress to show per "
+                                     "experiment")
+
+    def to_queries(self, queries, n_progress, **kwargs):
+        if len(queries) == 0:
+            yield self.CounterRoutine(None, self.subprog_name, n_progress,
+                                      __WC__)
+        for host, exp_names in rearrange_queries(queries).items():
+            yield self.CounterRoutine(host, self.subprog_name,
+                                      n_progress, *exp_names)
+
+    def run(self, namespace):
+        if namespace.loop < 0:
+            super().run(namespace)
+        else:
+            try:
+                while True:
+                    os.system("clear")
+                    print(datetime.datetime.now().strftime(
+                        "%A %d %h %Y %H:%M:%S"))
+                    super().run(namespace)
+                    time.sleep(args.loop * 60)
+            except (KeyboardInterrupt, SystemExit):
+                print("")
+                sys.exit(0)
+
+
+# ------- Monitor Action Jobs
+class MonitorActionSubProg(RemotableSubProg):
+    class ActionRoutine(Routine):
         def __init__(self, host, subprog, func, exp_name, *exp_names):
             super().__init__(host, subprog)
             self.exp_names = [exp_name] + list(exp_names)
             self._func = func
 
-        def craft_remote_query(self):
-            return 'ssh {host} "{prog} {subprog} {exp_names}"' \
-                   ''.format(
-                host=self.host if self.host is not None else __LH__,
-                prog=get_prog(),
-                subprog=self.subprog,
-                exp_names=' '.join(self.exp_names)
-            )
+        def __str__(self):
+            return '{prog} {subprog} {exp_names}' \
+                   ''.format(prog=get_prog(),
+                             subprog=self.subprog,
+                             exp_names=' '.join(self.exp_names))
 
         def __call__(self):
             # Local
@@ -421,8 +554,8 @@ class MonitorActionSubProg(MultiQuerySubProg):
 
     def to_queries(self, queries, **kwargs):
         for host, exp_names in rearrange_queries(queries).items():
-            yield self.ActionQuery(host, self.subprog_name,
-                                   self._action, *exp_names)
+            yield self.ActionRoutine(host, self.subprog_name,
+                                     self._action, *exp_names)
 
 
 def aborted_2_launchable_prog_factory():
@@ -444,20 +577,10 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(title="Subcommands",
                                        description="Valid subcommands")
 
-    # Count by state
-    Counter().fill_in_subparser(subparsers)
-
-    # Sync
-    Syncher().fill_in_subparser(subparsers)
-
-    # Display
-    Displayer().fill_in_subparser(subparsers)
-
-    # Aborted to launchable
-    aborted_2_launchable_prog_factory().fill_in_subparser(subparsers)
-
-    # Reset
-    reset_prog_factory().fill_in_subparser(subparsers)
+    for subprog in Counter(), Syncher(), Displayer(), \
+                   aborted_2_launchable_prog_factory(), reset_prog_factory(), \
+                   Version(), Diagnoser(), ToLaunchable():
+        subprog.fill_in_subparser(subparsers)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):

@@ -38,8 +38,9 @@ import logging
 # Clustertools visibility
 from .storage import Architecture
 from .state import Monitor
-from .experiment import Computation, ParameterSet, ConstrainedParameterSet, \
-    PrioritizedParamSet, Result, Experiment
+from .experiment import Computation, Result, Experiment
+from .parameterset import ParameterSet, ConstrainedParameterSet, \
+    PrioritizedParamSet, CartesianParameterSet, ExplicitParameterSet
 from .environment import Serializer, FileSerializer, InSituEnvironment
 from .datacube import Datacube, build_result_cube, build_datacube
 from .parser import BaseParser, ClusterParser, CTParser
@@ -49,7 +50,7 @@ from .config import get_ct_folder, get_default_environment
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __date__ = "08 Oct. 2015"
 
 

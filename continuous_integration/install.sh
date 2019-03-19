@@ -11,8 +11,9 @@ set -xe # Exit on first error
 
 
 if [[ "$SCHEDULER" == "SLURM" ]]; then
-    sudo apt-get install slurm-llnl
-    sudo /usr/sbin/create-munge-key
+    sudo apt-get update
+    sudo apt-get -y install slurm-llnl
+    sudo /usr/sbin/create-munge-key -f
     sudo service munge start
     sudo python continuous_integration/configure_slurm.py
 fi
