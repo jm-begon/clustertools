@@ -475,9 +475,9 @@ class Datacube(Mapping):
         if len(self.parameters) == 0:
             # Only metrics, everything is in metadata
             return np.array([self.data[self.hash(m, self.metadata)]
-                             for m in self.metrics])
+                             for m in self.metrics], dtype=np.float)
 
-        arr = np.array([arr.numpyfy() for arr in self])
+        arr = np.array([arr.numpyfy() for arr in self], dtype=np.float)
         if squeeze and arr.shape[-1] == 1:
             arr = arr.squeeze()
         return arr
