@@ -16,7 +16,7 @@ DESCRIPTION = 'Toolkit to run experiments on supercomputers'
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 CLASSIFIERS = [
-    'Development Status :: 2 - Pre-Alp  ha',
+    'Development Status :: 2 - Pre-Alpha',
     'Environment :: Console',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',

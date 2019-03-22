@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from unittest import SkipTest
 
 from nose.tools import assert_dict_equal, assert_not_in, assert_equal, \
     assert_not_equal, assert_in, assert_true, assert_raises
@@ -306,8 +306,6 @@ def test_call_indexing():
     assert_raises(KeyError, cube, "f3")
 
 
-
-
 def test_indexing_name():
     name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
@@ -338,8 +336,6 @@ def test_call_indexing_name():
     assert_equal(cube(w="6", x=0, metric=0), 16)
     # f2(w=5, x=2)
     assert_equal(cube(metric="f2", w=0, x="2"), 52)
-
-
 
 
 def test_slicing():
@@ -424,8 +420,10 @@ def test_indexing_path():
 
 
 def test_numpyfy():
-    import numpy as np
-    # TODO skip if not numpy
+    try:
+        import numpy as np
+    except ImportError:
+        raise SkipTest("numpy is not installed")
     name, metadata, params, dom, metrics, d = alldiff()
     cube = build_cube(name, d)
     cube2 = cube[0, 0]
@@ -473,8 +471,8 @@ def test_items():
 def test_ood():
     name, metadata, params, dom, metrics, d = some_ood()
     cube = build_cube(name, d)
-    expected_ood = [( {"x":"2", "w":"5"}, "f1"),
-                    ( {"x":"2", "w":"5"}, "f2")]
+    expected_ood = [({"x": "2", "w": "5"}, "f1"),
+                    ({"x": "2", "w": "5"}, "f2")]
     ood = cube.out_of_domain()
     assert_equal(len(ood), len(expected_ood))
     assert_dict_equal(expected_ood[0][0], ood[0][0])
@@ -484,6 +482,36 @@ def test_ood():
     exp_m.sort()
     m.sort()
     assert_equal(m, exp_m)
+
+
+def test_ood_nan():
+    # missing values should be marked as nan
+    try:
+        import numpy as np
+    except ImportError:
+        raise SkipTest("numpy is not installed")
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d)
+    arr = cube.numpyfy(True)
+    assert_true(np.issubdtype(arr.dtype, np.float))
+    try:
+        assert_true(np.isnan(arr).any())
+    except:
+        assert_true(False, "Exception was raised, nan is not working")
+
+
+def test_ood_iter_dimensions():
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d)
+    for (x, w), cube_i in cube.iter_dimensions("x", "w"):
+        x = int(x)
+        w = int(w)
+        v = cube_i("f1")
+        if x == 2 and w == 5:
+            assert_true(v is None)
+        else:
+            assert_true(v is not None)
+
 
 # def test_max_hypercube():
 #     name, metadata, params, dom, metrics, d = some_ood()
