@@ -500,6 +500,19 @@ def test_ood_nan():
         assert_true(False, "Exception was raised, nan is not working")
 
 
+def test_ood_iter_dimensions():
+    name, metadata, params, dom, metrics, d = some_ood()
+    cube = build_cube(name, d)
+    for (x, w), cube_i in cube.iter_dimensions("x", "w"):
+        x = int(x)
+        w = int(w)
+        v = cube_i("f1")
+        if x == 2 and w == 5:
+            assert_true(v is None)
+        else:
+            assert_true(v is not None)
+
+
 # def test_max_hypercube():
 #     name, metadata, params, dom, metrics, d = some_ood()
 #     cube = build_cube(name, d)
