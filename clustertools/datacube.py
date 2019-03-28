@@ -4,7 +4,7 @@ from functools import reduce
 from itertools import product
 from copy import copy, deepcopy
 from collections import Mapping
-from .util import reorder, hashlist, deprecated
+from .util import reorder, hashlist, deprecated, sort_per_type
 
 from .storage import PickleStorage
 
@@ -177,7 +177,7 @@ class Datacube(Mapping):
         for name, v in param_tmp.items():
             ls = [vi for vi in v]
             if len(ls) > 1:
-                ls.sort()
+                ls = sort_per_type(ls)
                 domain[name] = [str(x) for x in ls]
                 parameter_list.append(name)
             elif len(ls) == 1:
