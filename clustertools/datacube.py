@@ -158,12 +158,12 @@ class Datacube(Mapping):
         # Build back the parameters domain
         if not force and len(parameters_ls) == 0:
             raise ValueError("Empty cube. Use 'force=True' to ignore this "
-                             "issue.")
+                             "issue ({}).".format(exp_name))
         for parameters in parameters_ls:
             if not force and len(parameters) == 0:
                 raise ValueError("Parameter '{}' has an empty domain. "
-                                 "Use 'force=True' to ignore this issue."
-                                 "".format(name))
+                                 "Use 'force=True' to ignore this issue ({})."
+                                 "".format(name, exp_name))
             for name, v in parameters.items():
                 _set = param_tmp.get(name)
                 if _set is None:
@@ -186,7 +186,8 @@ class Datacube(Mapping):
                 # len(ls) <= 0: This should be handled by the previous stage
                 if not force:
                     raise ValueError("Parameter '{}' has an empty domain. If "
-                                     "it is not useful, remove it".format(name))
+                                     "it is not useful, remove it ({})"
+                                     "".format(name, exp_name))
                 # else: drop that axis
         parameter_list.sort()
 
@@ -261,7 +262,8 @@ class Datacube(Mapping):
                         pass
                 raise ValueError()
             except ValueError:
-                raise KeyError("Name '%s' unknown for dimension %d" % (value, n_dim))
+                raise KeyError("Name '{}' unknown for dimension {} ({})"
+                               "".format(value, n_dim, self.name))
 
     def __getitem__(self, index):
         """
@@ -289,7 +291,7 @@ class Datacube(Mapping):
         length, dims = len(index), len(self.shape)
 
         if length > dims:
-            raise IndexError("Too many indices")
+            raise IndexError("Too many indices ({})".format(self.name))
 
         return_scalar = True
         for i, slice_ in enumerate(index):
@@ -332,7 +334,8 @@ class Datacube(Mapping):
                             if idx < 0:
                                 idx += len(self)
                             if idx < 0:
-                                raise IndexError("Index out of range from dim. %d" % i)
+                                raise IndexError("Index out of range from dim. "
+                                                 "{} ({})".format(i, self.name))
                             slice2.append(idx)
                     fixed.append(slice2)
                 except TypeError:
@@ -441,7 +444,8 @@ class Datacube(Mapping):
             elif k in self.metadata and v == self.metadata[k]:
                 filtered[k] = None
             else:
-                raise IndexError("Parameter '{}' does not exist".format(k))
+                raise IndexError("Parameter '{}' does not exist ({})"
+                                 "".format(k, self.name))
 
         # Computing the slices
         slices = []
