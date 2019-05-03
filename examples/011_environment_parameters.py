@@ -28,10 +28,6 @@ from clustertools import Computation, CTParser, ParameterSet, \
     Experiment, set_stdout_logging
 
 
-# Import the `partial` function to create the factory
-from functools import partial
-
-
 class MyComputation(Computation):
     def __init__(self, my_environment_parameter, exp_name, comp_name,
                  context, storage_factory):
@@ -60,8 +56,9 @@ if __name__ == "__main__":
     param_set = ParameterSet()
     param_set.add_parameters(x=[1, 2, 3], z=4, w=[5, 6])
 
-    # We use the `partial` function to specialize the computation class
-    my_factory = partial(MyComputation, my_environment_parameter="Test")
+    # We use the :meth:`partialize` class method to specialize the
+    # computation class with our environment parameter
+    my_factory = MyComputation.partialize(my_environment_parameter="Test")
 
     experiment = Experiment("BasicUsage", param_set, my_factory)
 

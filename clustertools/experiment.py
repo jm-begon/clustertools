@@ -14,6 +14,7 @@ from abc import ABCMeta, abstractmethod
 
 
 import logging
+from functools import partial
 
 from clustertools.util import SigHandler
 from .storage import PickleStorage
@@ -76,6 +77,10 @@ class Computation(object):
         a cls:`Storage` instance
     """
     __metaclass__ = ABCMeta
+
+    @classmethod
+    def partialize(cls, **kwargs):
+        return partial(cls, **kwargs)
 
     def __init__(self, exp_name, comp_name, context="n/a",
                  storage_factory=PickleStorage):
