@@ -219,7 +219,8 @@ def load_computation_by_params(exp_name, **parameters):
     param_set = build_parameter_set(exp_name)
     indices = list(param_set.get_indices_with(**{k: {v} for k, v in parameters.items()}))
     if len(indices) > 1:
-        raise ValueError("Too many computations with this combination of parameters. Can only load one.")
+        raise ValueError("Too many computations with this combination of parameters (found: {}). Can only load one."
+                         "".format(indices))
     elif len(indices) == 0:
         raise ValueError("No computation found with those parameters.")
     return load_computation(exp_name, indices[0])
