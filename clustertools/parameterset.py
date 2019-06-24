@@ -325,7 +325,8 @@ class ConstrainedParameterSet(AbstractParameterSet):
         return n
 
     def get_indices_with(self, **kwargs):
-        self.param_set.get_indices_with(**kwargs)
+        for x in self.param_set.get_indices_with(**kwargs):
+            yield x
 
     def __getitem__(self, index):
         return self.param_set[index]
@@ -391,7 +392,8 @@ class PrioritizedParamSet(AbstractParameterSet):
         return len(self.param_set)
 
     def get_indices_with(self, **kwargs):
-        self.param_set.get_indices_with(**kwargs)
+        for x in self.param_set.get_indices_with(**kwargs):
+            yield x
 
     def __getitem__(self, index):
         return self.param_set[index]
