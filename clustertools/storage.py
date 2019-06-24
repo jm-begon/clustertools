@@ -312,6 +312,19 @@ class PickleStorage(Storage):
             return {}
         return rtn
 
+    @property
+    def _parameter_set_path(self):
+        return os.path.join(self.folder, "parameter_set.pkl")
+
+    def save_parameter_set(self, parameter_set):
+        self._save(parameter_set, self._parameter_set_path)
+
+    def load_parameter_set(self):
+        if not os.path.exists(self._parameter_set_path):
+            raise FileNotFoundError("Parameter set file '{}' does not exist. Make sure to run the experiment script "
+                                    "at least once to save the parameters.".format(self._parameter_set_path))
+        return self._load(self._parameter_set_path)
+
     def init(self):
         super(PickleStorage, self).init()
         for folder in self._get_notif_db(), self._get_result_db(), \

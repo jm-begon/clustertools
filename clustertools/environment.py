@@ -249,6 +249,10 @@ class Environment(object, metaclass=ABCMeta):
         if not self.__class__.is_usable():
             raise AttributeError('{} is not usable in this setting'
                                  ''.format(self.__class__.__name__))
+
+        # save parameters set
+        experiment.storage.save_parameter_set(experiment.parameter_set)
+
         error_count = 0
         with self.create_session(experiment) as session:
             for lazy_comp in experiment.yield_computations(self.context(),
