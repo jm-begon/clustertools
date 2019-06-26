@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from itertools import product as cartesian_product
 from collections import defaultdict
+
+from clustertools.storage import PickleStorage
 from .util import sort_per_type
 
 
@@ -323,7 +325,8 @@ class ConstrainedParameterSet(AbstractParameterSet):
         return n
 
     def get_indices_with(self, **kwargs):
-        self.param_set.get_indices_with(**kwargs)
+        for x in self.param_set.get_indices_with(**kwargs):
+            yield x
 
     def __getitem__(self, index):
         return self.param_set[index]
@@ -389,7 +392,13 @@ class PrioritizedParamSet(AbstractParameterSet):
         return len(self.param_set)
 
     def get_indices_with(self, **kwargs):
-        self.param_set.get_indices_with(**kwargs)
+        for x in self.param_set.get_indices_with(**kwargs):
+            yield x
 
     def __getitem__(self, index):
         return self.param_set[index]
+
+
+def build_parameter_set(exp_name, storage_factory=PickleStorage):
+    storage = storage_factory(experiment_name=exp_name)
+    return storage.load_parameter_set()

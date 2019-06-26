@@ -17,7 +17,7 @@ import logging
 from functools import partial
 
 from clustertools.util import SigHandler
-from .storage import PickleStorage
+from .storage import PickleStorage, __PARAMETERS__, __RESULTS__
 from .state import LaunchableState, RunningState, Monitor
 
 
@@ -210,3 +210,22 @@ class Experiment(object):
 
     def __len__(self):
         return len(self.parameter_set)
+
+
+def load_computation(exp_name, index):
+    comp_name = Experiment.name_computation(exp_name, index)
+    storage = PickleStorage(exp_name)
+    r_dict = storage._load_r_dict(comp_name)[comp_name]
+    return r_dict[__PARAMETERS__], r_dict[__RESULTS__]
+
+
+def load_computation_by_params(exp_name, **parameters):
+    from .parameterset import build_parameter_set
+    param_set = build_parameter_set(exp_name)
+    indices = list(param_set.get_indices_with(**{k: {v} for k, v in parameters.items()}))
+    if len(indices) > 1:
+        raise ValueError("Too many computations with this combination of parameters (found: {}). Can only load one."
+                         "".format(indices))
+    elif len(indices) == 0:
+        raise ValueError("No computation found with those parameters.")
+    return load_computation(exp_name, indices[0])
