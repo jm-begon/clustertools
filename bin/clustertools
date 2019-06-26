@@ -435,6 +435,56 @@ class Diagnoser(RemotableSubProg):
             yield self.DiagnoseRoutine(host, self.subprog_name, *exp_names)
 
 
+class ListComputations(RemotableSubProg):
+    # TODO encapsulate more the state strings
+    class ListRoutine(Routine):
+        def __init__(self, host, subprog, exp_name, state_str):
+            super().__init__(host, subprog)
+            self.exp_name = exp_name
+            self.state_str = state_str
+
+        def __str__(self):
+            return "{prog} {subprog} {exp_name} {state_str}" \
+                   "".format(prog=get_prog(),
+                             subprog=self.subprog,
+                             exp_name=self.exp_name,
+                             state_str=self.state_str)
+
+        def __call__(self):
+            monitor = Monitor(self.exp_name)
+            if self.state_str == "aborted":
+                s = monitor.aborted_computations()
+            elif self.state_str == "incomplete":
+                s = monitor.incomplete_computations()
+            elif self.state_str == "launchable":
+                s = monitor.launchable_computations()
+            elif self.state_str == "critical":
+                s = monitor.critical_computations()
+            elif self.state_str == "unlaunchable":
+                s = monitor.unlaunchable_comp_names()
+            else:
+                raise AttributeError("Unknown state '{}'".format(self.state_str))
+            if len(s) == 0:
+                print("No computation in {} state".format(self.state_str))
+            for el in s:
+                print(el)
+
+    @property
+    def subprog_name(self):
+        return "list"
+
+    def fill_in_subparser_(self, sub_parser):
+        sub_parser.add_argument("state", choices=["launchable", "unlaunchable",
+                                                  "aborted", "incomplete",
+                                                  "critical"],
+                                help="The state of the computation to list")
+        sub_parser.add_argument("query", help=query_doc)
+
+    def to_queries(self, query, state, **kwargs):
+        host, exp_name = split_host_and_exp(query)
+        return [self.ListRoutine(host, self.subprog_name, exp_name, state)]
+
+
 class Counter(RemotableSubProg):
     class CounterRoutine(Routine):
         def __init__(self, host, subprog, n_progress, exp_name, *exp_names):
@@ -579,7 +629,7 @@ if __name__ == '__main__':
 
     for subprog in Counter(), Syncher(), Displayer(), \
                    aborted_2_launchable_prog_factory(), reset_prog_factory(), \
-                   Version(), Diagnoser(), ToLaunchable():
+                   Version(), Diagnoser(), ToLaunchable(), ListComputations():
         subprog.fill_in_subparser(subparsers)
 
     args = parser.parse_args()
