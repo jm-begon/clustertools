@@ -177,6 +177,7 @@ class Experiment(object):
         self.monitor.refresh()
         storage = self.monitor.storage
         storage.init()
+        self.storage.save_parameter_set(self.parameter_set)
         unlaunchable = self.monitor.unlaunchable_comp_names()
 
         storage_factory = self.storage_factory
