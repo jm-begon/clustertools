@@ -484,7 +484,7 @@ class SlurmEnvironment(Environment):
             slurm_cmd.append("--partition={}".format(self.partition))
 
         if self.n_proc is not None:
-            slurm_cmd.append("--ntasks={}".format(self.n_proc))
+            slurm_cmd.append("--cpus-per-task={}".format(self.n_proc))
 
         if self.gpu is not None:
             slurm_cmd.append("--gres=gpu:{}".format(self.gpu))

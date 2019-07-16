@@ -164,9 +164,9 @@ class SlurmParser(AbstractParser):
         self.serializer_factory = serializer_factory
 
         self.add_argument("--time", "-t", default="24:00:00",
-                          help='Maximum time (defaul: 24:00:00)')
+                          help='Maximum time (default: 24:00:00)')
         self.add_argument("--memory", "-m", default=4000,
-                          help="Maximum virtual memory (defaul: 4GB)")
+                          help="Maximum virtual memory (default: 4GB)")
         self.add_argument("--shell", default="#!/bin/bash",
                           help='The shell in which to launch the jobs')
         self.add_argument("--partition", "-p", default=None,
