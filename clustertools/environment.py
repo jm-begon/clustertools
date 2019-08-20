@@ -288,6 +288,7 @@ class Environment(object, metaclass=ABCMeta):
         def customizer(lazy_computation):
             if lazy_computation.has_parameters(**param_dict):
                 return env_params
+            return {}
         self._customizers.append(customizer)
 
     def _customize(self, lazy_computation, env_params):
