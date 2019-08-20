@@ -274,6 +274,28 @@ class CartesianParameterSet(AbstractParameterSet):
             yield i, param_dict
 
 
+class CartesianMixer(AbstractParameterSet):
+    def __init__(self, *param_sets):
+        self.param_sets = param_sets
+
+    def __len__(self):
+        l = 1
+        for param_set in self.param_sets:
+            l *= len(param_set)
+        return l
+
+    def __iter__(self):
+        for i, tup in enumerate(cartesian_product(*self.param_sets)):
+            d = {}
+            for _, param_dict in tup:
+                d.update(param_dict)
+            yield i, d
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__,
+                               repr(self.param_sets))
+
+
 class ParameterSet(CartesianParameterSet):
     pass
 

@@ -14,6 +14,7 @@ from abc import ABCMeta, abstractmethod
 
 
 import logging
+from functools import partial
 
 from clustertools.util import SigHandler
 from .storage import PickleStorage, __PARAMETERS__, __RESULTS__
@@ -76,6 +77,10 @@ class Computation(object):
         a cls:`Storage` instance
     """
     __metaclass__ = ABCMeta
+
+    @classmethod
+    def partialize(cls, **kwargs):
+        return partial(cls, **kwargs)
 
     def __init__(self, exp_name, comp_name, context="n/a",
                  storage_factory=PickleStorage):
@@ -145,6 +150,13 @@ class Computation(object):
         self.parameters = parameters
         return self
 
+    def has_parameters(self, **kwargs):
+        for key, value in kwargs.items():
+            if key not in self.parameters or \
+               self.parameters[key] != value:
+                return False
+        return True
+
 
 class Experiment(object):
 
@@ -172,6 +184,7 @@ class Experiment(object):
         self.monitor.refresh()
         storage = self.monitor.storage
         storage.init()
+        self.storage.save_parameter_set(self.parameter_set)
         unlaunchable = self.monitor.unlaunchable_comp_names()
 
         storage_factory = self.storage_factory
@@ -215,6 +228,21 @@ def load_computation(exp_name, index):
 
 
 def load_computation_by_params(exp_name, **parameters):
+    """Load parameters and results from a computation based on its parameters.
+    Parameters
+    ----------
+    exp_name: str
+        Name of the experiment
+    parameters: dict
+        Dictionary mapping parameter name to its value.
+
+    Returns
+    -------
+    index: int
+        Computation index
+    computation: tuple
+        Tuple containing the parameters (0) and the results (1).
+    """
     from .parameterset import build_parameter_set
     param_set = build_parameter_set(exp_name)
     indices = list(param_set.get_indices_with(**{k: {v} for k, v in parameters.items()}))
@@ -223,4 +251,4 @@ def load_computation_by_params(exp_name, **parameters):
                          "".format(indices))
     elif len(indices) == 0:
         raise ValueError("No computation found with those parameters.")
-    return load_computation(exp_name, indices[0])
+    return indices[0], load_computation(exp_name, indices[0])

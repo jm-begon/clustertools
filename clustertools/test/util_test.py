@@ -31,6 +31,7 @@ class IntrospectStorage(Storage):
         super(IntrospectStorage, self).__init__(experiment_name, architecture)
         self.state_history = defaultdict(list)
         self.result_history = defaultdict(list)
+        self.parameter_set_history = defaultdict(list)
 
     def update_state(self, state):
         self.state_history[state.comp_name].append(state)
@@ -48,6 +49,9 @@ class IntrospectStorage(Storage):
     def _load_r_dicts(self):
         return {comp_name: history[-1] for comp_name, history
                 in self.result_history.items()}
+
+    def save_parameter_set(self, parameter_set):
+        self.parameter_set_history[self.exp_name].append(parameter_set)
 
 
 def purge(exp_name=__EXP_NAME__, storage_factory=IntrospectStorage):

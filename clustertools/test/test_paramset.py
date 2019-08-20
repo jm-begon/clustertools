@@ -6,6 +6,9 @@ from clustertools import ParameterSet, ConstrainedParameterSet, \
 
 
 # --------------------------------------------------------- ExplicitParameterSet
+from clustertools.parameterset import CartesianMixer
+
+
 def test_explicit_paramset():
     ps = ExplicitParameterSet()
     ps.add_parameter_tuple(p1=1, p2=2, p3="param")
@@ -122,6 +125,37 @@ def test_paramset_get_indices_with():
 
     assert_equal(len(list(ps.get_indices_with(p1={4}))), 0)
 
+
+# ---------------------------------------------------------------- Cartesian mix
+def test_cartesianmix():
+    ps = ParameterSet()
+    ps.add_parameters(p1=[1, 2], p2=["a", "b"])
+
+    ps1 = ExplicitParameterSet()
+    ps1.add_parameter_tuple(p3=3, p4=10)
+    ps1.add_parameter_tuple(p3=4, p4=11)
+
+    c = CartesianMixer(ps, ps1)
+    assert_equal(len(c), 8)
+
+    expected = [
+        {"p1": 1, "p2": "a", "p3": 3, "p4": 10},
+        {"p1": 1, "p2": "a", "p3": 4, "p4": 11},
+        {"p1": 1, "p2": "b", "p3": 3, "p4": 10},
+        {"p1": 1, "p2": "b", "p3": 4, "p4": 11},
+        {"p1": 2, "p2": "a", "p3": 3, "p4": 10},
+        {"p1": 2, "p2": "a", "p3": 4, "p4": 11},
+        {"p1": 2, "p2": "b", "p3": 3, "p4": 10},
+        {"p1": 2, "p2": "b", "p3": 4, "p4": 11},
+    ]
+
+    i = 0
+    for idx, tup in c:
+        assert_equal(i, idx)
+        assert_in(tup, expected)
+        i += 1
+
+    assert_true(repr(c).startswith("CartesianMixer"))
 
 # ------------------------------------------------------ ConstrainedParameterSet
 
