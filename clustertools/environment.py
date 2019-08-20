@@ -8,6 +8,7 @@ from time import time as epoch
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 from shlex import quote as escape
+import copy
 
 import dill
 
@@ -205,6 +206,7 @@ class Environment(object, metaclass=ABCMeta):
 
     def __init__(self, fail_fast=True):
         self.fail_fast = fail_fast
+        self._customizers = []
 
     def __repr__(self):
         return "{cls}(fail_fast={fail_fast})" \
@@ -281,6 +283,19 @@ class Environment(object, metaclass=ABCMeta):
 
     def create_session(self, experiment):
         return Session(self).init(len(experiment), experiment.storage)
+
+    def add_customization(self, param_dict, **env_params):
+        def customizer(lazy_computation):
+            if lazy_computation.has_parameters(**param_dict):
+                return env_params
+        self._customizers.append(customizer)
+
+    def _customize(self, lazy_computation, env_params):
+        env_params = copy.copy(env_params)
+        for customizer in self._customizers:
+            custom_param = customizer(lazy_computation)
+            env_params.update(custom_param)
+        return env_params
 
 
 class DebugEnvironment(Environment):
@@ -471,24 +486,31 @@ class SlurmEnvironment(Environment):
         log_folder = lazy_computation.storage.get_log_folder()
         log_prefix = os.path.join(log_folder, comp_name)
 
+        env_params = {"time": self.time, "memory": self.memory,
+                      "partition": self.partition, "n_proc": self.n_proc,
+                      "gpu": self.gpu, "other_flags": self.other_flags,
+                      "other_options": self.other_options}
+
+        env_params = self._customize(lazy_computation, env_params)
+
         slurm_cmd = ["sbatch", "--job-name={}".format(comp_name),
-                     "--time={}".format(self.time),
-                     "--mem={}".format(self.memory),
+                     "--time={}".format(env_params["time"]),
+                     "--mem={}".format(env_params["memory"]),
                      "--output={}.%j.txt".format(log_prefix),
                      ]
 
         if self.partition is not None:
-            slurm_cmd.append("--partition={}".format(self.partition))
+            slurm_cmd.append("--partition={}".format(env_params["partition"]))
 
         if self.n_proc is not None:
-            slurm_cmd.append("--cpus-per-task={}".format(self.n_proc))
+            slurm_cmd.append("--cpus-per-task={}".format(env_params["n_proc"]))
 
         if self.gpu is not None:
-            slurm_cmd.append("--gres=gpu:{}".format(self.gpu))
+            slurm_cmd.append("--gres=gpu:{}".format(env_params["gpu"]))
 
-        slurm_cmd.extend(self.other_flags)
+        slurm_cmd.extend(env_params["other_flags"])
 
-        for flag, value in self.other_options.items():
+        for flag, value in env_params["other_options"].items():
             slurm_cmd.append("{}={}".format(flag, value))
 
         # Making computation command

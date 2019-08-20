@@ -171,3 +171,28 @@ def test_serializer():
 
 def test_file_serializer():
     serializer_evaluation(FileSerializer())
+
+
+# ---------------------------------------------------------------- Customization
+@with_setup(prep, purge)
+def test_customization1():
+    computation = TestComputation()
+    computation.lazyfy(p1="1", p2=2)
+    env = DebugEnvironment()
+    env.add_customization({"p1": "1"}, time="1:00:00")
+    env_dict = env._customize(computation, {})
+    assert_equal(len(env_dict), 1)
+    assert_equal(env_dict["time"], "1:00:00")
+
+
+@with_setup(prep, purge)
+def test_customization2():
+    computation = TestComputation()
+    computation.lazyfy(p1="1", p2=2)
+    env = DebugEnvironment()
+    env.add_customization({"p1": "1"}, time="1:00:00")
+    env_dict = env._customize(computation, {"time": "2:00:00"})
+    assert_equal(len(env_dict), 1)
+    assert_equal(env_dict["time"], "1:00:00")
+
+
