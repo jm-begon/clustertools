@@ -3,6 +3,7 @@ from functools import partial
 
 from nose.tools import assert_equal, assert_in, assert_less, assert_raises, \
     with_setup, assert_true
+from nose.tools import assert_false
 
 from clustertools import ParameterSet, Result, Experiment
 from clustertools.state import RunningState, CompletedState, AbortedState, \
@@ -90,6 +91,20 @@ def test_interrupted_computation():
     assert_equal(len(state_history), 2)
     assert_true(isinstance(state_history[0], RunningState))
     assert_true(isinstance(state_history[1], LaunchableState))
+
+
+@with_setup(prep, purge)
+def test_has_parameters():
+    computation = TestComputation()
+    computation.lazyfy(p1="1", p2=2)
+
+    assert_true(computation.has_parameters(p1="1", p2=2))
+    assert_true(computation.has_parameters(p1="1"))
+    assert_true(computation.has_parameters(p2=2))
+
+    assert_false(computation.has_parameters(p3=""))
+    assert_false(computation.has_parameters(p1="1", p3=""))
+    assert_false(computation.has_parameters(p1="1", p2=2, p3=""))
 
 
 # ------------------------------------------------------------------- Experiment

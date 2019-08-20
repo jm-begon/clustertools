@@ -150,6 +150,13 @@ class Computation(object):
         self.parameters = parameters
         return self
 
+    def has_parameters(self, **kwargs):
+        for key, value in kwargs.items():
+            if key not in self.parameters or \
+               self.parameters[key] != value:
+                return False
+        return True
+
 
 class Experiment(object):
 
