@@ -168,9 +168,9 @@ class Syncher(SubProg):
                           Architecture(ct_folder).get_basedir(experiment)
 
         if namespace.quiet:
-            r_args = "-az"
+            r_args = "-azh"
         else:
-            r_args = "-azP"
+            r_args = "-azhP"
 
         cmd = "rsync {r_args} {source} {dest}".format(r_args=r_args,
                                                       source=source_str,
