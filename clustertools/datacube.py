@@ -68,7 +68,7 @@ class Hasher(object):
     def add_metadata(self, **kwargs):
         for k, v in kwargs.items():
             self.strides[k] = 0
-            self.dom_inv[k] = {v:0}
+            self.dom_inv[k] = {v: 0}
 
     def hash(self, metric, params):
         """
@@ -242,6 +242,19 @@ class Datacube(Mapping):
     def add_metadata(self, **kwargs):
         self.metadata.update(kwargs)
         self.hash.add_metadata(**kwargs)
+
+    def clone_with_metadata(self, **kwargs):
+        clone = copy(self)
+        clone.metadata = deepcopy(self.metadata)
+        clone.domain = deepcopy(self.domain)
+        clone.hash = deepcopy(self.hash)
+        clone.add_metadata(**kwargs)
+        return clone
+
+    def get_domain_of(self, parameter):
+        if parameter in self.metadata:
+            return self.metadata[parameter]
+        return self.domain[parameter]
 
     def _get_index_by_name(self, n_dim, value):
         lku = self.metrics
@@ -521,6 +534,14 @@ class Datacube(Mapping):
 
                         new_values = tuple([dim_value] + list(values))
                         yield new_values, dbi
+
+    def iter_all(self):
+        for x in self.iter_dimensions(*self.domain.keys()):
+            yield x
+
+    def first_scalar_cube(self):
+        for _, x in self.iter_all():
+            return x
 
     @deprecated
     def iteritems(self):
