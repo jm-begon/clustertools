@@ -36,15 +36,15 @@ class MyComputation(Computation):
         super().__init__(exp_name, comp_name, context, storage_factory)
         self.my_environment_parameter = my_environment_parameter
 
-    def run(self, result, x, z, w, y=2, **parameters):
+    def run(self, collector, x, z, w, y=2, **parameters):
         import time
         from random import randint
 
         # We can access our environment parameter
         print(self.my_environment_parameter)
 
-        result["multiply"] = x * y
-        result["sum"] = z + w
+        collector["multiply"] = x * y
+        collector["sum"] = z + w
         time.sleep(randint(1, 10))
 
 

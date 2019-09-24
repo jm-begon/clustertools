@@ -19,6 +19,7 @@ import getpass
 from datetime import datetime
 from collections import defaultdict
 
+from clustertools.chrono import ProgressMonitor
 from .config import get_default_environment
 from .storage import PickleStorage
 
@@ -62,33 +63,28 @@ class State(object):
     --------
     State 'A' is equal to State 'B' if 'B is an instance of 'A' class and both
     'A' and 'B' have the same name
-
-    Note
-    ----
-    The `State` object contains a datetime. This is purely informative and is
-    not considered as an essential component of the object. As such, it is
-    not considered for repr or equailty
     """
     __metaclass__ = ABCMeta
 
     @classmethod
     def from_(cls, state):
-        return cls(state.comp_name, progress=state.progress)
+        return cls(state.comp_name, progress_monitor=state.progress_monitor)
 
     @classmethod
     def default_progress(cls):
-        return 0.
+        return ProgressMonitor(0)
 
-    def __init__(self, comp_name, progress=0.):
+    def __init__(self, comp_name, progress_monitor=None):
         self.comp_name = comp_name
-        self.date = datetime.now()
-        self.progress = progress
+        if progress_monitor is None:
+            progress_monitor = ProgressMonitor()
+        self.progress_monitor = progress_monitor
 
     def __repr__(self):
         return "{cls}(comp_name={comp_name}, progress={progress})" \
                "".format(cls=self.__class__.__name__,
                          comp_name=repr(self.comp_name),
-                         progress=repr(self.progress))
+                         progress=repr(self.progress_monitor))
 
     def __eq__(self, other):
         # Funny how the isinstance might break symmetry of equivalence
@@ -107,9 +103,16 @@ class State(object):
             # no longer the responsibility of the state to remember to which
             # experiment it belongs
             del state["exp_name"]
-        if "progress" not in state:
-            # The field 'progress' has been added
-            state["progress"] = self.__class__.default_progress()
+        if "progress" in state:
+            # The field 'progress' has been suppressed in version 0.1.4
+            # (merged with date in field `progress_monitor`)
+            del state["progress"]
+        if "date" in state:
+            # The field 'progress' has been suppressed in version 0.1.4
+            # (merged with progress in field `progress_monitor`)
+            del state["date"]
+        if "progress_monitor" not in state:
+            state["progress_monitor"] = self.__class__.default_progress()
         self.__dict__.update(state)
 
     @abstractmethod
@@ -166,11 +169,11 @@ class CompletedState(State):
 class AbortedState(State):
     @classmethod
     def from_(cls, state, exception):
-        return cls(state.comp_name, progress=state.progress,
+        return cls(state.comp_name, progress_monitor=state.progress_monitor,
                    exception=exception)
 
-    def __init__(self, comp_name, exception, progress=0.):
-        super().__init__(comp_name, progress)
+    def __init__(self, comp_name, exception, progress_monitor=0.):
+        super().__init__(comp_name, progress_monitor)
         self.exception = exception
 
     def get_name(self):
@@ -180,13 +183,19 @@ class AbortedState(State):
         return "{cls}(comp_name={comp_name}, progress={progress}, " \
                "exception={exception})".format(cls=self.__class__.__name__,
                                                comp_name=repr(self.comp_name),
-                                               progress=repr(self.progress),
+                                               progress=repr(self.progress_monitor),
                                                exception=repr(self.exception))
 
 
 class IncompleteState(State):
     def get_name(self):
         return __INCOMPLETE__
+
+    def reset_progress_monitor(self, progress_monitor):
+        self.progress_monitor = progress_monitor
+
+    def abort(self, exception):
+        return self  # Does not make sense to get aborted
 
 
 # --------------------------------------------------------------- Working states
@@ -198,11 +207,6 @@ class WorkingState(State):
 
     def to_aborted(self, exception):
         return AbortedState.from_(self, exception)
-
-    def update_progress(self, progress):
-        new_state = self.__class__.from_(self)
-        new_state.progress = progress
-        return new_state
 
 
 class RunningState(WorkingState):
@@ -219,11 +223,11 @@ class RunningState(WorkingState):
 class CriticalState(WorkingState):
     @classmethod
     def from_(cls, state, first_critical=False):
-        return cls(state.comp_name, progress=state.progress,
+        return cls(state.comp_name, progress_monitor=state.progress_monitor,
                    first_critical=first_critical)
 
-    def __init__(self, comp_name, progress=0., first_critical=False):
-        super().__init__(comp_name, progress)
+    def __init__(self, comp_name, progress_monitor=0., first_critical=False):
+        super().__init__(comp_name, progress_monitor)
         self.first_critical = first_critical
 
     def get_name(self):
@@ -364,7 +368,7 @@ class Monitor(object):
     def get_working_progress(self):
         """Return a dict comp_name -> progress for Working state"""
         workings = self._filter(state_cls=WorkingState)
-        return {s.comp_name: s.progress for s in workings}
+        return {s.comp_name: s.progress_monitor for s in workings}
 
     def to_launchables(self, indices=None):
         if indices is None:

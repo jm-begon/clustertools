@@ -28,7 +28,7 @@ class MyComputation(Computation):
     Inherit from `Computation` and redefine the `run` method as you which
     """
 
-    def run(self, result, x, z, w, y=2, **parameters):
+    def run(self, collector, x, z, w, y=2, **parameters):
         import time
         from datetime import datetime
         from random import randint
@@ -38,13 +38,13 @@ class MyComputation(Computation):
         print()
         print("{}: I must multiply {} by {}. This is a hard computation, "
               "it will take a few seconds".format(datetime.now(), x, y))
-        result["multiply"] = x * y
+        collector["multiply"] = x * y
         time.sleep(randint(1, 10))
 
         print("{}: Now I must add {} and {}. This is easier but I am tired "
               "with all those hard computations. Let me think..."
               "".format(datetime.now(), z, w))
-        result["sum"] = z + w
+        collector["sum"] = z + w
         time.sleep(randint(1, 10))
 
         print("{}: Woah, it was hard. I think I'll go back to sleep."

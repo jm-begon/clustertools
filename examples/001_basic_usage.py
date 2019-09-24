@@ -30,15 +30,15 @@ class MyComputation(Computation):
     Inherit from `Computation` and redefine the `run` method as you which
     """
 
-    def run(self, result, x, z, w, y=2, **parameters):
+    def run(self, collector, x, z, w, y=2, **parameters):
         # For encapsulation reasons, all imports needed for the computation
         # must be in the scope of the serialized object
         import time
         from random import randint
 
         # Do some heavy number crunching
-        result["multiply"] = x * y
-        result["sum"] = z + w
+        collector["multiply"] = x * y
+        collector["sum"] = z + w
         time.sleep(randint(1, 10))
 
         # Result is automatically collected.

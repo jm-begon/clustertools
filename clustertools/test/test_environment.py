@@ -161,7 +161,7 @@ def serializer_evaluation(serializer):
     computation = serializer.deserialize(serializer.serialize(computation))
     result = computation()
     print(repr(result))
-    assert_equal(len(result), 2)  # One real metric + repr
+    assert_equal(len(result), 1)  # only one metric
     assert_equal(result.mult, 5*10)  #  correct result
 
 

@@ -32,7 +32,7 @@ class MyComputation(Computation):
     take around 50 iterations)
     """
 
-    def run(self, result, a, b, **parameters):
+    def run(self, collector, a, b, **parameters):
         import time
 
         # The polynome for which we are trying to find the roots
@@ -50,8 +50,8 @@ class MyComputation(Computation):
 
             # Update result at each iteration. Saving the iteration number is
             # just there for nicer formatting on the result side
-            result["root"] = m
-            result["iteration"] = i
+            collector["root"] = m
+            collector["iteration"] = i
 
             if i % 10 == 0:
                 # Saving the result every 10 iterations

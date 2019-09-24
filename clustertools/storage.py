@@ -29,6 +29,8 @@ __EXP_NAME__ = "Experiment"
 __PARAMETERS__ = "Parameters"
 __RESULTS__ = "Results"
 __CONTEXT__ = "Context"
+__WATCH__ = "Watch"
+__REPR__ = "Repr"
 
 
 class Architecture(object):
@@ -132,6 +134,9 @@ class Storage(object):
     def folder(self):
         return self._folder
 
+    def specialize(self, comp_name):
+        return ComputationStorage(comp_name, self)
+
     def delete(self):
         self.architecture.erase_experiment(self.exp_name)
 
@@ -158,6 +163,10 @@ class Storage(object):
         pass
 
     @abstractmethod
+    def load_state(self, comp_name):
+        pass
+
+    @abstractmethod
     def load_states(self):
         """Return a list of state corresponding to self.exp_name"""
         pass
@@ -168,14 +177,19 @@ class Storage(object):
     # whose key-value mapping represent information regarding the results
     # (namely, the experience name, the parameters of the computation, the
     # context and the actual results)
-    def save_result(self, comp_name, parameters, result, context="n/a"):
+    def save_result(self, comp_name, parameters, result, context=None,
+                    watch=None, comp_repr=None):
+        if context is None:
+            context = ["n/a"]
         # Create the R-dict (legacy format)
         r_dict = {
             comp_name: {
                 __EXP_NAME__: self.exp_name,
                 __PARAMETERS__: parameters,
                 __CONTEXT__: context,
-                __RESULTS__: dict(result)
+                __RESULTS__: dict(result),
+                __WATCH__: watch,
+                __REPR__: comp_repr,
             }
         }
         self._save_r_dict(comp_name, r_dict)
@@ -344,10 +358,19 @@ class PickleStorage(Storage):
 
     # |--------------------------- Notifications ----------------------------> #
 
+    def _get_state_path(self, comp_name):
+        return os.path.join(self._get_notif_db(), "{}.pkl".format(comp_name))
+
     def update_state(self, state):
-        fpath = os.path.join(self._get_notif_db(), "%s.pkl" % state.comp_name)
+        fpath = self._get_state_path(state.comp_name)
         self._save(state, fpath)
         return state
+
+    def load_state(self, comp_name):
+        fpath = self._get_state_path(comp_name)
+        if not os.path.exists(fpath):
+            return None
+        return self.__class__._load(fpath)
 
     def load_states(self):
         from .state import State
@@ -403,4 +426,38 @@ class PickleStorage(Storage):
         for fpath in glob.glob(os.path.join(self._get_result_db(), "*.pkl")):
             r_dict.update(self._load(fpath))
         return r_dict
+
+
+class ComputationStorage(object):
+    def __init__(self, comp_name, storage):
+        self._comp_name = comp_name
+        self._storage = storage
+
+    @property
+    def computation_name(self):
+        return self._comp_name
+
+    def update_state(self, state):
+        return self._storage.update_state(state)
+
+    def load_state(self):
+        return self._storage.load_state(self.computation_name)
+
+    def save_result(self, parameters, result, context="n/a", watch=None,
+                    comp_repr=None):
+        self._storage.save_result(self.computation_name, parameters,
+                                  result, context, watch, comp_repr)
+
+    def load_context_watch_result(self):
+        r_dict = self._storage._load_r_dict(self.computation_name)
+        context = r_dict[__CONTEXT__]
+        if not isinstance(context, list):
+            context = [context]
+        return context, r_dict[__WATCH__], r_dict[__RESULTS__]
+
+    def restore_back_up(self):
+        self._storage.restore_back_up(self.computation_name)
+
+
+
 

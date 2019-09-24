@@ -32,8 +32,9 @@ def test_reset_state():
 
 def test_abort_state():
     for state_cls in PendingState, RunningState, CompletedState, \
-                     IncompleteState, CriticalState, PartialState, \
+                     CriticalState, PartialState, \
                      LaunchableState:
+        # IncompleteState cannot be aborted
         state = state_cls("test_comp")
         state = state.abort(ManualInterruption("Test interruption"))
         assert_true(isinstance(state, AbortedState))

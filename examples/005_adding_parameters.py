@@ -48,14 +48,14 @@ class MyComputation(Computation):
     """
 
     # We add the `n` parameter with a default value of 0.
-    def run(self, result, x, z, w, y=2, n=0, **parameters):
+    def run(self, collector, x, z, w, y=2, n=0, **parameters):
         import time
         from random import randint, normalvariate
 
-        result["multiply"] = x * y
+        collector["multiply"] = x * y
         # Simulate the effect of the new parameter: in this case we add
         # some gaussian noise to the computation of the sum
-        result["sum"] = z + w + normalvariate(0, n)
+        collector["sum"] = z + w + normalvariate(0, n)
         time.sleep(randint(1, 10))
 
 

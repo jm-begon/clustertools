@@ -7,7 +7,7 @@ from nose import with_setup
 
 from clustertools.environment import Environment
 from clustertools.experiment import Computation
-from clustertools.storage import Storage, Architecture, PickleStorage
+from clustertools.storage import Architecture, PickleStorage, Storage
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -39,6 +39,12 @@ class IntrospectStorage(Storage):
 
     def load_states(self):
         return [states[-1] for states in self.state_history.values()]
+
+    def load_state(self, comp_name):
+        s = self.state_history.get(comp_name, None)
+        if s is None:
+            return None
+        return s[-1]
 
     def _save_r_dict(self, comp_name, r_dict):
         self.result_history[comp_name].append(r_dict)
@@ -110,8 +116,8 @@ class TestComputation(Computation):
                                               context=context,
                                               storage_factory=storage_factory)
 
-    def run(self, result, x1, x2, **ignored):
-        result["mult"] = x1 * x2
+    def run(self, collector, x1, x2, **ignored):
+        collector["mult"] = x1 * x2
 
 
 class InterruptedComputation(Computation):
@@ -122,7 +128,7 @@ class InterruptedComputation(Computation):
                          context=context,
                          storage_factory=storage_factory)
 
-    def run(self, result, **parameters):
+    def run(self, collector, **parameters):
         raise KeyboardInterrupt()
 
 

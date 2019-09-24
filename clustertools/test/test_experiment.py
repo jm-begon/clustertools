@@ -46,22 +46,21 @@ def test_correct_computation():
     result1 = computation(x1=5, x2=2, x3=50)
     result2 = intro_storage.load_result(computation.comp_name)
     for result in result1, result2:
-        assert_equal(len(result), 2)  # One real metric + repr
+        assert_equal(len(result), 1)  # Only one metric
         assert_equal(result["mult"], 2 * 5)
 
     assert_equal(len(intro_storage.result_history), 1)  # Only one computation
     assert_equal(len(intro_storage.state_history), 1)  # Only one computation
     states = list(intro_storage.state_history.values())[0]
     # If correct, state should have followed the sequence:
-    # Running (p=0), Running (p=1), Critical, Partial, Completed
-    assert_equal(len(states), 5)
+    # Running (progress=0), Critical, Partial, Completed (progress=1)
+    assert_equal(len(states), 4)
     assert_true(isinstance(states[0], RunningState))
-    assert_true(isinstance(states[1], RunningState))
-    assert_true(isinstance(states[2], CriticalState))
-    assert_true(isinstance(states[3], PartialState))
-    assert_true(isinstance(states[4], CompletedState))
-    assert_equal(states[0].progress, 0.)
-    assert_equal(states[1].progress, 1.)
+    assert_true(isinstance(states[1], CriticalState))
+    assert_true(isinstance(states[2], PartialState))
+    assert_true(isinstance(states[3], CompletedState))
+    # assert_equal(states[0].progress_monitor.progress, 0.)
+    assert_equal(states[-1].progress_monitor.progress, 1.)
 
 
 @with_setup(prep, purge)

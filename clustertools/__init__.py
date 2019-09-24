@@ -50,7 +50,7 @@ from .config import get_ct_folder, get_default_environment
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __date__ = "08 Oct. 2015"
 
 

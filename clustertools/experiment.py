@@ -16,10 +16,10 @@ from abc import ABCMeta, abstractmethod
 import logging
 from functools import partial
 
+from clustertools.chrono import Watch, BrokenWatch
 from clustertools.util import SigHandler
 from .storage import PickleStorage, __PARAMETERS__, __RESULTS__
-from .state import LaunchableState, RunningState, Monitor
-
+from .state import LaunchableState, RunningState, Monitor, IncompleteState
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -48,13 +48,97 @@ class Result(dict):
             raise AttributeError(key)
 
     def __setstate__(self, state):
-        # cf. https://github.com/scikit-learn/scikit-learn/issues/6196.
+        # cf. https://github.com/scikit-learn/scikit-learn/issues/6196
         pass
 
     def __repr__(self):
         kwargs = ", ".join(["{k}={v}".format(k=k, v=v) for k,v in self.items()])
         return "{cls}({kwargs})".format(cls=self.__class__.__name__,
                                         kwargs=kwargs)
+
+
+class Collector(object):
+    """
+    `Collector`
+    ==================
+    The `Collector` has two responsibilities:
+     1. Manage de stateful part of the computation (update the state, etc.)
+     2. Collect input from the user (progress, laps, result)
+    """
+    def __init__(self, comp_name, parameters, storage, context="n/a",
+                 repr="n/a"):
+
+        self.comp_name = comp_name
+        self.parameters = parameters
+        self.comp_storage = storage.specialize(comp_name)
+        self.current_state = LaunchableState(comp_name)
+        self.current_context = context
+        self.watch = None
+        self.result = None
+        self.repr = repr
+        self.contexts = []
+
+    def get_interrupt_handler(self):
+        def interrupt_handler(exception):
+            self.current_state = self.comp_storage.update_state(self.current_state.is_not_up())
+            logging.getLogger("clustertools").warning("Job got interrupted: {}"
+                                                      "".format(repr(exception)),
+                                                      exc_info=exception)
+        return interrupt_handler
+
+    def __setitem__(self, key, value):
+        self.result[key] = value
+
+    def __enter__(self):
+        previous_state = self.comp_storage.load_state()
+        if isinstance(previous_state, IncompleteState):
+            # Reload everything for restart
+            contexts, watch, result = self.comp_storage.load_context_watch_result()
+            self.contexts = contexts
+            self.result = result
+            # Reset the watch and the progress monitor of the state
+            self.watch = Watch.reset(watch)
+            previous_state.reset_progress_monitor(watch.progress_monitor)
+            self.current_state = previous_state
+
+        else:
+            # Start from scratch
+            self.current_state = LaunchableState(self.comp_name)
+            self.watch = Watch(self.current_state.progress_monitor)
+            self.result = Result()
+
+        self.contexts.append(self.current_context)
+        self.watch.__enter__()
+        self.current_state = self.comp_storage.update_state(RunningState.from_(self.current_state))
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.watch.__exit__(exc_type, exc_val, exc_tb)
+        if isinstance(exc_val, KeyboardInterrupt):
+            # Has been handled already
+            return False
+        elif exc_val is not None:
+            self.current_state = self.comp_storage.update_state(self.current_state.abort(exc_val))
+            return False  # re-raise the exception
+
+        self.save_result()
+        self.current_state = self.comp_storage.update_state(self.current_state.to_completed())
+
+    def update_progress(self, progress):
+        self.watch.update_progress(progress)
+        self.current_state = self.comp_storage.update_state(self.current_state)
+
+    def new_lap(self, label=None):
+        self.watch.new_lap(label)
+
+    def save_result(self, parameters=None):
+        if parameters is None:
+            parameters = self.parameters
+        self.current_state = self.comp_storage.update_state(self.current_state.to_critical())
+        self.comp_storage.save_result(parameters, self.result, self.contexts,
+                                      self.watch, self.repr)
+        self.current_state = self.comp_storage.update_state(self.current_state.to_partial())
 
 
 class Computation(object):
@@ -83,7 +167,7 @@ class Computation(object):
         return partial(cls, **kwargs)
 
     def __init__(self, exp_name, comp_name, context="n/a",
-                 storage_factory=PickleStorage):
+                 storage_factory=None):
         if storage_factory is None:
             storage_factory = PickleStorage
         if context is None:
@@ -91,9 +175,7 @@ class Computation(object):
         self.exp_name = exp_name
         self.comp_name = comp_name
         self.context = context
-        self.storage = storage_factory(experiment_name=self.exp_name)
-        self.current_state = LaunchableState(self.comp_name)
-        self.result = None
+        self.storage = storage_factory(exp_name)
         self.parameters = {}
 
     def __repr__(self):
@@ -104,47 +186,23 @@ class Computation(object):
                          exp_name=repr(self.exp_name),
                          comp_name=repr(self.comp_name),
                          context=repr(self.context),
-                         storage_factory=self.storage.__class__.__name__,
+                         storage_factory=repr(self.storage.__class__),
                          parameters=repr(self.parameters))
 
     @abstractmethod
-    def run(self, result, **parameters):
+    def run(self, collector, **parameters):
         pass
-
-    def notify_progress(self, progress):
-        self.current_state = self.storage.update_state(self.current_state.update_progress(progress))
-
-    def save_result(self, result=None):
-        if result is not None:
-            self.result = result
-
-        self.current_state = self.storage.update_state(self.current_state.to_critical())
-        self.storage.save_result(self.comp_name, self.parameters, self.result,
-                                 self.context)
-        self.current_state = self.storage.update_state(self.current_state.to_partial())
-
-    def _interrupt_handler(self, exception):
-        self.storage.update_state(self.current_state.is_not_up())
-        logging.getLogger("clustertools").warning("Job got interrupted: {}"
-                                                  "".format(repr(exception)),
-                                                  exc_info=exception)
 
     def __call__(self, **parameters):
         actual_parameters = {k: v for k, v in self.parameters.items()}
         actual_parameters.update(parameters)
-        with SigHandler(self._interrupt_handler):
-            self.current_state = self.storage.update_state(RunningState(self.comp_name))
-            if self.result is None:
-                self.result = Result(repr=repr(self))
-            try:
-                self.run(self.result, **actual_parameters)
-                self.notify_progress(1.)
-                self.save_result(self.result)
-                self.current_state = self.storage.update_state(self.current_state.to_completed())
-            except Exception as exception:
-                self.storage.update_state(self.current_state.abort(exception))
-                raise
-        return self.result
+        with Collector(self.comp_name, actual_parameters,
+                       self.storage, self.context, repr(self)) as collector, \
+            SigHandler(collector.get_interrupt_handler()):
+
+            self.run(collector, **actual_parameters)
+            result = collector.result
+        return result
 
     def lazyfy(self, **parameters):
         self.parameters = parameters

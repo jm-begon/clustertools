@@ -29,7 +29,7 @@ class MyComputation(Computation):
     root for x^3 - x - 2 on [a, b]
     """
 
-    def run(self, result, a, b, **parameters):
+    def run(self, collector, a, b, **parameters):
         import time
 
         # The polynome for which we are trying to find the roots
@@ -53,7 +53,7 @@ class MyComputation(Computation):
             # `clustertools count`
             time.sleep(1)
 
-        result["root"] = m
+        collector["root"] = m
 
 
 if __name__ == "__main__":
