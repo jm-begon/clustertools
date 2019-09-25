@@ -7,7 +7,7 @@ from nose.tools import with_setup
 from clustertools.storage import PickleStorage
 from clustertools.state import PendingState, AbortedState, ManualInterruption
 
-from .util_test import pickle_prep, pickle_purge, __EXP_NAME__
+from .util_test import pickle_prep, pickle_purge, __EXP_NAME__, get_exp_name
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -18,7 +18,7 @@ def test_save_then_load_result():
     comp_name = "test_comp"
     parameters = {"a": 1, "b": (2,3)}
     expected_result = {"r": 10, "t": (11, 12)}
-    storage = PickleStorage(__EXP_NAME__)
+    storage = PickleStorage(get_exp_name())
     storage.save_result(comp_name, parameters, expected_result)
     given_result = storage.load_result(comp_name)
     assert_equal(expected_result, given_result)
@@ -26,7 +26,7 @@ def test_save_then_load_result():
 
 @with_setup(pickle_prep, pickle_purge)
 def test_save_then_load_result_and_params():
-    storage = PickleStorage(__EXP_NAME__)
+    storage = PickleStorage(get_exp_name())
     p1 = {"a": 1, "b": (2,3)}
     r1 = {"r": 10, "t": (11, 12)}
     p2 = {"a": 7}
@@ -48,7 +48,7 @@ def test_save_then_load_result_and_params():
 
 @with_setup(pickle_prep, pickle_purge)
 def test_save_then_load_state():
-    storage = PickleStorage(__EXP_NAME__)
+    storage = PickleStorage(get_exp_name())
     pending = PendingState("pending")
     abort_exp = ManualInterruption("Test")
     aborted = AbortedState("aborted", abort_exp)

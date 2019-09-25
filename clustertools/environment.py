@@ -484,7 +484,7 @@ class SlurmEnvironment(Environment):
     def issue(self, lazy_computation):
         # Making Slurm command
         comp_name = lazy_computation.comp_name
-        log_folder = lazy_computation.storage._get_log_folder()
+        log_folder = lazy_computation.storage.get_log_folder()
         log_prefix = os.path.join(log_folder, comp_name)
 
         env_params = {"time": self.time, "memory": self.memory,

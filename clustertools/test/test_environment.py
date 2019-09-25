@@ -14,8 +14,8 @@ from clustertools.environment import InSituEnvironment, \
 from clustertools.storage import PickleStorage
 
 from .util_test import purge, prep, pickle_prep, pickle_purge, \
-    __EXP_NAME__, IntrospectStorage, TestComputation, with_setup_, \
-    skip_if_usuable
+    IntrospectStorage, TestComputation, with_setup_, \
+    skip_if_usuable, get_exp_name
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -28,7 +28,7 @@ __copyright__ = "3-clause BSD License"
 def test_session():
     parameter_set = ParameterSet()
     parameter_set.add_parameters(x1=range(3), x2=range(3))
-    experiment = Experiment(__EXP_NAME__, parameter_set, TestComputation,
+    experiment = Experiment(get_exp_name(), parameter_set, TestComputation,
                             IntrospectStorage)
 
     env = InSituEnvironment(fail_fast=True)
@@ -97,10 +97,10 @@ def test_cluster_script():
 
 @with_setup_(pickle_prep, pickle_purge)
 def in_situ_env(environment):
-    print(repr(environment)) # In case of error, prints the type of environment
+    print(repr(environment))  # In case of error, prints the type of environment
     parameter_set = ParameterSet()
     parameter_set.add_parameters(x1=range(3), x2=range(3))
-    experiment = Experiment(__EXP_NAME__, parameter_set,
+    experiment = Experiment(get_exp_name(), parameter_set,
                             TestComputation,
                             PickleStorage)
     try:
@@ -129,14 +129,15 @@ def environment_integration(environment):
     print(repr(environment))  # In case of error, prints the type of environment
     parameter_set = ParameterSet()
     parameter_set.add_parameters(x1=range(3), x2=range(3))
-    experiment = Experiment(__EXP_NAME__, parameter_set,
+    experiment = Experiment(get_exp_name(), parameter_set,
                             TestComputation,
                             PickleStorage)
     try:
         error_code = environment.run(experiment, start=2, capacity=5)
         assert_equal(error_code, 0)
-    except:
-        assert_true(False, "An exception was raised by the environment")
+    except Exception as e:
+        assert_true(False, "The following exception was raised by the "
+                           "environment: {}".format(repr(e)))
         raise
 
 

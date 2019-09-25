@@ -11,7 +11,7 @@ from clustertools.environment import BashEnvironment, SlurmEnvironment, \
     InSituEnvironment
 
 from .util_test import pickle_prep, pickle_purge, __EXP_NAME__, with_setup_, \
-    ListUpJobs, prep, purge, IntrospectStorage
+    ListUpJobs, prep, purge, IntrospectStorage, get_exp_name
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -160,13 +160,13 @@ def monitor_refresh(monitor, can_list):
 
 
 def test_monitor_refresh_can_list():
-    monitor = Monitor(__EXP_NAME__, environment_cls=SlurmEnvironment)
+    monitor = Monitor(get_exp_name(), environment_cls=SlurmEnvironment)
     monitor_refresh(monitor, SlurmEnvironment.is_usable())
 
 
 def test_monitor_refresh_cannot_list():
     for env_cls in InSituEnvironment, BashEnvironment:
-        monitor = Monitor(__EXP_NAME__, environment_cls=env_cls)
+        monitor = Monitor(get_exp_name(), environment_cls=env_cls)
         monitor_refresh(monitor, False)
 
 
@@ -230,15 +230,14 @@ def monitor_incomplete_to_launchable(monitor, can_list):
 
 
 def test_monitor_incomplete_to_launchable_can_list():
-    monitor = Monitor(__EXP_NAME__, environment_cls=SlurmEnvironment)
+    monitor = Monitor(get_exp_name(), environment_cls=SlurmEnvironment)
     monitor_incomplete_to_launchable(monitor, SlurmEnvironment.is_usable())
 
 
 def test_monitor_incomplete_to_launchable_cannot_list():
     for env_cls in InSituEnvironment, BashEnvironment:
-        monitor = Monitor(__EXP_NAME__, environment_cls=env_cls)
+        monitor = Monitor(get_exp_name(), environment_cls=env_cls)
         monitor_incomplete_to_launchable(monitor, False)
-
 
 
 @with_setup(pickle_prep, pickle_purge)
@@ -248,11 +247,11 @@ def test_monitor_aborted_to_launchable():
     aborted = AbortedState("test_aborted",
                            ManualInterruption("Test interruption"))
 
-    storage = PickleStorage(__EXP_NAME__)
+    storage = PickleStorage(get_exp_name())
     for state in incomplete, completed, aborted:
         storage.update_state(state)
 
-    monitor = Monitor(__EXP_NAME__)
+    monitor = Monitor(get_exp_name())
     monitor.aborted_to_launchable()
 
     assert_in(aborted.comp_name, monitor.launchable_computations())

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import os
+import random
 from collections import defaultdict
 from unittest import SkipTest
 
@@ -13,6 +14,10 @@ __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
 
 __EXP_NAME__ = "ClustertoolsTest"
+
+
+def get_exp_name():
+    return "{}_{}".format(__EXP_NAME__, os.getpid())
 
 
 class IntrospectStorage(Storage):
@@ -69,16 +74,19 @@ def purge(exp_name=__EXP_NAME__, storage_factory=IntrospectStorage):
     return storage
 
 
-def pickle_purge(exp_name=__EXP_NAME__):
+def pickle_purge(exp_name=None):
+    exp_name = get_exp_name() if exp_name is None else exp_name
     purge(exp_name, PickleStorage)
 
 
-def prep(exp_name=__EXP_NAME__, storage_factory=IntrospectStorage):
+def prep(exp_name=None, storage_factory=IntrospectStorage):
+    exp_name = get_exp_name() if exp_name is None else exp_name
     storage = purge(exp_name, storage_factory)
     storage.init()
 
 
-def pickle_prep(exp_name=__EXP_NAME__):
+def pickle_prep(exp_name=None):
+    exp_name = get_exp_name() if exp_name is None else exp_name
     prep(exp_name, PickleStorage)
 
 
@@ -109,8 +117,9 @@ def skip_if_usuable(environment_cls):
 
 
 class TestComputation(Computation):
-    def __init__(self, exp_name=__EXP_NAME__, comp_name="TestComp",
+    def __init__(self, exp_name=None, comp_name="TestComp",
                  context="n/a", storage_factory=IntrospectStorage):
+        exp_name = get_exp_name() if exp_name is None else exp_name
         super(TestComputation, self).__init__(exp_name=exp_name,
                                               comp_name=comp_name,
                                               context=context,
@@ -121,8 +130,9 @@ class TestComputation(Computation):
 
 
 class InterruptedComputation(Computation):
-    def __init__(self, exp_name=__EXP_NAME__, comp_name="TestComp",
+    def __init__(self, exp_name=None, comp_name="TestComp",
                  context="n/a", storage_factory=IntrospectStorage):
+        exp_name = get_exp_name() if exp_name is None else exp_name
         super().__init__(exp_name=exp_name,
                          comp_name=comp_name,
                          context=context,
