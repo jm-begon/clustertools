@@ -511,10 +511,10 @@ class Counter(RemotableSubProg):
                     try:
                         monitor = Monitor(name)
                         print("\t", name, monitor.count_by_state())
-                        for i, (comp_name, progress) in enumerate(
+                        for i, (comp_name, progress_monitor) in enumerate(
                                 monitor.get_working_progress().items()):
-                            print("\t\t{} - {:.2f} %".format(comp_name,
-                                                             progress * 100))
+                            print("\t\t{} - {}".format(comp_name,
+                                                       str(progress_monitor)))
                             if i >= args.n_progress:
                                 print("\t\t...")
                                 break
