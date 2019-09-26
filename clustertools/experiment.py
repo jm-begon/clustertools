@@ -179,14 +179,17 @@ class Computation(object):
         self.parameters = {}
 
     def __repr__(self):
-        return "{cls}(exp_name={exp_name}, comp_name={comp_name}, " \
-               "context={context}, " \
-               "storage_factory={storage_factory}).lazyfiy(**{parameters})" \
+        args = [
+            "exp_name={}".format(repr(self.exp_name)),
+            "comp_name={}".format(repr(self.comp_name)),
+            "context={}".format(repr(self.context)),
+        ]
+        if self.storage.__class__ == PickleStorage:
+            args.append("storage_factory={}".format(repr(self.storage.__class__)))
+
+        return "{cls}({args}).lazyfy(**{parameters})" \
                "".format(cls=self.__class__.__name__,
-                         exp_name=repr(self.exp_name),
-                         comp_name=repr(self.comp_name),
-                         context=repr(self.context),
-                         storage_factory=repr(self.storage.__class__),
+                         args=", ".join(args),
                          parameters=repr(self.parameters))
 
     @abstractmethod
