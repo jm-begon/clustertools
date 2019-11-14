@@ -184,8 +184,8 @@ class Computation(object):
             "comp_name={}".format(repr(self.comp_name)),
             "context={}".format(repr(self.context)),
         ]
-        if self.storage.__class__ == PickleStorage:
-            args.append("storage_factory={}".format(repr(self.storage.__class__)))
+        if type(self.storage) != PickleStorage:
+            args.append("storage_factory={}".format(type(self.storage)))
 
         return "{cls}({args}).lazyfy(**{parameters})" \
                "".format(cls=self.__class__.__name__,

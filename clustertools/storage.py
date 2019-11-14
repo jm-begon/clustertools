@@ -201,13 +201,17 @@ class Storage(object):
         pass
 
     def load_result(self, comp_name):
+        res = self.load_r_dict(comp_name)
+        return {} if len(res) == 0 else res[__RESULTS__]
+
+    def load_r_dict(self, comp_name):
         res = self._load_r_dict(comp_name)
         try:
             if len(res) == 0:
                 return {}
         except:
             return {}
-        return res[comp_name][__RESULTS__]
+        return res[comp_name]
 
     @abstractmethod
     def _load_r_dict(self, comp_name):
@@ -459,5 +463,72 @@ class ComputationStorage(object):
         self._storage.restore_back_up(self.computation_name)
 
 
+class ComputationInfoPrinter(object):
+    def __init__(self, exp_name, comp_name, long_info=False,
+                 storage_factory=None):
+        self.exp_name = exp_name
+        self.comp_name = comp_name
+        self.long_info = long_info
+        self.storage = storage_factory(exp_name) \
+            if storage_factory is not None else PickleStorage(exp_name)
+
+    def _load_r_dict(self):
+        return self.storage.load_r_dict(self.comp_name)
 
 
+    def print_watch(self, generator, prefix="\t\t"):
+        from .chrono import duration_str
+        prev_stamp = None
+        first_stamp = None
+        for label, stamp in generator:
+            if prev_stamp is None:
+                print(prefix, label)
+                first_stamp = stamp
+            else:
+                duration = stamp - prev_stamp
+                print(prefix, label, duration_str(duration))
+            prev_stamp = stamp
+
+        if first_stamp is not None:
+            duration = prev_stamp - first_stamp
+            print(prefix, "Total duration", duration_str(duration))
+
+    def print_entry(self, r_dict, key):
+        from .chrono import BrokenWatch
+        if len(r_dict) == 0:
+            return
+        print(key.upper())
+        if key not in r_dict:
+            print("\t n/a")
+            return
+        entry = r_dict[key]
+
+        if not isinstance(entry, BrokenWatch):
+            print("\t", repr(entry))
+            return
+
+        # TODO make something much cleaner for `Watch` classes
+        print("\t Progress durations:")
+        self.print_watch(entry.yield_progress_durations())
+
+        print("\t User durations:")
+        self.print_watch(entry.yield_user_durations())
+
+    def print(self):
+        # TODO formatting class
+        # Header
+        title = "{} -- {}".format(self.exp_name, self.comp_name)
+        width = max(len(title)+4, 80)
+        print("/", "=" * (width-2), "+", sep="")
+        print("| ", title, " "*(width-4-len(title)), " |", sep="")
+        print("+", "=" * (width-2), "/", sep="")
+
+        r_dict = self._load_r_dict()
+        if len(r_dict) == 0:
+            print("n/a")
+            return
+        # Content
+        for key in __PARAMETERS__, __CONTEXT__, __WATCH__, __REPR__:
+            self.print_entry(r_dict, key)
+        if self.long_info:
+            self.print_entry(r_dict, __RESULTS__)

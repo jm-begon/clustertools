@@ -21,7 +21,8 @@ from clustertools import Monitor
 from clustertools import build_datacube
 from clustertools import shutup_logger
 from clustertools.parser import or_none
-from clustertools.storage import PickleStorage, Architecture
+from clustertools.storage import PickleStorage, Architecture,\
+    ComputationInfoPrinter
 
 __author__ = "Begon Jean-Michel <jm.begon@gmail.com>"
 __copyright__ = "3-clause BSD License"
@@ -338,32 +339,28 @@ class Displayer(RemotableSubProg):
             storage = PickleStorage(self.exp_name)
             if self.type == "log":
                 storage.print_log(self.comp_name, last_lines=self.last_lines)
-            else:
-                # result / state
-                # TODO do something more portable
-                if self.type == "state":
+            elif self.type == "state":
                     fpath = os.path.join(storage._get_notif_db(),
                                          "{}.pkl".format(self.comp_name))
-                elif self.type == "result":
-                    fpath = os.path.join(storage._get_result_db(),
-                                         "{}.pkl".format(self.comp_name))
-                else:
-                    raise ValueError(
-                        "Type '{}' does not exist".format(self.type))
+                    with open(fpath, "rb") as handle:
+                        try:
+                            raw = pickle.load(handle)
+                        except Exception:
+                            raw = dill.load(handle)
+                        print(repr(raw))
 
-                with open(fpath, "rb") as handle:
-                    try:
-                        raw = pickle.load(handle)
-                    except Exception:
-                        raw = dill.load(handle)
-                    print(repr(raw))
+            else:
+                long_info = self.type == "long_info"
+                ComputationInfoPrinter(self.exp_name, self.comp_name,
+                                       long_info=long_info).print()
 
     @property
     def subprog_name(self):
         return "display"
 
     def fill_in_subparser_(self, sub_parser):
-        sub_parser.add_argument("type", choices=["result", "state", "log"])
+        sub_parser.add_argument("type", choices=["info", "long_info", "state",
+                                                 "log"])
         sub_parser.add_argument("query", help=query_doc)
         sub_parser.add_argument("computation",
                                 help="Computation name or number")
