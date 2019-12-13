@@ -157,6 +157,7 @@ class Watch(BrokenWatch):
         self.progress_chronos[-1].new_lap(label)
         if exc_val is None:
             self.progress_monitor.update_progress(1.)
+        self.stop()
 
     def update_progress(self, progress):
         if progress - self.last_update > 1/(self.update_rate*100):
