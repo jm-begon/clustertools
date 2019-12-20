@@ -152,12 +152,13 @@ class Syncher(SubProg):
         print("Transferring {} from {} to {}".format(experiment, source_machine,
                                                      destination_machine))
 
+        # TODO
         if source_machine == '.':
-            source_prefix = ''
+            source_prefix = os.path.expanduser("~") + "/"
         else:
             source_prefix = source_machine + ':'
         if destination_machine == '.':
-            destination_prefix = ''
+            destination_prefix = os.path.expanduser("~") + "/"
         else:
             destination_prefix = destination_machine + ':'
 
