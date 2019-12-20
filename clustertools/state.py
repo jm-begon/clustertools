@@ -395,6 +395,10 @@ class Monitor(object):
     def incomplete_to_launchable(self, predicate=lambda x: True):
         self.reset(IncompleteState, predicate)
 
+    def kill_pending(self):
+        self.to_launchables(self._indices(PendingState, lambda x: True))
+
+
     def abort(self, exception=ManualInterruption("Monitor interruption"),
               from_state=State, predicate=lambda x: True):
         indices = self._indices(from_state, predicate)
