@@ -38,16 +38,17 @@ class ProgressMonitor(object):
     def __str__(self):
         now = py_time.time()
         elapsed = now - self.start + self.duration_padding
+        p_str = "{:.2f}".format(self.progress * 100)
 
         if self.average_speed is None:
-            return "{:.2f} % | Elapsed: {}".format(self.progress * 100,
-                                                   duration_str(elapsed))
+            return "{:>6} % | Elapsed: {}".format(p_str,
+                                                  duration_str(elapsed))
 
         # Average speed is known; it is possible to compute eta/etd estimates
         eta = (1 - self.progress) / self.average_speed
         total_duration = elapsed + eta
-        return "{:.2f} % | Elapsed: {} | ETA: {} | ETD: {}" \
-               "".format(self.progress*100,
+        return "{:>6} % | Elapsed: {} | ETA: {} | ETD: {}" \
+               "".format(p_str,
                          duration_str(elapsed),
                          duration_str(eta),
                          duration_str(total_duration))
