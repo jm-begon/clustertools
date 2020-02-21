@@ -10,7 +10,7 @@ sudo: required
 
 install:
   - pip install -r requirements.txt
-  - pip install coverage python-coveralls
+  - pip install coverage==4.5.4 python-coveralls
   - source continuous_integration/install.sh
 
 env:
