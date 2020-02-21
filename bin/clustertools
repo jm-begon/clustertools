@@ -503,6 +503,8 @@ class Counter(RemotableSubProg):
             except Exception:
                 hostname = "Unknown host"
             print(hostname, ":")
+            def shorten(comp_name):
+                return "Comp[...]-{}".format(comp_name.split("-")[-1])
 
             for exp_name in self.exp_names:
                 for name in filter_experiment(exp_name):
@@ -511,7 +513,7 @@ class Counter(RemotableSubProg):
                         print("\t", name, monitor.count_by_state())
                         for i, (comp_name, progress_monitor) in enumerate(
                                 monitor.get_working_progress().items()):
-                            print("\t\t{} - {}".format(comp_name,
+                            print("\t\t{} - {}".format(shorten(comp_name),
                                                        str(progress_monitor)))
                             if i >= args.n_progress:
                                 print("\t\t...")

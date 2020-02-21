@@ -89,6 +89,9 @@ class Collector(object):
     def __setitem__(self, key, value):
         self.result[key] = value
 
+    def __getitem__(self, item):
+        return self.result[item]
+
     def __enter__(self):
         previous_state = self.comp_storage.load_state()
         if isinstance(previous_state, IncompleteState):

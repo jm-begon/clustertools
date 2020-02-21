@@ -97,7 +97,7 @@ class State(object):
         return hash(repr(self))
 
     def __setstate__(self, state):
-        # Ensure correct unpickling with respect to previous class definition
+        # Ensure correct unpickling with respect to previous class definitions
         if "exp_name" in state:
             # The field 'exp_name' has been suppressed, this is
             # no longer the responsibility of the state to remember to which

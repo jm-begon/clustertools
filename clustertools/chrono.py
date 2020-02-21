@@ -3,7 +3,11 @@ import time as py_time
 
 
 def duration_str(duration_in_sec):
-    return "{}".format(datetime.timedelta(seconds=duration_in_sec))
+    delta = datetime.timedelta(seconds=duration_in_sec)
+    s = "{}".format(delta)
+    # remove milliseconds and stuff
+    return s.split(".")[0]
+
 
 
 class ProgressMonitor(object):
@@ -39,7 +43,7 @@ class ProgressMonitor(object):
             return "{:.2f} % | Elapsed: {}".format(self.progress * 100,
                                                    duration_str(elapsed))
 
-        # Average speed is known; it is possible to compute estimates
+        # Average speed is known; it is possible to compute eta/etd estimates
         eta = (1 - self.progress) / self.average_speed
         total_duration = elapsed + eta
         return "{:.2f} % | Elapsed: {} | ETA: {} | ETD: {}" \
@@ -185,3 +189,7 @@ class Watch(BrokenWatch):
         return self.progress_chronos.duration_till_last_lap()
 
 
+# What is needed is a ProgressMonitor per user-specified lap with possibly
+# the percentage the lap represents in the total
+# Note: time is useful either to inform or to measure. While the goal is better
+# specified, let us leave the implementation as is.
