@@ -44,5 +44,5 @@ if __name__ == '__main__':
           packages=['clustertools', 'clustertools.test'],
           scripts=['bin/ct_count', 'bin/ct_sync',
                    'bin/ct_remote', 'bin/ct_display',
-                   'bin/clustertools'])
+                   'bin/clustertools', 'bin/ct_run'])
 

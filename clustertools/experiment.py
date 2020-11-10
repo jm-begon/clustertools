@@ -222,6 +222,23 @@ class Computation(object):
         return True
 
 
+class ScriptComputation(Computation):
+    @classmethod
+    def format_args(cls, dict):
+        return ["--{} {}".format(k, v) for k, v in dict.items()]
+
+    def run(self, collector, script_path, **kwargs):
+        import subprocess
+
+        cmd = [script_path] + self.__class__.format_args(kwargs)
+
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT)
+
+        print(proc.stdout)
+        collector["return_code"] = proc.returncode
+
+
 class Experiment(object):
 
     @classmethod

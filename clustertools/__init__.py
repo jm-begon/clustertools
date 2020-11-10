@@ -38,7 +38,7 @@ import logging
 # Clustertools visibility
 from .storage import Architecture
 from .state import Monitor
-from .experiment import Computation, Result, Experiment
+from .experiment import Computation, Result, Experiment, ScriptComputation
 from .parameterset import ParameterSet, ConstrainedParameterSet, \
     PrioritizedParamSet, CartesianParameterSet, ExplicitParameterSet
 from .environment import Serializer, FileSerializer, InSituEnvironment
@@ -55,10 +55,10 @@ __date__ = "08 Oct. 2015"
 
 
 __all__ = ["Monitor", "Computation", "ParameterSet", "ConstrainedParameterSet",
-           "Result", "Experiment", "Serializer", "FileSerializer" "Datacube",
+           "Result", "Experiment", "Serializer", "FileSerializer", "Datacube",
            "build_result_cube", "build_datacube", "BaseParser", "ClusterParser",
            "call_with", "set_stdout_logging", "InSituEnvironment",
-           "get_default_environment", "CTParser"]
+           "get_default_environment", "CTParser", "ScriptComputation"]
 
 
 logging.getLogger("clustertools").addHandler(logging.NullHandler())
