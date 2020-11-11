@@ -27,6 +27,7 @@ if __name__ == '__main__':
     script_path = os.path.expanduser(args.script_path)
 
     param_set = ParameterSet()
+    param_set.add_parameters(script_path=args.script_path)
     for t in args.kwargs:
         key, value = t.replace("--", "").split("=")
         param_set.add_parameters(key=value)
