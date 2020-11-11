@@ -27,6 +27,8 @@ if __name__ == '__main__':
 
     exp_name = args.experiment_name
     script_path = os.path.expanduser(args.script_path)
+    if not os.path.exists(script_path):
+        raise FileNotFoundError("'{}' does not exists".format(script_path))
 
     param_set = ParameterSet()
     path = os.path.abspath(args.script_path)
