@@ -222,13 +222,26 @@ class Computation(object):
         return True
 
 
-class ScriptComputation(Computation):
+class CliComputation(Computation):
     @classmethod
     def format_args(cls, dict):
         return ["--{} {}".format(k, v) for k, v in dict.items()]
 
+    @classmethod
+    def factory(cls, working_dir):
+        return partial(cls, working_dir=working_dir)
+
+    def __init__(self, exp_name, comp_name, working_dir, context="n/a",
+                 storage_factory=PickleStorage):
+        super().__init__(exp_name, comp_name, context=context,
+                         storage_factory=storage_factory)
+        self.working_dir = working_dir
+
+
     def run(self, collector, script_path, **kwargs):
-        import subprocess
+        import os, subprocess
+
+        os.chdir(self.working_dir)
 
         cmd = [script_path] + self.__class__.format_args(kwargs)
 
@@ -237,6 +250,49 @@ class ScriptComputation(Computation):
 
         print(proc.stdout)
         collector["return_code"] = proc.returncode
+
+
+class PythonScriptComputation(Computation):
+    """
+    Constructor parameters
+    ----------------------
+    main_fn : function
+        main function taking sys.argv[1:] as only parameter. May return
+        a dictionary
+    """
+    @classmethod
+    def factory(cls, main_fn, **fact_kwargs):
+        def callable(exp_name, comp_name, context="n/a",
+                     storage_factory=PickleStorage, **kwargs):
+            all_kwargs = {k: v for k, v in fact_kwargs.items()}
+            for k, v in kwargs.items():
+                all_kwargs[k] = v
+
+            return cls(exp_name, comp_name, main_fn, context,
+                       storage_factory, **all_kwargs)
+        return callable
+
+    def __init__(self, exp_name, comp_name, main_fn, context="n/a",
+                 storage_factory=PickleStorage, **env_params):
+        super().__init__(exp_name, comp_name, context=context,
+                         storage_factory=storage_factory)
+        self._env_params = env_params
+        self._main_fn = main_fn
+
+    def run(self, collector, **kwargs):
+        args = []
+        for job_param, value in kwargs.items():
+            args.append("--" + job_param)
+            args.append(str(value))
+        for env_key, env_val in self._env_params.items():
+            args.append("--" + env_key)
+            args.append(str(env_val))
+
+        rtn = self._main_fn(args)
+        if rtn:
+            for key, val in rtn.items():
+                collector[key] = val
+
 
 
 class Experiment(object):

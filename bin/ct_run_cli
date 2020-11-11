@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from clustertools import Experiment
 
-from clustertools import ScriptComputation, ParameterSet, \
+from clustertools import CliComputation, ParameterSet, \
     FileSerializer, set_stdout_logging
 from clustertools.parser import CTParser
 
@@ -11,7 +11,7 @@ if __name__ == '__main__':
     import os
 
     set_stdout_logging()
-    exp_name = ScriptComputation.__name__
+    exp_name = CliComputation.__name__
 
     parser = CTParser(FileSerializer, exp_name)
 
@@ -33,7 +33,8 @@ if __name__ == '__main__':
         key, value = t.replace("--", "").split("=")
         param_set.add_parameters(key=value)
 
-    experiment = Experiment(exp_name, param_set, ScriptComputation)
+    experiment = Experiment(exp_name, param_set,
+                            CliComputation.factory(os.getcwd()))
 
     environment.run(experiment)
 
