@@ -228,28 +228,62 @@ class CliComputation(Computation):
         return ["--{} {}".format(k, v) for k, v in dict.items()]
 
     @classmethod
-    def factory(cls, working_dir):
-        return partial(cls, working_dir=working_dir)
+    def factory(cls, script_path, work_from_here=True):
+        import os
+        working_dir = None
+        if work_from_here:
+            working_dir = os.getcwd()
+        script_path = os.path.abspath(os.path.expanduser(script_path))
 
-    def __init__(self, exp_name, comp_name, working_dir, context="n/a",
-                 storage_factory=PickleStorage):
+        return partial(cls, script_path=script_path, working_dir=working_dir)
+
+    def __init__(self, exp_name, comp_name, script_path, working_dir,
+                 context="n/a", storage_factory=PickleStorage):
         super().__init__(exp_name, comp_name, context=context,
                          storage_factory=storage_factory)
+        self.script_path = script_path
         self.working_dir = working_dir
 
 
-    def run(self, collector, script_path, **kwargs):
+    def run(self, collector, **kwargs):
         import os, subprocess
 
-        os.chdir(self.working_dir)
+        if self.working_dir:
+            os.chdir(self.working_dir)
 
-        cmd = [script_path] + self.__class__.format_args(kwargs)
+        cmd = [self.script_path] + self.__class__.format_args(kwargs)
 
         proc = subprocess.run(cmd, stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT)
 
         print(proc.stdout)
-        collector["return_code"] = proc.returncode
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(proc.returncode)
+
+
+
+class PyCliComputation(CliComputation):
+    def run(self, collector, **kwargs):
+        import os
+        import importlib
+        import importlib.util
+        script_path = self.script_path
+        mod_name = os.path.basename(script_path)[:-3]  # removing .py
+        mod_spec = importlib.util.spec_from_file_location(mod_name,
+                                                          script_path)
+        module = importlib.util.module_from_spec(mod_spec)
+        mod_spec.loader.exec_module(module)
+        main_fn = module.main
+
+        args = self.format_args(kwargs)
+
+        rtn = main_fn(args)
+        if rtn:
+            for key, val in rtn.items():
+                collector[key] = val
+
+
+
 
 
 class PythonScriptComputation(Computation):
@@ -280,6 +314,8 @@ class PythonScriptComputation(Computation):
         self._main_fn = main_fn
 
     def run(self, collector, **kwargs):
+
+
         args = []
         for job_param, value in kwargs.items():
             args.append("--" + job_param)

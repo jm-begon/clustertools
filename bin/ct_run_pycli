@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from clustertools import Experiment
 
-from clustertools import PythonScriptComputation, ParameterSet, \
+from clustertools import PyCliComputation, ParameterSet, \
     FileSerializer, set_stdout_logging
 from clustertools.parser import CTParser
 
@@ -10,9 +10,10 @@ from clustertools.parser import CTParser
 if __name__ == '__main__':
     import os
     import importlib
+    import importlib.util
 
     set_stdout_logging()
-    exp_name = PythonScriptComputation.__name__
+    exp_name = PyCliComputation.__name__
 
     parser = CTParser(FileSerializer, exp_name)
 
@@ -34,16 +35,10 @@ if __name__ == '__main__':
         key, value = t.replace("--", "").split("=")
         param_set.add_parameters(key=value)
 
-    # Loading the main function
-    mod_name = os.path.basename(script_path)[:-3]  # removing .py
-    mod_spec = importlib.util.spec_from_file_location(mod_name, script_path)
-    module = importlib.util.module_from_spec(mod_spec)
-    mod_spec.loader.exec_module(module)
-    main_fn = module.main
 
 
     experiment = Experiment(exp_name, param_set,
-                            PythonScriptComputation.factory(main_fn))
+                            PyCliComputation.factory(script_path))
 
     environment.run(experiment)
 
